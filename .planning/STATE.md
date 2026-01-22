@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-22)
 
 **Core value:** Качественная AI интерпретация астрологии и таро, которая конвертирует бесплатных пользователей в платных
-**Current focus:** Phase 3 - Free Horoscopes (IN PROGRESS)
+**Current focus:** Phase 3 - Free Horoscopes (COMPLETE)
 
 ## Current Position
 
-Phase: 3 of 9 (Free Horoscopes)
-Plan: 1 of 2 completed in Phase 3
-Status: In progress
-Last activity: 2026-01-22 21:36 — Completed 03-01-PLAN.md (Horoscope Formatting & Navigation)
+Phase: 3 of 9 (Free Horoscopes) - COMPLETE
+Plan: 2 of 2 completed in Phase 3
+Status: Ready for Phase 5
+Last activity: 2026-01-22 21:47 — Completed 03-02-PLAN.md (Daily Push Notifications)
 
-Progress: [█████░░░░░] 28%
+Progress: [██████░░░░] 33%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
-- Average duration: 14 min
-- Total execution time: 68 min
+- Total plans completed: 6
+- Average duration: 13 min
+- Total execution time: 75 min
 
 **By Phase:**
 
@@ -29,10 +29,10 @@ Progress: [█████░░░░░] 28%
 |-------|-------|-------|----------|
 | 1 | 2/2 | 49 min | 25 min |
 | 2 | 2/2 | 16 min | 8 min |
-| 3 | 1/2 | 3 min | 3 min |
+| 3 | 2/2 | 10 min | 5 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-02 (45 min), 02-01 (12 min), 02-02 (4 min), 03-01 (3 min)
+- Last 5 plans: 02-01 (12 min), 02-02 (4 min), 03-01 (3 min), 03-02 (7 min)
 - Trend: Consistent fast execution for well-defined plans
 
 *Updated after each plan completion*
@@ -64,6 +64,8 @@ Recent decisions affecting current work:
 - aiogram.utils.formatting for entity-based messages (auto-escaping)
 - Short CallbackData prefix "z" and field "s" (64-byte Telegram limit)
 - Classical zodiac order in keyboard (Aries -> Pisces)
+- APScheduler SQLAlchemyJobStore with psycopg2-binary for persistent jobs
+- Notification defaults: Europe/Moscow, 9:00, opt-in
 
 ### Pending Todos
 
@@ -77,15 +79,15 @@ From research:
 
 ## Session Continuity
 
-Last session: 2026-01-22 21:36
-Stopped at: Completed 03-01-PLAN.md
+Last session: 2026-01-22 21:47
+Stopped at: Completed 03-02-PLAN.md, Phase 3 complete
 Resume file: None
 
 **What's Ready:**
 - Railway deployment: https://adtrobot-production.up.railway.app
 - PostgreSQL database configured and migrated
 - CI/CD pipeline: push to main -> test -> deploy
-- User model with birth_date, zodiac_sign fields
+- User model with birth_date, zodiac_sign, timezone, notification_hour, notifications_enabled
 - Health endpoint: /health returns {"status":"ok"}
 - Bot module: src/bot/bot.py with get_bot() lazy creation
 - Webhook endpoint: /webhook with secret validation
@@ -95,6 +97,7 @@ Resume file: None
   - FSM birthdate collection with Russian date parsing
   - Zodiac determination and DB save
   - Mock horoscope shown after registration (immediate value)
+  - Onboarding notification prompt after first horoscope
   - Main menu 2x2: Гороскоп, Таро, Подписка, Профиль
   - Menu handlers with mock content / teasers
 - **Horoscope formatting complete (03-01):**
@@ -102,8 +105,14 @@ Resume file: None
   - 4x3 inline keyboard for zodiac navigation
   - ZodiacCallback handler for sign switching
   - show_horoscope_message() reusable function
+- **Daily notifications complete (03-02):**
+  - APScheduler with SQLAlchemyJobStore (persistent jobs)
+  - schedule_user_notification / remove_user_notification
+  - Profile settings UI: toggle, time, timezone
+  - 8 Russian timezones, 6 time slots (07:00-12:00)
+  - Migration for notification fields ready
 
 **Next Steps:**
-- 03-02: Daily push notifications with APScheduler
-- Add TELEGRAM_BOT_TOKEN and WEBHOOK_BASE_URL to Railway before testing
+- Run migration on Railway: `alembic upgrade head`
+- Add TELEGRAM_BOT_TOKEN and WEBHOOK_BASE_URL to Railway
 - Phase 5: Replace mock horoscopes with AI-generated content
