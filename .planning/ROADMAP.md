@@ -50,11 +50,11 @@ Plans:
   3. Пользователь получает первый прогноз сразу после регистрации
   4. Данные пользователя сохраняются в БД (telegram_id, знак, дата рождения)
   5. Бот корректно обрабатывает ошибки и показывает понятные сообщения
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 02-01: Telegram webhook + FastAPI
-- [ ] 02-02: Onboarding flow + FSM
+- [ ] 02-01-PLAN.md — Bot infrastructure (aiogram, webhook, User model fields, DB middleware)
+- [ ] 02-02-PLAN.md — Onboarding flow (FSM, handlers, keyboards, zodiac, mock horoscope)
 
 ### Phase 3: Free Horoscopes
 **Goal**: Пользователь получает ежедневный гороскоп для своего знака зодиака
@@ -171,8 +171,8 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Infrastructure | 1/2 | In progress | - |
-| 2. Bot Core + Onboarding | 0/2 | Not started | - |
+| 1. Infrastructure | 2/2 | Complete | 2026-01-22 |
+| 2. Bot Core + Onboarding | 0/2 | Ready | - |
 | 3. Free Horoscopes | 0/1 | Not started | - |
 | 4. Free Tarot | 0/2 | Not started | - |
 | 5. AI Integration | 0/2 | Not started | - |
