@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bot.handlers.horoscope import show_horoscope_message
 from src.bot.keyboards.main_menu import get_main_menu_keyboard
+from src.bot.keyboards.tarot import get_tarot_menu_keyboard
 from src.db.models.user import User
 
 router = Router(name="menu")
@@ -32,9 +33,10 @@ async def menu_horoscope(message: Message, session: AsyncSession) -> None:
 
 @router.message(F.text == "Таро")
 async def menu_tarot(message: Message) -> None:
-    """Handle 'Таро' button press."""
+    """Handle 'Таро' button press - show tarot menu."""
     await message.answer(
-        "Расклады таро скоро будут доступны! Следи за обновлениями."
+        "Выберите тип расклада:",
+        reply_markup=get_tarot_menu_keyboard(),
     )
 
 
