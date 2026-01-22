@@ -11,7 +11,7 @@ See: .planning/PROJECT.md (updated 2026-01-22)
 
 Phase: 3 of 9 (Free Horoscopes) - COMPLETE
 Plan: 2 of 2 completed in Phase 3
-Status: Ready for Phase 5
+Status: Ready for Phase 4
 Last activity: 2026-01-22 21:47 — Completed 03-02-PLAN.md (Daily Push Notifications)
 
 Progress: [██████░░░░] 33%
@@ -115,4 +115,5 @@ Resume file: None
 **Next Steps:**
 - Run migration on Railway: `alembic upgrade head`
 - Add TELEGRAM_BOT_TOKEN and WEBHOOK_BASE_URL to Railway
-- Phase 5: Replace mock horoscopes with AI-generated content
+- Phase 4: Free Tarot (карта дня, расклад 3 карты, колода Райдер-Уэйт)
+- Phase 5: AI Integration (заменит mock horoscopes)
