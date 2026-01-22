@@ -18,6 +18,8 @@ dependencies = [
     "fastapi>=0.128.0",
     "aiogram (>=3.20,<4)",
     "dateparser (>=1.2)",
+    "apscheduler (>=3.11.2,<4.0.0)",
+    "pytz (>=2025.2,<2026.0)",
 ]
 
 [tool.poetry]
