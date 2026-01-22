@@ -36,3 +36,22 @@ class User(Base):
     notifications_enabled: Mapped[bool] = mapped_column(
         Boolean, default=False, server_default="false"
     )
+
+    # Tarot - Card of the day cache
+    card_of_day_id: Mapped[str | None] = mapped_column(
+        String(20), nullable=True
+    )  # name_short (e.g., "ar00")
+    card_of_day_date: Mapped[date | None] = mapped_column(
+        Date, nullable=True
+    )  # Cache valid until this date (user timezone)
+    card_of_day_reversed: Mapped[bool | None] = mapped_column(
+        Boolean, nullable=True
+    )  # True if card is reversed
+
+    # Tarot - Daily spread limits
+    tarot_spread_count: Mapped[int] = mapped_column(
+        SmallInteger, default=0, server_default="0"
+    )  # Spreads used today
+    spread_reset_date: Mapped[date | None] = mapped_column(
+        Date, nullable=True
+    )  # Date of last reset (user timezone)
