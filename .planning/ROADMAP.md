@@ -37,7 +37,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 2 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Database setup + models (Poetry, SQLAlchemy async, Alembic, User model)
+- [x] 01-01-PLAN.md — Database setup + models (Poetry, SQLAlchemy async, Alembic, User model)
 - [ ] 01-02-PLAN.md — CI/CD + Railway deployment (GitHub Actions, Procfile, Railway config)
 
 ### Phase 2: Bot Core + Onboarding
@@ -171,7 +171,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Infrastructure | 0/2 | Planning complete | - |
+| 1. Infrastructure | 1/2 | In progress | - |
 | 2. Bot Core + Onboarding | 0/2 | Not started | - |
 | 3. Free Horoscopes | 0/1 | Not started | - |
 | 4. Free Tarot | 0/2 | Not started | - |
