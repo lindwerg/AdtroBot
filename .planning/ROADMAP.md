@@ -81,11 +81,11 @@ Plans:
   3. Бот показывает изображения карт (прямые и перевёрнутые)
   4. Бесплатный пользователь ограничен 1 раскладом в день
   5. Пользователь видит сколько раскладов осталось на сегодня
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 04-01: Tarot deck + card logic
-- [ ] 04-02: Tarot handlers + limits
+- [ ] 04-01-PLAN.md — Tarot deck + infrastructure (Pillow, cards.json, images, User model fields, utilities)
+- [ ] 04-02-PLAN.md — Tarot handlers + UI (FSM, callbacks, keyboards, card of day, 3-card spread, limits)
 
 ### Phase 5: AI Integration
 **Goal**: AI генерирует качественные персонализированные интерпретации
