@@ -13,7 +13,7 @@ Telegram бот для гороскопов и таро с freemium модель
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Infrastructure** - PostgreSQL, SQLAlchemy async, Railway deployment foundation
-- [ ] **Phase 2: Bot Core + Onboarding** - Telegram webhook, /start, регистрация, дата рождения
+- [x] **Phase 2: Bot Core + Onboarding** - Telegram webhook, /start, регистрация, дата рождения
 - [ ] **Phase 3: Free Horoscopes** - Ежедневный гороскоп для всех знаков, уведомления
 - [ ] **Phase 4: Free Tarot** - Карта дня, расклад 3 карты, колода Райдер-Уэйт
 - [ ] **Phase 5: AI Integration** - OpenRouter, Claude 3.5 Sonnet, AI интерпретации
@@ -53,8 +53,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Bot infrastructure (aiogram, webhook, User model fields, DB middleware)
-- [ ] 02-02-PLAN.md — Onboarding flow (FSM, handlers, keyboards, zodiac, mock horoscope)
+- [x] 02-01-PLAN.md — Bot infrastructure (aiogram, webhook, User model fields, DB middleware)
+- [x] 02-02-PLAN.md — Onboarding flow (FSM, handlers, keyboards, zodiac, mock horoscope)
 
 ### Phase 3: Free Horoscopes
 **Goal**: Пользователь получает ежедневный гороскоп для своего знака зодиака
@@ -172,7 +172,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Infrastructure | 2/2 | Complete | 2026-01-22 |
-| 2. Bot Core + Onboarding | 0/2 | Ready | - |
+| 2. Bot Core + Onboarding | 2/2 | Complete | 2026-01-22 |
 | 3. Free Horoscopes | 0/1 | Not started | - |
 | 4. Free Tarot | 0/2 | Not started | - |
 | 5. AI Integration | 0/2 | Not started | - |

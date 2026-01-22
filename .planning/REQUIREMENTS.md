@@ -7,12 +7,12 @@
 
 ### Authentication & Onboarding
 
-- [ ] **AUTH-01**: Пользователь регистрируется автоматически при /start
-- [ ] **AUTH-02**: Система автоматически определяет знак зодиака по дате рождения
-- [ ] **AUTH-03**: Пользователь вводит дату рождения (для гороскопов и натальной карты)
+- [x] **AUTH-01**: Пользователь регистрируется автоматически при /start
+- [x] **AUTH-02**: Система автоматически определяет знак зодиака по дате рождения
+- [x] **AUTH-03**: Пользователь вводит дату рождения (для гороскопов и натальной карты)
 - [ ] **AUTH-04**: Пользователь вводит время и место рождения (для натальной карты)
-- [ ] **AUTH-05**: Пользователь получает immediate value (первый прогноз) сразу после регистрации
-- [ ] **AUTH-06**: Данные пользователя сохраняются в БД (знак, дата/время/место рождения)
+- [x] **AUTH-05**: Пользователь получает immediate value (первый прогноз) сразу после регистрации
+- [x] **AUTH-06**: Данные пользователя сохраняются в БД (знак, дата/время/место рождения)
 
 ### Horoscopes
 
@@ -71,13 +71,13 @@
 
 ### Bot UX & Navigation
 
-- [ ] **BOT-01**: Бот показывает главное меню с кнопками навигации
-- [ ] **BOT-02**: Пользователь может выбрать действие через inline кнопки
-- [ ] **BOT-03**: Бот обрабатывает команды (/start, /help, /horoscope, /tarot, /natal, /subscribe)
-- [ ] **BOT-04**: Бот использует Finite State Machine для диалогов (aiogram FSM)
+- [x] **BOT-01**: Бот показывает главное меню с кнопками навигации
+- [x] **BOT-02**: Пользователь может выбрать действие через inline кнопки
+- [x] **BOT-03**: Бот обрабатывает команды (/start, /help, /horoscope, /tarot, /natal, /subscribe)
+- [x] **BOT-04**: Бот использует Finite State Machine для диалогов (aiogram FSM)
 - [ ] **BOT-05**: Все ответы красиво отформатированы (emoji, markdown, структура)
-- [ ] **BOT-06**: Бот работает через webhook (не polling) для Railway
-- [ ] **BOT-07**: Бот обрабатывает ошибки gracefully (понятные сообщения пользователю)
+- [x] **BOT-06**: Бот работает через webhook (не polling) для Railway
+- [x] **BOT-07**: Бот обрабатывает ошибки gracefully (понятные сообщения пользователю)
 
 ### Admin Panel
 
@@ -137,12 +137,12 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | Phase 2 | Pending |
-| AUTH-02 | Phase 2 | Pending |
-| AUTH-03 | Phase 2 | Pending |
+| AUTH-01 | Phase 2 | Complete |
+| AUTH-02 | Phase 2 | Complete |
+| AUTH-03 | Phase 2 | Complete |
 | AUTH-04 | Phase 7 | Pending |
-| AUTH-05 | Phase 2 | Pending |
-| AUTH-06 | Phase 2 | Pending |
+| AUTH-05 | Phase 2 | Complete |
+| AUTH-06 | Phase 2 | Complete |
 | HORO-01 | Phase 3 | Pending |
 | HORO-02 | Phase 3 | Pending |
 | HORO-03 | Phase 3 | Pending |
@@ -183,13 +183,13 @@
 | PAY-08 | Phase 6 | Pending |
 | PAY-09 | Phase 6 | Pending |
 | PAY-10 | Phase 6 | Pending |
-| BOT-01 | Phase 2 | Pending |
-| BOT-02 | Phase 2 | Pending |
-| BOT-03 | Phase 2 | Pending |
-| BOT-04 | Phase 2 | Pending |
+| BOT-01 | Phase 2 | Complete |
+| BOT-02 | Phase 2 | Complete |
+| BOT-03 | Phase 2 | Complete |
+| BOT-04 | Phase 2 | Complete |
 | BOT-05 | Phase 6 | Pending |
-| BOT-06 | Phase 2 | Pending |
-| BOT-07 | Phase 2 | Pending |
+| BOT-06 | Phase 2 | Complete |
+| BOT-07 | Phase 2 | Complete |
 | ADMIN-01 | Phase 9 | Pending |
 | ADMIN-02 | Phase 9 | Pending |
 | ADMIN-03 | Phase 9 | Pending |
@@ -203,14 +203,14 @@
 | ADMIN-11 | Phase 9 | Pending |
 | ADMIN-12 | Phase 9 | Pending |
 | ADMIN-13 | Phase 9 | Pending |
-| INFRA-01 | Phase 1 | Pending |
-| INFRA-02 | Phase 1 | Pending |
-| INFRA-03 | Phase 2 | Pending |
-| INFRA-04 | Phase 1 | Pending |
-| INFRA-05 | Phase 1 | Pending |
-| INFRA-06 | Phase 1 | Pending |
-| INFRA-07 | Phase 1 | Pending |
-| INFRA-08 | Phase 1 | Pending |
+| INFRA-01 | Phase 1 | Complete |
+| INFRA-02 | Phase 1 | Complete |
+| INFRA-03 | Phase 2 | Complete |
+| INFRA-04 | Phase 1 | Complete |
+| INFRA-05 | Phase 1 | Complete |
+| INFRA-06 | Phase 1 | Complete |
+| INFRA-07 | Phase 1 | Complete |
+| INFRA-08 | Phase 1 | Complete |
 
 **Coverage:**
 - v1 requirements: 74 total
