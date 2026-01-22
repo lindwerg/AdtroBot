@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-22)
 
 **Core value:** Качественная AI интерпретация астрологии и таро, которая конвертирует бесплатных пользователей в платных
-**Current focus:** Phase 4 - Free Tarot (IN PROGRESS)
+**Current focus:** Phase 4 - Free Tarot (COMPLETE)
 
 ## Current Position
 
-Phase: 4 of 9 (Free Tarot)
-Plan: 1 of 2 completed in Phase 4
-Status: In progress
-Last activity: 2026-01-22 22:51 — Completed 04-01-PLAN.md (Tarot Infrastructure)
+Phase: 4 of 9 (Free Tarot) - COMPLETE
+Plan: 2 of 2 completed in Phase 4
+Status: Phase complete
+Last activity: 2026-01-22 22:58 — Completed 04-02-PLAN.md (Tarot Handlers)
 
-Progress: [███████░░░] 39%
+Progress: [████████░░] 44%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
-- Average duration: 12 min
-- Total execution time: 85 min
+- Total plans completed: 8
+- Average duration: 11 min
+- Total execution time: 88 min
 
 **By Phase:**
 
@@ -30,11 +30,11 @@ Progress: [███████░░░] 39%
 | 1 | 2/2 | 49 min | 25 min |
 | 2 | 2/2 | 16 min | 8 min |
 | 3 | 2/2 | 10 min | 5 min |
-| 4 | 1/2 | 10 min | 10 min |
+| 4 | 2/2 | 13 min | 7 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-02 (4 min), 03-01 (3 min), 03-02 (7 min), 04-01 (10 min)
-- Trend: Consistent execution, slight increase for data-heavy tasks
+- Last 5 plans: 03-01 (3 min), 03-02 (7 min), 04-01 (10 min), 04-02 (3 min)
+- Trend: Consistent fast execution
 
 *Updated after each plan completion*
 
@@ -87,8 +87,8 @@ From research:
 
 ## Session Continuity
 
-Last session: 2026-01-22 22:51
-Stopped at: Completed 04-01-PLAN.md, Plan 2 of Phase 4 ready
+Last session: 2026-01-22 22:58
+Stopped at: Completed 04-02-PLAN.md, Phase 4 complete
 Resume file: None
 
 **What's Ready:**
@@ -125,8 +125,12 @@ Resume file: None
   - tarot_formatting.py: format_card_of_day, format_three_card_spread
   - User model with card_of_day cache and spread limit fields
   - Migration for tarot fields ready
+- **Tarot handlers complete (04-02):**
+  - TarotStates FSM, TarotCallback, tarot keyboards
+  - Card of day: ritual, cache, image, interpretation (no limits)
+  - 3-card spread: FSM question, 1/day limit, ritual, cards, interpretation
+  - Menu "Tarot" leads to tarot submenu
 
 **Next Steps:**
 - Run migrations on Railway: `alembic upgrade head`
-- Phase 4 Plan 02: Tarot handlers (card of day, 3-card spread)
 - Phase 5: AI Integration (заменит mock horoscopes)

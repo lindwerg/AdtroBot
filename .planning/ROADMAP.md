@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Infrastructure** - PostgreSQL, SQLAlchemy async, Railway deployment foundation
 - [x] **Phase 2: Bot Core + Onboarding** - Telegram webhook, /start, регистрация, дата рождения
 - [x] **Phase 3: Free Horoscopes** - Ежедневный гороскоп для всех знаков, уведомления
-- [ ] **Phase 4: Free Tarot** - Карта дня, расклад 3 карты, колода Райдер-Уэйт
+- [x] **Phase 4: Free Tarot** - Карта дня, расклад 3 карты, колода Райдер-Уэйт
 - [ ] **Phase 5: AI Integration** - OpenRouter, Claude 3.5 Sonnet, AI интерпретации
 - [ ] **Phase 6: Payments** - ЮКасса интеграция, подписки, webhook обработка
 - [ ] **Phase 7: Premium Horoscopes** - Детальные гороскопы по сферам, персональный прогноз
@@ -84,8 +84,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — Tarot deck + infrastructure (Pillow, cards.json, images, User model fields, utilities)
-- [ ] 04-02-PLAN.md — Tarot handlers + UI (FSM, callbacks, keyboards, card of day, 3-card spread, limits)
+- [x] 04-01-PLAN.md — Tarot deck + infrastructure (Pillow, cards.json, images, User model fields, utilities)
+- [x] 04-02-PLAN.md — Tarot handlers + UI (FSM, callbacks, keyboards, card of day, 3-card spread, limits)
 
 ### Phase 5: AI Integration
 **Goal**: AI генерирует качественные персонализированные интерпретации
@@ -175,7 +175,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 1. Infrastructure | 2/2 | Complete | 2026-01-22 |
 | 2. Bot Core + Onboarding | 2/2 | Complete | 2026-01-22 |
 | 3. Free Horoscopes | 2/2 | Complete | 2026-01-22 |
-| 4. Free Tarot | 0/2 | Not started | - |
+| 4. Free Tarot | 2/2 | Complete | 2026-01-22 |
 | 5. AI Integration | 0/2 | Not started | - |
 | 6. Payments | 0/2 | Not started | - |
 | 7. Premium Horoscopes | 0/1 | Not started | - |
