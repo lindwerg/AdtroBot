@@ -57,7 +57,7 @@ Plans:
 - [x] 02-02-PLAN.md — Onboarding flow (FSM, handlers, keyboards, zodiac, mock horoscope)
 
 ### Phase 3: Free Horoscopes
-**Goal**: Пользователь получает ежедневный гороскоп для своего знака зодиака
+**Goal**: Пользователь получает ежедневный гороскоп для своего знака зодиака с красивым форматированием и push-уведомлениями
 **Depends on**: Phase 2
 **Requirements**: HORO-01, HORO-02, HORO-03, HORO-06
 **Success Criteria** (what must be TRUE):
@@ -65,10 +65,11 @@ Plans:
   2. Гороскоп красиво отформатирован с emoji и разметкой
   3. Пользователь может посмотреть гороскоп для любого из 12 знаков
   4. Пользователь получает push-уведомление о новом ежедневном гороскопе
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 03-01: Horoscope service + handlers
+- [ ] 03-01-PLAN.md — Horoscope formatting + zodiac navigation (entity-based formatting, inline keyboard, callback handlers)
+- [ ] 03-02-PLAN.md — Daily notifications (APScheduler, user timezone/notification settings, profile handlers)
 
 ### Phase 4: Free Tarot
 **Goal**: Пользователь может вытянуть карту дня и сделать расклад на 3 карты
@@ -173,7 +174,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 |-------|----------------|--------|-----------|
 | 1. Infrastructure | 2/2 | Complete | 2026-01-22 |
 | 2. Bot Core + Onboarding | 2/2 | Complete | 2026-01-22 |
-| 3. Free Horoscopes | 0/1 | Not started | - |
+| 3. Free Horoscopes | 0/2 | Not started | - |
 | 4. Free Tarot | 0/2 | Not started | - |
 | 5. AI Integration | 0/2 | Not started | - |
 | 6. Payments | 0/2 | Not started | - |
