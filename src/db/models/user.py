@@ -1,6 +1,6 @@
-from datetime import datetime
+from datetime import date, datetime
 
-from sqlalchemy import BigInteger, DateTime, String, func
+from sqlalchemy import BigInteger, Date, DateTime, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.db.models.base import Base
@@ -21,3 +21,7 @@ class User(Base):
         server_default=func.now(),
         onupdate=func.now(),
     )
+
+    # Birth data for astrology
+    birth_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    zodiac_sign: Mapped[str | None] = mapped_column(String(20), nullable=True)
