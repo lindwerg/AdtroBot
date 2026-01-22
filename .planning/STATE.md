@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-22)
 
 **Core value:** Качественная AI интерпретация астрологии и таро, которая конвертирует бесплатных пользователей в платных
-**Current focus:** Phase 3 - Free Horoscopes (COMPLETE)
+**Current focus:** Phase 4 - Free Tarot (IN PROGRESS)
 
 ## Current Position
 
-Phase: 3 of 9 (Free Horoscopes) - COMPLETE
-Plan: 2 of 2 completed in Phase 3
-Status: Ready for Phase 4
-Last activity: 2026-01-22 21:47 — Completed 03-02-PLAN.md (Daily Push Notifications)
+Phase: 4 of 9 (Free Tarot)
+Plan: 1 of 2 completed in Phase 4
+Status: In progress
+Last activity: 2026-01-22 22:51 — Completed 04-01-PLAN.md (Tarot Infrastructure)
 
-Progress: [██████░░░░] 33%
+Progress: [███████░░░] 39%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
-- Average duration: 13 min
-- Total execution time: 75 min
+- Total plans completed: 7
+- Average duration: 12 min
+- Total execution time: 85 min
 
 **By Phase:**
 
@@ -30,10 +30,11 @@ Progress: [██████░░░░] 33%
 | 1 | 2/2 | 49 min | 25 min |
 | 2 | 2/2 | 16 min | 8 min |
 | 3 | 2/2 | 10 min | 5 min |
+| 4 | 1/2 | 10 min | 10 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-01 (12 min), 02-02 (4 min), 03-01 (3 min), 03-02 (7 min)
-- Trend: Consistent fast execution for well-defined plans
+- Last 5 plans: 02-02 (4 min), 03-01 (3 min), 03-02 (7 min), 04-01 (10 min)
+- Trend: Consistent execution, slight increase for data-heavy tasks
 
 *Updated after each plan completion*
 
@@ -67,9 +68,16 @@ Recent decisions affecting current work:
 - APScheduler SQLAlchemyJobStore with psycopg2-binary for persistent jobs
 - Notification defaults: Europe/Moscow, 9:00, opt-in
 
+**Phase 4 (Free Tarot):**
+- Card images from xiaodeaux/tarot-image-grabber (Wikipedia public domain)
+- Card data from ekelen/tarot-api (78 cards with meanings)
+- Image rotation 180 degrees for reversed cards via Pillow
+- Singleton deck loading via get_deck() with lazy initialization
+
 ### Pending Todos
 
 - Add TELEGRAM_BOT_TOKEN and WEBHOOK_BASE_URL to Railway environment
+- Run tarot migration on Railway: `alembic upgrade head`
 
 ### Blockers/Concerns
 
@@ -79,8 +87,8 @@ From research:
 
 ## Session Continuity
 
-Last session: 2026-01-22 21:47
-Stopped at: Completed 03-02-PLAN.md, Phase 3 complete
+Last session: 2026-01-22 22:51
+Stopped at: Completed 04-01-PLAN.md, Plan 2 of Phase 4 ready
 Resume file: None
 
 **What's Ready:**
@@ -111,9 +119,14 @@ Resume file: None
   - Profile settings UI: toggle, time, timezone
   - 8 Russian timezones, 6 time slots (07:00-12:00)
   - Migration for notification fields ready
+- **Tarot infrastructure complete (04-01):**
+  - 78-card Rider-Waite deck (JSON + images)
+  - tarot_cards.py: get_deck, get_random_card, get_three_cards, get_card_image
+  - tarot_formatting.py: format_card_of_day, format_three_card_spread
+  - User model with card_of_day cache and spread limit fields
+  - Migration for tarot fields ready
 
 **Next Steps:**
-- Run migration on Railway: `alembic upgrade head`
-- Add TELEGRAM_BOT_TOKEN and WEBHOOK_BASE_URL to Railway
-- Phase 4: Free Tarot (карта дня, расклад 3 карты, колода Райдер-Уэйт)
+- Run migrations on Railway: `alembic upgrade head`
+- Phase 4 Plan 02: Tarot handlers (card of day, 3-card spread)
 - Phase 5: AI Integration (заменит mock horoscopes)
