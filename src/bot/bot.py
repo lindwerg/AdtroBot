@@ -3,12 +3,16 @@
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 
+from src.bot.handlers import common_router, menu_router, start_router
 from src.config import settings
 
 # Bot created lazily - token validated only when token is present
 # Empty token is allowed for local development without Telegram
 bot: Bot | None = None
 dp = Dispatcher(storage=MemoryStorage())
+
+# Register routers (order matters: start first, menu second, common last as catch-all)
+dp.include_routers(start_router, menu_router, common_router)
 
 
 def get_bot() -> Bot:
