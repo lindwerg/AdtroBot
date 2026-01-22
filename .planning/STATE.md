@@ -9,29 +9,30 @@ See: .planning/PROJECT.md (updated 2026-01-22)
 
 ## Current Position
 
-Phase: 1 of 9 (Infrastructure) - COMPLETE ✓
-Plan: 2 of 2 completed in Phase 1
-Status: Ready for Phase 2
-Last activity: 2026-01-22 19:45 — Completed Phase 1, verification passed (10/10 must-haves)
+Phase: 2 of 9 (Bot Core + Onboarding)
+Plan: 1 of 2 completed in Phase 2
+Status: In progress
+Last activity: 2026-01-22 20:33 — Completed 02-01-PLAN.md (Bot Infrastructure)
 
-Progress: [██░░░░░░░░] 11%
+Progress: [███░░░░░░░] 17%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 2
-- Average duration: 25 min
-- Total execution time: 49 min
+- Total plans completed: 3
+- Average duration: 20 min
+- Total execution time: 61 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1 | 2/2 ✓ | 49 min | 25 min |
+| 2 | 1/2 | 12 min | 12 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (4 min), 01-02 (45 min)
-- Trend: Plan 02 took longer due to deployment setup and debugging
+- Last 5 plans: 01-01 (4 min), 01-02 (45 min), 02-01 (12 min)
+- Trend: Bot infrastructure fast execution
 
 *Updated after each plan completion*
 
@@ -51,9 +52,13 @@ Recent decisions affecting current work:
 - DATABASE_URL через Railway reference для internal networking
 - structlog с JSON logs для production, console для dev
 
+**Phase 2 (Bot Core):**
+- Lazy Bot creation via get_bot() — aiogram validates token at import
+- DbSessionMiddleware injects session directly (handler controls commit)
+
 ### Pending Todos
 
-None
+- Add TELEGRAM_BOT_TOKEN and WEBHOOK_BASE_URL to Railway environment
 
 ### Blockers/Concerns
 
@@ -63,19 +68,21 @@ From research:
 
 ## Session Continuity
 
-Last session: 2026-01-22 19:45
-Stopped at: Phase 1 complete, verified (10/10 must-haves passed)
+Last session: 2026-01-22 20:33
+Stopped at: Completed 02-01-PLAN.md
 Resume file: None
 
 **What's Ready:**
 - Railway deployment: https://adtrobot-production.up.railway.app
 - PostgreSQL database configured and migrated
 - CI/CD pipeline: push to main → test → deploy
-- User model created (telegram_id BigInteger unique indexed)
+- User model with birth_date, zodiac_sign fields
 - Health endpoint: /health returns {"status":"ok"}
+- Bot module: src/bot/bot.py with get_bot() lazy creation
+- Webhook endpoint: /webhook with secret validation
+- DbSessionMiddleware for handler DB access
 
 **Next Steps:**
-- Phase 2: Telegram Bot Core + Onboarding
-- Integrate aiogram 3.x for Telegram webhook
-- Implement /start command and onboarding FSM
-- Connect to User model
+- Add TELEGRAM_BOT_TOKEN and WEBHOOK_BASE_URL to Railway
+- Execute 02-02-PLAN.md: /start command and onboarding FSM
+- Connect handlers to User model
