@@ -1,3 +1,4 @@
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -6,10 +7,14 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         extra="ignore",
+        case_sensitive=False,
     )
 
     # Database
-    database_url: str = "postgresql+asyncpg://user:password@localhost:5432/adtrobot"
+    database_url: str = Field(
+        default="postgresql+asyncpg://user:password@localhost:5432/adtrobot",
+        validation_alias="DATABASE_URL",
+    )
 
     # App
     debug: bool = False
