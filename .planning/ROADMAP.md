@@ -34,11 +34,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. GitHub push в main автоматически деплоит на Railway
   4. Логи доступны в Railway dashboard для мониторинга
   5. Environment variables (токены, API ключи) настроены безопасно
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: Database setup + models
-- [ ] 01-02: CI/CD + Railway deployment
+- [ ] 01-01-PLAN.md — Database setup + models (Poetry, SQLAlchemy async, Alembic, User model)
+- [ ] 01-02-PLAN.md — CI/CD + Railway deployment (GitHub Actions, Procfile, Railway config)
 
 ### Phase 2: Bot Core + Onboarding
 **Goal**: Пользователь может запустить бота, зарегистрироваться и получить immediate value
@@ -171,7 +171,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Infrastructure | 0/2 | Not started | - |
+| 1. Infrastructure | 0/2 | Planning complete | - |
 | 2. Bot Core + Onboarding | 0/2 | Not started | - |
 | 3. Free Horoscopes | 0/1 | Not started | - |
 | 4. Free Tarot | 0/2 | Not started | - |
