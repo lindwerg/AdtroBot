@@ -12,7 +12,7 @@ Telegram бот для гороскопов и таро с freemium модель
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Infrastructure** - PostgreSQL, SQLAlchemy async, Railway deployment foundation
+- [x] **Phase 1: Infrastructure** - PostgreSQL, SQLAlchemy async, Railway deployment foundation
 - [ ] **Phase 2: Bot Core + Onboarding** - Telegram webhook, /start, регистрация, дата рождения
 - [ ] **Phase 3: Free Horoscopes** - Ежедневный гороскоп для всех знаков, уведомления
 - [ ] **Phase 4: Free Tarot** - Карта дня, расклад 3 карты, колода Райдер-Уэйт
@@ -38,7 +38,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 Plans:
 - [x] 01-01-PLAN.md — Database setup + models (Poetry, SQLAlchemy async, Alembic, User model)
-- [ ] 01-02-PLAN.md — CI/CD + Railway deployment (GitHub Actions, Procfile, Railway config)
+- [x] 01-02-PLAN.md — CI/CD + Railway deployment (GitHub Actions, Procfile, Railway config)
 
 ### Phase 2: Bot Core + Onboarding
 **Goal**: Пользователь может запустить бота, зарегистрироваться и получить immediate value

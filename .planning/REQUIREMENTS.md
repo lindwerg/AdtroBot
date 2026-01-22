@@ -97,14 +97,14 @@
 
 ### Infrastructure
 
-- [ ] **INFRA-01**: Backend развёрнут на Railway
-- [ ] **INFRA-02**: PostgreSQL база данных настроена (Railway addon)
+- [x] **INFRA-01**: Backend развёрнут на Railway
+- [x] **INFRA-02**: PostgreSQL база данных настроена (Railway addon)
 - [ ] **INFRA-03**: Один FastAPI сервер обслуживает Telegram webhook, ЮКасса webhook и админку
-- [ ] **INFRA-04**: Весь код асинхронный (aiogram 3.x + SQLAlchemy async + asyncpg)
-- [ ] **INFRA-05**: База данных использует миграции (Alembic)
-- [ ] **INFRA-06**: Переменные окружения настроены (токены, API ключи)
-- [ ] **INFRA-07**: Логирование настроено для мониторинга
-- [ ] **INFRA-08**: CI/CD настроен для автоматического деплоя на Railway (GitHub Actions)
+- [x] **INFRA-04**: Весь код асинхронный (aiogram 3.x + SQLAlchemy async + asyncpg)
+- [x] **INFRA-05**: База данных использует миграции (Alembic)
+- [x] **INFRA-06**: Переменные окружения настроены (токены, API ключи)
+- [x] **INFRA-07**: Логирование настроено для мониторинга
+- [x] **INFRA-08**: CI/CD настроен для автоматического деплоя на Railway (GitHub Actions)
 
 ## v2 Requirements
 
