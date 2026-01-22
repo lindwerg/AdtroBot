@@ -20,6 +20,7 @@ dependencies = [
     "dateparser (>=1.2)",
     "apscheduler (>=3.11.2,<4.0.0)",
     "pytz (>=2025.2,<2026.0)",
+    "psycopg2-binary (>=2.9.11,<3.0.0)",
 ]
 
 [tool.poetry]

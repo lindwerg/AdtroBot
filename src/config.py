@@ -49,5 +49,15 @@ class Settings(BaseSettings):
             url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
         return url
 
+    @property
+    def sync_database_url(self) -> str:
+        """Get sync database URL (without asyncpg)."""
+        url = self.database_url
+        if "+asyncpg" in url:
+            url = url.replace("+asyncpg", "")
+        if url.startswith("postgresql://"):
+            return url
+        return url.replace("postgresql+asyncpg://", "postgresql://")
+
 
 settings = Settings()

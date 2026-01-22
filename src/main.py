@@ -9,6 +9,7 @@ from src.bot.middlewares.db import DbSessionMiddleware
 from src.config import settings
 from src.core.logging import configure_logging
 from src.db.engine import engine
+from src.services.scheduler import get_scheduler
 
 logger = structlog.get_logger()
 
@@ -25,6 +26,11 @@ async def lifespan(app: FastAPI):
     # Register bot middlewares
     dp.update.middleware(DbSessionMiddleware())
 
+    # Start scheduler
+    scheduler = get_scheduler()
+    scheduler.start()
+    await logger.ainfo("Scheduler started")
+
     # Set webhook (only if token configured)
     bot = None
     if settings.telegram_bot_token and settings.webhook_base_url:
@@ -38,6 +44,10 @@ async def lifespan(app: FastAPI):
         await logger.ainfo("Webhook set", url=webhook_url)
 
     yield
+
+    # Shutdown: cleanup scheduler
+    scheduler.shutdown(wait=False)
+    await logger.ainfo("Scheduler shutdown")
 
     # Shutdown: cleanup bot
     if bot is not None:
