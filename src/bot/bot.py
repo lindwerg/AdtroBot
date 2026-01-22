@@ -3,7 +3,13 @@
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 
-from src.bot.handlers import common_router, horoscope_router, menu_router, start_router
+from src.bot.handlers import (
+    common_router,
+    horoscope_router,
+    menu_router,
+    profile_settings_router,
+    start_router,
+)
 from src.config import settings
 
 # Bot created lazily - token validated only when token is present
@@ -11,8 +17,10 @@ from src.config import settings
 bot: Bot | None = None
 dp = Dispatcher(storage=MemoryStorage())
 
-# Register routers (order matters: start -> menu -> horoscope -> common as catch-all)
-dp.include_routers(start_router, menu_router, horoscope_router, common_router)
+# Register routers (order matters: start -> menu -> horoscope -> profile_settings -> common)
+dp.include_routers(
+    start_router, menu_router, horoscope_router, profile_settings_router, common_router
+)
 
 
 def get_bot() -> Bot:

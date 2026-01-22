@@ -2,6 +2,7 @@
 
 from aiogram import F, Router
 from aiogram.types import Message
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -73,4 +74,8 @@ async def menu_profile(message: Message, session: AsyncSession) -> None:
     else:
         lines.append("Дата рождения: не указана")
 
-    await message.answer("\n".join(lines))
+    # Build inline keyboard with notifications settings button
+    builder = InlineKeyboardBuilder()
+    builder.button(text="Настройки уведомлений", callback_data="profile_notifications")
+
+    await message.answer("\n".join(lines), reply_markup=builder.as_markup())
