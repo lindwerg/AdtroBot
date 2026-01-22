@@ -135,17 +135,88 @@
 
 ## Traceability
 
-Будет заполнено после создания roadmap.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| — | — | Pending |
+| AUTH-01 | Phase 2 | Pending |
+| AUTH-02 | Phase 2 | Pending |
+| AUTH-03 | Phase 2 | Pending |
+| AUTH-04 | Phase 7 | Pending |
+| AUTH-05 | Phase 2 | Pending |
+| AUTH-06 | Phase 2 | Pending |
+| HORO-01 | Phase 3 | Pending |
+| HORO-02 | Phase 3 | Pending |
+| HORO-03 | Phase 3 | Pending |
+| HORO-04 | Phase 7 | Pending |
+| HORO-05 | Phase 7 | Pending |
+| HORO-06 | Phase 3 | Pending |
+| TAROT-01 | Phase 4 | Pending |
+| TAROT-02 | Phase 4 | Pending |
+| TAROT-03 | Phase 4 | Pending |
+| TAROT-04 | Phase 4 | Pending |
+| TAROT-05 | Phase 4 | Pending |
+| TAROT-06 | Phase 4 | Pending |
+| TAROT-07 | Phase 5 | Pending |
+| TAROT-08 | Phase 8 | Pending |
+| TAROT-09 | Phase 8 | Pending |
+| TAROT-10 | Phase 8 | Pending |
+| TAROT-11 | Phase 4 | Pending |
+| NATAL-01 | Phase 8 | Pending |
+| NATAL-02 | Phase 8 | Pending |
+| NATAL-03 | Phase 8 | Pending |
+| NATAL-04 | Phase 8 | Pending |
+| NATAL-05 | Phase 8 | Pending |
+| NATAL-06 | Phase 8 | Pending |
+| AI-01 | Phase 5 | Pending |
+| AI-02 | Phase 5 | Pending |
+| AI-03 | Phase 5 | Pending |
+| AI-04 | Phase 5 | Pending |
+| AI-05 | Phase 5 | Pending |
+| AI-06 | Phase 5 | Pending |
+| AI-07 | Phase 5 | Pending |
+| PAY-01 | Phase 6 | Pending |
+| PAY-02 | Phase 6 | Pending |
+| PAY-03 | Phase 6 | Pending |
+| PAY-04 | Phase 6 | Pending |
+| PAY-05 | Phase 6 | Pending |
+| PAY-06 | Phase 6 | Pending |
+| PAY-07 | Phase 6 | Pending |
+| PAY-08 | Phase 6 | Pending |
+| PAY-09 | Phase 6 | Pending |
+| PAY-10 | Phase 6 | Pending |
+| BOT-01 | Phase 2 | Pending |
+| BOT-02 | Phase 2 | Pending |
+| BOT-03 | Phase 2 | Pending |
+| BOT-04 | Phase 2 | Pending |
+| BOT-05 | Phase 6 | Pending |
+| BOT-06 | Phase 2 | Pending |
+| BOT-07 | Phase 2 | Pending |
+| ADMIN-01 | Phase 9 | Pending |
+| ADMIN-02 | Phase 9 | Pending |
+| ADMIN-03 | Phase 9 | Pending |
+| ADMIN-04 | Phase 9 | Pending |
+| ADMIN-05 | Phase 9 | Pending |
+| ADMIN-06 | Phase 9 | Pending |
+| ADMIN-07 | Phase 9 | Pending |
+| ADMIN-08 | Phase 9 | Pending |
+| ADMIN-09 | Phase 9 | Pending |
+| ADMIN-10 | Phase 9 | Pending |
+| ADMIN-11 | Phase 9 | Pending |
+| ADMIN-12 | Phase 9 | Pending |
+| ADMIN-13 | Phase 9 | Pending |
+| INFRA-01 | Phase 1 | Pending |
+| INFRA-02 | Phase 1 | Pending |
+| INFRA-03 | Phase 2 | Pending |
+| INFRA-04 | Phase 1 | Pending |
+| INFRA-05 | Phase 1 | Pending |
+| INFRA-06 | Phase 1 | Pending |
+| INFRA-07 | Phase 1 | Pending |
+| INFRA-08 | Phase 1 | Pending |
 
 **Coverage:**
-- v1 requirements: 0 total (будет обновлено)
-- Mapped to phases: 0
+- v1 requirements: 74 total
+- Mapped to phases: 74
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-01-22*
-*Last updated: 2026-01-22 after initial definition*
+*Last updated: 2026-01-22 after roadmap creation*
