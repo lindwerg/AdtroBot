@@ -5,8 +5,8 @@ from aiogram.types import Message
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.bot.handlers.horoscope import show_horoscope_message
 from src.bot.keyboards.main_menu import get_main_menu_keyboard
-from src.bot.utils.horoscope import get_mock_horoscope
 from src.db.models.user import User
 
 router = Router(name="menu")
@@ -21,8 +21,7 @@ async def menu_horoscope(message: Message, session: AsyncSession) -> None:
     user = result.scalar_one_or_none()
 
     if user and user.zodiac_sign:
-        horoscope = get_mock_horoscope(user.zodiac_sign)
-        await message.answer(horoscope)
+        await show_horoscope_message(message, user.zodiac_sign, user.zodiac_sign)
     else:
         await message.answer(
             "Для получения гороскопа нужно указать дату рождения. "
