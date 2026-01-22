@@ -8,11 +8,17 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bot.keyboards.main_menu import get_main_menu_keyboard, get_start_keyboard
+from src.bot.keyboards.profile import (
+    build_notification_time_keyboard,
+    build_onboarding_notifications_keyboard,
+    build_timezone_keyboard,
+)
 from src.bot.states.onboarding import OnboardingStates
 from src.bot.utils.date_parser import parse_russian_date
 from src.bot.utils.horoscope import get_mock_horoscope
 from src.bot.utils.zodiac import get_zodiac_sign
 from src.db.models.user import User
+from src.services.scheduler import schedule_user_notification
 
 router = Router(name="start")
 
@@ -101,8 +107,41 @@ async def process_birthdate(
     horoscope = get_mock_horoscope(zodiac.name)
     await message.answer(horoscope)
 
-    # Teaser + main menu
+    # Offer to enable notifications (onboarding step)
     await message.answer(
+        "Хотите получать ежедневный гороскоп каждое утро?",
+        reply_markup=build_onboarding_notifications_keyboard(),
+    )
+
+
+@router.callback_query(F.data == "onboarding_notif_yes")
+async def onboarding_enable_notifications(
+    callback: CallbackQuery, session: AsyncSession
+) -> None:
+    """User wants notifications - show time selection."""
+    stmt = select(User).where(User.telegram_id == callback.from_user.id)
+    result = await session.execute(stmt)
+    user = result.scalar_one_or_none()
+
+    if user:
+        user.notifications_enabled = True
+        await session.commit()
+
+    await callback.message.edit_text(
+        "Отлично! Выберите время для уведомлений:",
+        reply_markup=build_notification_time_keyboard(),
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "onboarding_notif_no")
+async def onboarding_skip_notifications(callback: CallbackQuery) -> None:
+    """User skips notifications - show main menu."""
+    await callback.message.edit_text(
+        "Хорошо! Вы всегда можете включить уведомления в меню Профиль."
+    )
+    await callback.message.answer(
         "Хочешь карту дня? Нажми 'Таро'",
         reply_markup=get_main_menu_keyboard(),
     )
+    await callback.answer()
