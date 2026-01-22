@@ -1,3 +1,5 @@
+import secrets
+
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -25,6 +27,19 @@ class Settings(BaseSettings):
 
     # Railway auto-injected
     railway_environment: str | None = None
+
+    # Telegram
+    telegram_bot_token: str = Field(
+        default="",
+        validation_alias="TELEGRAM_BOT_TOKEN",
+    )
+    webhook_base_url: str = Field(
+        default="",
+        validation_alias="WEBHOOK_BASE_URL",
+    )
+    webhook_secret: str = Field(
+        default_factory=lambda: secrets.token_urlsafe(32),
+    )
 
     @property
     def async_database_url(self) -> str:

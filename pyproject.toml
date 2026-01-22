@@ -16,6 +16,8 @@ dependencies = [
     "uvicorn[standard]>=0.40.0",
     "python-dotenv>=1.0.1",
     "fastapi>=0.128.0",
+    "aiogram (>=3.20,<4)",
+    "dateparser (>=1.2)",
 ]
 
 [tool.poetry]
