@@ -19,8 +19,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 5: AI Integration** - OpenRouter, GPT-4o-mini, AI интерпретации
 - [x] **Phase 6: Payments** - ЮКасса интеграция, подписки, webhook обработка
 - [x] **Phase 7: Premium Horoscopes** - Детальные гороскопы по сферам, персональный прогноз
-- [ ] **Phase 8: Premium Tarot + Natal** - Кельтский крест, натальная карта, история раскладов
+- [x] **Phase 8: Premium Tarot + Natal** - Кельтский крест, натальная карта, история раскладов
 - [ ] **Phase 9: Admin Panel** - Статистика, управление подписками, аналитика
+- [ ] **Phase 10: Улучшить натальную карту** - Профессиональный визуал, расширенная интерпретация, монетизация
 
 ## Phase Details
 
@@ -169,10 +170,27 @@ Plans:
 - [ ] 09-01: Admin dashboard + user management
 - [ ] 09-02: Analytics + messaging
 
+### Phase 10: Улучшить натальную карту
+**Goal**: Натальная карта выглядит профессионально, интерпретация максимально полная, добавлена монетизация детального разбора личности
+**Depends on**: Phase 8
+**Success Criteria** (what must be TRUE):
+  1. Визуал натальной карты соответствует профессиональным стандартам (градиенты, улучшенная типографика, астрологические детали)
+  2. При клике на карту показывается сообщение про персональный гороскоп с кнопкой перехода
+  3. Бесплатно: карта PNG + краткое описание (300 слов)
+  4. Платно (199 руб.): полная интерпретация личности (3000-5000 слов) - характер, таланты, карьера, отношения, здоровье, предназначение
+  5. Экономика платежа рассчитана и цена оптимизирована для конверсии
+**Plans**: 4 plans
+
+Plans:
+- [ ] 10-01-PLAN.md — Профессиональный SVG визуал (градиенты, Unicode глифы, свечения)
+- [ ] 10-02-PLAN.md — Платежная инфраструктура (PaymentPlan.DETAILED_NATAL, User.detailed_natal_purchased_at, миграция)
+- [ ] 10-03-PLAN.md — DetailedNatalPrompt и AI генерация (8 секций, 3000-5000 слов, кэш 7 дней)
+- [ ] 10-04-PLAN.md — Handlers для free/premium/purchased flow (покупка, показ детального разбора)
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -185,6 +203,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 7. Premium Horoscopes | 3/3 | Complete | 2026-01-23 |
 | 8. Premium Tarot + Natal | 3/3 | Complete | 2026-01-23 |
 | 9. Admin Panel | 0/2 | Not started | - |
+| 10. Улучшить натальную карту | 0/4 | Planned | - |
 
 ---
 *Roadmap created: 2026-01-22*
