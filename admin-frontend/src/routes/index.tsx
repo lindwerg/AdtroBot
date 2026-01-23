@@ -5,6 +5,10 @@ import LoginPage from '@/pages/Login'
 import Dashboard from '@/pages/Dashboard'
 import UsersPage from '@/pages/Users'
 import UserDetailPage from '@/pages/UserDetail'
+import PaymentsPage from '@/pages/Payments'
+import SubscriptionsPage from '@/pages/Subscriptions'
+import TarotSpreadsPage from '@/pages/TarotSpreads'
+import MessagesPage from '@/pages/Messages'
 
 // Auth check loader
 async function requireAuth() {
@@ -38,9 +42,10 @@ export const router = createBrowserRouter([
       { index: true, element: <Dashboard /> },
       { path: 'users', element: <UsersPage /> },
       { path: 'users/:id', element: <UserDetailPage /> },
-      { path: 'subscriptions', element: <div>Subscriptions (Coming soon)</div> },
-      { path: 'payments', element: <div>Payments (Coming soon)</div> },
-      { path: 'messages', element: <div>Messages (Coming soon)</div> },
+      { path: 'subscriptions', element: <SubscriptionsPage /> },
+      { path: 'payments', element: <PaymentsPage /> },
+      { path: 'tarot-spreads', element: <TarotSpreadsPage /> },
+      { path: 'messages', element: <MessagesPage /> },
       { path: 'promo-codes', element: <div>Promo Codes (Coming soon)</div> },
       { path: 'ab-tests', element: <div>A/B Tests (Coming soon)</div> },
     ],

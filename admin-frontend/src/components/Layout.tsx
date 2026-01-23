@@ -7,6 +7,7 @@ import {
   GiftOutlined,
   ExperimentOutlined,
   LogoutOutlined,
+  StarOutlined,
 } from '@ant-design/icons'
 import { Outlet, useNavigate, useLocation } from 'react-router'
 import { useAuthStore } from '@/store/auth'
@@ -16,6 +17,7 @@ const menuItems = [
   { path: '/users', name: 'Пользователи', icon: <UserOutlined /> },
   { path: '/subscriptions', name: 'Подписки', icon: <CreditCardOutlined /> },
   { path: '/payments', name: 'Платежи', icon: <CreditCardOutlined /> },
+  { path: '/tarot-spreads', name: 'Расклады', icon: <StarOutlined /> },
   { path: '/messages', name: 'Сообщения', icon: <MessageOutlined /> },
   { path: '/promo-codes', name: 'Промокоды', icon: <GiftOutlined /> },
   { path: '/ab-tests', name: 'A/B тесты', icon: <ExperimentOutlined /> },
