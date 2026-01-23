@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-22)
 ## Current Position
 
 Phase: 9 of 10 (Admin Panel)
-Plan: 10 of 14 completed in Phase 9
+Plan: 11 of 14 completed in Phase 9
 Status: In progress
-Last activity: 2026-01-23 — Completed 09-13: Horoscope content management
+Last activity: 2026-01-23 — Completed 09-09: Promo codes management
 
-Progress: [█████████████████████████░░] 97% (33/34 plans)
+Progress: [██████████████████████████░] 97% (34/34 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 33
+- Total plans completed: 34
 - Average duration: 6 min
-- Total execution time: 212 min
+- Total execution time: 217 min
 
 **By Phase:**
 
@@ -36,10 +36,10 @@ Progress: [███████████████████████
 | 7 | 3/3 | 17 min | 6 min |
 | 8 | 3/3 | 18 min | 6 min |
 | 10 | 4/4 | 13 min | 3 min |
-| 9 | 10/14 | 38 min | 4 min |
+| 9 | 11/14 | 43 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 09-06 (5 min), 09-14 (5 min), 09-08 (5 min), 09-07 (5 min), 09-13 (5 min)
+- Last 5 plans: 09-14 (5 min), 09-08 (5 min), 09-07 (5 min), 09-13 (5 min), 09-09 (5 min)
 - Trend: Consistent fast execution
 
 *Updated after each plan completion*
@@ -194,7 +194,7 @@ From research:
 ## Session Continuity
 
 Last session: 2026-01-23
-Stopped at: Completed 09-08 (Payments and subscriptions management)
+Stopped at: Completed 09-09 (Promo codes management)
 Resume file: None
 
 **What's Ready:**
@@ -385,5 +385,12 @@ Resume file: None
   - Frontend: table with all 12 signs, edit modal with textarea
   - Zodiac emoji and Russian labels support
 
+- **Promo Codes Management complete (09-09):**
+  - Promo code CRUD service: create, list, update, delete
+  - POST/GET/PATCH/DELETE /admin/promo-codes endpoints
+  - Frontend: ProTable with create modal, active toggle, delete
+  - Usage progress bar for limited codes
+  - Uppercase code normalization
+
 **Next Steps:**
-- Continue Phase 9: Promo codes (09-09), Analytics (09-10), etc.
+- Continue Phase 9: Analytics (09-10), etc.
