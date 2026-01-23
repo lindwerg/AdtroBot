@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-22)
 
 **Core value:** Качественная AI интерпретация астрологии и таро, которая конвертирует бесплатных пользователей в платных
-**Current focus:** Phase 8 - Premium Tarot + Natal
+**Current focus:** Phase 8 Complete - Ready for Phase 9
 
 ## Current Position
 
 Phase: 8 of 9 (Premium Tarot + Natal)
-Plan: 1 of 2 completed in Phase 8
-Status: In progress
-Last activity: 2026-01-23 16:35 — Completed 08-01-PLAN.md (Celtic Cross + History)
+Plan: 2 of 2 completed in Phase 8
+Status: Phase 8 complete
+Last activity: 2026-01-23 17:00 — Completed 08-02-PLAN.md (Natal Chart Display)
 
-Progress: [█████████████████░░] 85% (17/20 plans)
+Progress: [██████████████████░] 90% (18/20 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 17
+- Total plans completed: 18
 - Average duration: 8 min
-- Total execution time: 136 min
+- Total execution time: 144 min
 
 **By Phase:**
 
@@ -34,10 +34,10 @@ Progress: [█████████████████░░] 85% (17/20
 | 5 | 2/2 | 13 min | 7 min |
 | 6 | 3/3 | 11 min | 4 min |
 | 7 | 3/3 | 17 min | 6 min |
-| 8 | 1/2 | 7 min | 7 min |
+| 8 | 2/2 | 15 min | 8 min |
 
 **Recent Trend:**
-- Last 5 plans: 06-03 (4 min), 07-01 (6 min), 07-02 (6 min), 07-03 (5 min), 08-01 (7 min)
+- Last 5 plans: 07-01 (6 min), 07-02 (6 min), 07-03 (5 min), 08-01 (7 min), 08-02 (8 min)
 - Trend: Consistent fast execution
 
 *Updated after each plan completion*
@@ -113,6 +113,10 @@ Recent decisions affecting current work:
 - Celtic Cross как media group album (10 фото)
 - History pagination: 5/page, max 100 spreads
 - Premium 20 spreads/day, free 1 spread/day
+- svgwrite (MIT) вместо kerykeion (AGPL) для SVG генерации
+- UTC timezone conversion для точных расчётов натальной карты
+- 24-hour cache для natal interpretation (карта не меняется)
+- Main menu 2x3 grid с кнопкой "Натальная карта"
 
 ### Pending Todos
 
@@ -132,8 +136,8 @@ From research:
 
 ## Session Continuity
 
-Last session: 2026-01-23 16:35
-Stopped at: Completed 08-01-PLAN.md (Celtic Cross + History)
+Last session: 2026-01-23 17:00
+Stopped at: Completed 08-02-PLAN.md (Natal Chart Display)
 Resume file: None
 
 **What's Ready:**
@@ -151,7 +155,7 @@ Resume file: None
   - Zodiac determination and DB save
   - Mock horoscope shown after registration (immediate value)
   - Onboarding notification prompt after first horoscope
-  - Main menu 2x2: Гороскоп, Таро, Подписка, Профиль
+  - Main menu 2x3: Гороскоп, Таро, Натальная карта, Подписка, Профиль
   - Menu handlers with mock content / teasers
 - **Horoscope formatting complete (03-01):**
   - Entity-based formatting with Bold + BlockQuote
@@ -227,7 +231,14 @@ Resume file: None
   - Spread history with pagination (5/page, 100 max)
   - History detail view with cards and interpretation
   - Premium 20/day limit, free 1/day limit
+- **Natal Chart Display complete (08-02):**
+  - Full natal chart calculation (11 planets, 12 houses, aspects)
+  - SVG chart visualization (svgwrite + cairosvg)
+  - NatalChartPrompt for 1000-1500 word AI interpretation
+  - Main menu expanded to 2x3 with "Натальная карта" button
+  - Premium users see chart PNG + AI interpretation
+  - Free users see premium teaser
+  - Users without birth data prompted to configure
 
 **Next Steps:**
-- Phase 8-02: Natal chart display in profile
 - Phase 9: Admin Panel
