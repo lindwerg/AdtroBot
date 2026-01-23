@@ -1,2 +1,6 @@
+# Force Python 3.11 for pyswisseph compatibility
+[variables]
+NIXPACKS_PYTHON_VERSION = "3.11"
+
 [phases.setup]
-aptPkgs = ["libsqlite3-0"]
+nixPkgs = ["sqlite"]
