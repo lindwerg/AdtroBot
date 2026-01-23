@@ -146,11 +146,11 @@ Plans:
   3. Платный пользователь видит историю своих раскладов
   4. Платный пользователь может запросить натальную карту
   5. Натальная карта включает позиции планет, дома, аспекты с AI интерпретацией
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 08-01: Celtic cross + reading history
-- [ ] 08-02: Natal chart calculation + interpretation
+- [ ] 08-01-PLAN.md — Celtic Cross + spread history (TarotSpread model, CelticCrossPrompt, history UI)
+- [ ] 08-02-PLAN.md — Full natal chart + SVG visualization (all planets, houses, aspects, NatalChartPrompt, chart image)
 
 ### Phase 9: Admin Panel
 **Goal**: Админ может управлять ботом и видеть аналитику
@@ -182,7 +182,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 5. AI Integration | 2/2 | Complete | 2026-01-23 |
 | 6. Payments | 3/3 | Complete | 2026-01-23 |
 | 7. Premium Horoscopes | 3/3 | Complete | 2026-01-23 |
-| 8. Premium Tarot + Natal | 0/2 | Not started | - |
+| 8. Premium Tarot + Natal | 0/2 | In Progress | - |
 | 9. Admin Panel | 0/2 | Not started | - |
 
 ---
