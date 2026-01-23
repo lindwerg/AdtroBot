@@ -12,6 +12,7 @@ from src.admin.schemas import (
     KPIMetric,
     SparklinePoint,
 )
+from src.db.models import HoroscopeView
 from src.db.models.payment import Payment
 from src.db.models.tarot_spread import TarotSpread
 from src.db.models.user import User
@@ -155,8 +156,19 @@ async def get_dashboard_metrics(session: AsyncSession) -> DashboardMetrics:
     )
     retention_d7 = (retained_users / cohort_users * 100) if cohort_users > 0 else 0
 
-    # === Horoscopes Today (placeholder - need to track horoscope views) ===
-    horoscopes_today = 0  # TODO: Add tracking table
+    # === Horoscopes Today (from horoscope_views tracking table) ===
+    horoscopes_today = (
+        await session.scalar(
+            select(func.coalesce(func.sum(HoroscopeView.view_count), 0))
+            .where(HoroscopeView.view_date == today_start.date())
+        )
+    ) or 0
+    horoscopes_yesterday = (
+        await session.scalar(
+            select(func.coalesce(func.sum(HoroscopeView.view_count), 0))
+            .where(HoroscopeView.view_date == yesterday_start.date())
+        )
+    ) or 0
 
     # === Tarot Spreads Today ===
     spreads_today = (
@@ -266,7 +278,7 @@ async def get_dashboard_metrics(session: AsyncSession) -> DashboardMetrics:
         ),
         horoscopes_today=KPIMetric(
             value=horoscopes_today,
-            trend=0,
+            trend=calc_trend(horoscopes_today, horoscopes_yesterday),
             sparkline=[],
         ),
         tarot_spreads_today=KPIMetric(
