@@ -231,3 +231,62 @@ def validate_natal_chart(text: str) -> tuple[bool, str | None]:
         if errors:
             return False, str(errors[0].get("msg", "Validation failed"))
         return False, "Validation failed"
+
+
+def validate_detailed_natal(text: str, min_chars: int = 15000) -> bool:
+    """Validate detailed natal interpretation.
+
+    Args:
+        text: AI-generated interpretation
+        min_chars: Minimum characters (default 15000 ~ 3000 words Russian)
+
+    Returns:
+        True if valid
+    """
+    if not text or len(text.strip()) < min_chars:
+        return False
+
+    # Check for AI self-references
+    ai_patterns = [
+        "как ai", "как ии", "языковая модель", "искусственный интеллект",
+        "я не могу", "я не в состоянии", "к сожалению, я"
+    ]
+    text_lower = text.lower()
+    for pattern in ai_patterns:
+        if pattern in text_lower:
+            return False
+
+    # Check has multiple sections (at least 5 section-like headers)
+    section_markers = text.count("\n\n")
+    if section_markers < 5:
+        return False
+
+    return True
+
+
+def validate_detailed_natal_section(text: str, min_words: int) -> bool:
+    """Validate a single section of detailed natal interpretation.
+
+    Args:
+        text: Section text
+        min_words: Minimum word count for this section
+
+    Returns:
+        True if valid
+    """
+    if not text:
+        return False
+
+    # Count words (rough approximation for Russian)
+    word_count = len(text.split())
+    if word_count < min_words * 0.8:  # Allow 20% tolerance
+        return False
+
+    # Check for AI patterns
+    ai_patterns = ["как ai", "как ии", "языковая модель"]
+    text_lower = text.lower()
+    for pattern in ai_patterns:
+        if pattern in text_lower:
+            return False
+
+    return True
