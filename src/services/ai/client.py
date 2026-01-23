@@ -14,6 +14,7 @@ from src.services.ai.cache import (
 )
 from src.services.ai.prompts import (
     CardOfDayPrompt,
+    CelticCrossPrompt,
     HoroscopePrompt,
     PremiumHoroscopePrompt,
     TarotSpreadPrompt,
@@ -300,6 +301,52 @@ class AIService:
             )
 
         logger.error("premium_horoscope_validation_exhausted", user_id=user_id)
+        return None
+
+    async def generate_celtic_cross(
+        self,
+        question: str,
+        cards: list[dict],
+        is_reversed: list[bool],
+    ) -> str | None:
+        """Generate Celtic Cross 10-card spread interpretation.
+
+        No caching - each spread is unique based on question.
+
+        Args:
+            question: User's question
+            cards: List of 10 card dictionaries
+            is_reversed: List of 10 booleans for reversed cards
+
+        Returns:
+            Interpretation text (800-1200 words) or None if all retries fail
+        """
+        for attempt in range(self.MAX_VALIDATION_RETRIES + 1):
+            text = await self._generate(
+                system_prompt=CelticCrossPrompt.SYSTEM,
+                user_prompt=CelticCrossPrompt.user(question, cards, is_reversed),
+                max_tokens=4000,  # Larger for 800-1200 word response
+            )
+
+            if text is None:
+                return None
+
+            is_valid, error = validate_tarot(text)
+            if is_valid:
+                logger.info(
+                    "celtic_cross_generated",
+                    cards=[c.get("name") for c in cards],
+                    chars=len(text),
+                )
+                return text
+
+            logger.warning(
+                "celtic_cross_validation_failed",
+                error=error,
+                attempt=attempt + 1,
+            )
+
+        logger.error("celtic_cross_validation_exhausted")
         return None
 
 
