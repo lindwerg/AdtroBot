@@ -146,11 +146,12 @@ Plans:
   3. Платный пользователь видит историю своих раскладов
   4. Платный пользователь может запросить натальную карту
   5. Натальная карта включает позиции планет, дома, аспекты с AI интерпретацией
-**Plans**: 2 plans
+**Plans**: 3 plans (2 complete, 1 gap)
 
 Plans:
 - [x] 08-01-PLAN.md — Celtic Cross + spread history (TarotSpread model, CelticCrossPrompt, history UI)
 - [x] 08-02-PLAN.md — Full natal chart + SVG visualization (all planets, houses, aspects, NatalChartPrompt, chart image)
+- [ ] 08-03-PLAN.md — Telegraph integration (publish long interpretations to Telegraph with button, async timeout fixes)
 
 ### Phase 9: Admin Panel
 **Goal**: Админ может управлять ботом и видеть аналитику
