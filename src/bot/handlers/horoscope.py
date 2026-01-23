@@ -22,16 +22,17 @@ router = Router(name="horoscope")
 # Premium teaser for free users
 PREMIUM_TEASER = """
 ━━━━━━━━━━━━━━━━━━━━━━━━
-⭐ ПРЕМИУМ-ГОРОСКОП
+⭐ ХОЧЕШЬ ПЕРСОНАЛЬНЫЙ ПРОГНОЗ?
 
-Это был краткий прогноз. С подпиской получишь:
+Это был общий гороскоп для твоего знака.
+С подпиской ты получишь:
 
-• Детальный гороскоп по сферам: любовь, карьера, здоровье, финансы
-• Персональный прогноз на основе твоей натальной карты
-• 20 раскладов таро в день вместо 1
-• Кельтский крест (расклад на 10 карт)
+🔮 Персональный гороскоп по твоей натальной карте
+❤️ Прогноз по сферам: любовь, карьера, финансы
+🎴 20 раскладов таро в день
+⭐ Кельтский крест (10 карт)
 
-Всего 299 ₽/мес — нажми кнопку ниже ↓
+Всего 299 ₽/мес — попробуй!
 ━━━━━━━━━━━━━━━━━━━━━━━━"""
 
 # Prompt for premium users without natal data
@@ -92,12 +93,12 @@ async def show_zodiac_horoscope(
             # Premium without natal data - basic + setup prompt
             text = await get_horoscope_text(sign_name, zodiac.name_ru)
             text = f"{text}\n\n{SETUP_NATAL_PROMPT}"
-            header = f"{zodiac.emoji} Гороскоп для {zodiac.name_ru}"
+            header = f"{zodiac.emoji} Общий гороскоп для {zodiac.name_ru}"
     else:
         # Free user - basic + teaser
         text = await get_horoscope_text(sign_name, zodiac.name_ru)
         text = f"{text}\n\n{PREMIUM_TEASER}"
-        header = f"{zodiac.emoji} Гороскоп для {zodiac.name_ru}"
+        header = f"{zodiac.emoji} Общий гороскоп для {zodiac.name_ru}"
 
     # Format message
     content = Text(
@@ -148,7 +149,7 @@ async def show_horoscope_message(
     # Default values
     is_premium = False
     has_natal = False
-    header = f"{zodiac.emoji} Гороскоп для {zodiac.name_ru}"
+    header = f"{zodiac.emoji} Общий гороскоп для {zodiac.name_ru}"
 
     # Check premium status if session provided
     user = None
