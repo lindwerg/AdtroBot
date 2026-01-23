@@ -454,3 +454,66 @@ class UpdatePromoCodeRequest(BaseModel):
     valid_until: datetime | None = None
     max_uses: int | None = None
     is_active: bool | None = None
+
+
+# === A/B Experiments Schemas ===
+
+
+class CreateExperimentRequest(BaseModel):
+    """Request to create a new A/B experiment."""
+
+    name: str
+    description: str | None = None
+    metric: str  # conversion, retention, revenue
+    variant_b_percent: int = 50  # 0-100
+
+
+class ExperimentListItem(BaseModel):
+    """Experiment item in list response."""
+
+    id: int
+    name: str
+    description: str | None
+    metric: str
+    variant_b_percent: int
+    status: str
+    started_at: datetime | None
+    ended_at: datetime | None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ExperimentVariantStats(BaseModel):
+    """Stats for a single variant in experiment results."""
+
+    variant: str
+    users: int
+    conversions: int
+    conversion_rate: float
+
+
+class ExperimentResults(BaseModel):
+    """Experiment results with variant stats."""
+
+    experiment: ExperimentListItem
+    variant_a: ExperimentVariantStats
+    variant_b: ExperimentVariantStats
+    winner: str | None  # "A", "B", or None if not significant
+
+
+class UTMSourceStats(BaseModel):
+    """Stats for a single UTM source."""
+
+    source: str
+    users: int
+    premium_users: int
+    conversion_rate: float
+    total_revenue: int  # kopeks
+
+
+class UTMAnalyticsResponse(BaseModel):
+    """UTM analytics response with source breakdown."""
+
+    sources: list[UTMSourceStats]
+    total_users: int
