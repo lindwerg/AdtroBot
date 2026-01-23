@@ -46,6 +46,7 @@ from src.bot.utils.tarot_formatting import (
 from src.db.models.tarot_spread import TarotSpread
 from src.db.models.user import User
 from src.services.ai import get_ai_service
+from src.services.telegraph import get_telegraph_service
 
 router = Router(name="tarot")
 
@@ -623,11 +624,43 @@ async def tarot_draw_celtic_cards(
             interpretation=interpretation,
         )
 
-    # Send interpretation
-    content = format_celtic_cross_with_ai(cards, question, interpretation)
-    limit_text = format_limit_message(remaining, is_premium)
+    # Publish interpretation to Telegraph
+    telegraph_url = None
+    if interpretation:
+        try:
+            telegraph_service = get_telegraph_service()
+            telegraph_url = await telegraph_service.publish_article(
+                title=f"Кельтский крест — {question[:50]}",
+                content=interpretation,
+                author="AdtroBot"
+            )
+        except Exception as e:
+            # Log but don't fail if Telegraph fails
+            pass
 
-    await callback.message.answer(**content.as_kwargs())
+    # Send interpretation via Telegraph link
+    from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
+    if telegraph_url:
+        keyboard = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [InlineKeyboardButton(
+                    text="📖 Посмотреть интерпретацию",
+                    url=telegraph_url
+                )]
+            ]
+        )
+        await callback.message.answer(
+            "Твой расклад готов! Нажми кнопку, чтобы прочитать полную интерпретацию.",
+            reply_markup=keyboard,
+        )
+    else:
+        # Fallback to text if Telegraph fails
+        content = format_celtic_cross_with_ai(cards, question, interpretation)
+        await callback.message.answer(**content.as_kwargs())
+
+    # Show limit
+    limit_text = format_limit_message(remaining, is_premium)
     await callback.message.answer(
         limit_text,
         reply_markup=get_tarot_menu_keyboard(),

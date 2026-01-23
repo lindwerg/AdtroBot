@@ -17,6 +17,7 @@ from src.db.models.user import User
 from src.services.ai import get_ai_service
 from src.services.astrology.natal_chart import calculate_full_natal_chart
 from src.services.astrology.natal_svg import generate_natal_png
+from src.services.telegraph import get_telegraph_service
 
 logger = structlog.get_logger()
 
@@ -67,31 +68,57 @@ async def show_natal_chart(
         # Delete loading message
         await loading_msg.delete()
 
-        # Send chart image
+        # Publish interpretation to Telegraph
+        telegraph_url = None
+        if interpretation:
+            try:
+                telegraph_service = get_telegraph_service()
+                birth_info = f"{user.birth_date.strftime('%d.%m.%Y')}"
+                if user.birth_city:
+                    birth_info += f", {user.birth_city}"
+
+                telegraph_url = await telegraph_service.publish_article(
+                    title=f"Натальная карта — {birth_info}",
+                    content=interpretation,
+                    author="AdtroBot"
+                )
+            except Exception as e:
+                logger.error(
+                    "telegraph_publish_error",
+                    user_id=user.telegram_id,
+                    error=str(e),
+                )
+
+        # Create inline keyboard with Telegraph link
+        from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+        keyboard = None
+        if telegraph_url:
+            keyboard = InlineKeyboardMarkup(
+                inline_keyboard=[
+                    [InlineKeyboardButton(
+                        text="📖 Посмотреть интерпретацию",
+                        url=telegraph_url
+                    )]
+                ]
+            )
+
+        # Send chart image with button
         photo = BufferedInputFile(png_bytes, filename="natal_chart.png")
+        caption = "Твоя натальная карта"
+        if telegraph_url:
+            caption += "\n\nНажми на кнопку ниже, чтобы прочитать полную интерпретацию."
+        else:
+            caption += "\n\n⚠️ Не удалось создать интерпретацию. Попробуй позже."
+
         await message.answer_photo(
             photo=photo,
-            caption="Твоя натальная карта",
+            caption=caption,
+            reply_markup=keyboard,
         )
-
-        # Send interpretation (may need splitting if too long)
-        if interpretation:
-            if len(interpretation) <= MAX_MESSAGE_LENGTH:
-                await message.answer(interpretation)
-            else:
-                # Split into chunks
-                chunks = _split_text(interpretation, MAX_MESSAGE_LENGTH)
-                for chunk in chunks:
-                    await message.answer(chunk)
-        else:
-            await message.answer(
-                "Не удалось сгенерировать интерпретацию. "
-                "Попробуйте позже."
-            )
 
         # Show navigation keyboard
         await message.answer(
-            "Это твоя полная натальная карта с интерпретацией.",
+            "Это твоя полная натальная карта.",
             reply_markup=get_natal_menu_keyboard(),
         )
 
