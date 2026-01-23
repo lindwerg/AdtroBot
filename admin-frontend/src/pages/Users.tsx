@@ -229,7 +229,11 @@ export default function UsersPage() {
       })}
       headerTitle="Пользователи"
       toolBarRender={() => [
-        <Button key="export" icon={<ExportOutlined />}>
+        <Button
+          key="export"
+          icon={<ExportOutlined />}
+          onClick={() => window.open('/admin/export/users', '_blank')}
+        >
           Экспорт CSV
         </Button>,
       ]}

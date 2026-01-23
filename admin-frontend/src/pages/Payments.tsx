@@ -1,6 +1,7 @@
 import { ProTable } from '@ant-design/pro-components'
 import type { ProColumns } from '@ant-design/pro-components'
-import { Tag, Statistic, Card, Row, Col } from 'antd'
+import { Tag, Statistic, Card, Row, Col, Button } from 'antd'
+import { ExportOutlined } from '@ant-design/icons'
 import { useState } from 'react'
 import dayjs from 'dayjs'
 import { getPayments } from '@/api/endpoints/payments'
@@ -116,6 +117,15 @@ export default function PaymentsPage() {
         pagination={{ pageSize: 20 }}
         search={{ filterType: 'light' }}
         headerTitle="Платежи"
+        toolBarRender={() => [
+          <Button
+            key="export"
+            icon={<ExportOutlined />}
+            onClick={() => window.open('/admin/export/payments', '_blank')}
+          >
+            Экспорт CSV
+          </Button>,
+        ]}
       />
     </>
   )

@@ -1,4 +1,5 @@
-import { Row, Col, Typography, Segmented, Space, Alert } from 'antd'
+import { Row, Col, Typography, Segmented, Space, Alert, Button } from 'antd'
+import { ExportOutlined } from '@ant-design/icons'
 import { useState } from 'react'
 import { KPICard, ConversionFunnel } from '@/components/charts'
 import { useDashboardMetrics, useFunnelData } from '@/hooks/useDashboard'
@@ -137,6 +138,12 @@ export default function Dashboard() {
             { label: '90 дней', value: 90 },
           ]}
         />
+        <Button
+          icon={<ExportOutlined />}
+          onClick={() => window.open(`/admin/export/metrics?days=${funnelPeriod}`, '_blank')}
+        >
+          Экспорт метрик
+        </Button>
       </Space>
       <ConversionFunnel
         stages={funnel?.stages ?? []}

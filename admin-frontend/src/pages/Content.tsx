@@ -16,8 +16,8 @@ import dayjs from 'dayjs'
 import {
   getHoroscopeContent,
   updateHoroscopeContent,
-  HoroscopeContentItem,
 } from '@/api/endpoints/content'
+import type { HoroscopeContentItem } from '@/api/endpoints/content'
 
 const ZODIAC_LABELS: Record<string, string> = {
   aries: 'Овен',
