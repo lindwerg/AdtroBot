@@ -113,17 +113,61 @@ Explicitly excluded from all versions. Documented to prevent scope creep.
 
 ## Traceability
 
-Which phases cover which requirements. Updated during roadmap creation.
+Which phases cover which requirements.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (Empty — filled by roadmapper) | | |
+| PERF-01 | Phase 11 | Pending |
+| PERF-02 | Phase 12 | Pending |
+| PERF-03 | Phase 12 | Pending |
+| PERF-04 | Phase 11 | Pending |
+| PERF-05 | Phase 14 | Pending |
+| PERF-06 | Phase 12 | Pending |
+| PERF-07 | Phase 12 | Pending |
+| VIS-01 | Phase 14 | Pending |
+| VIS-02 | Phase 14 | Pending |
+| VIS-03 | Phase 14 | Pending |
+| VIS-04 | Phase 14 | Pending |
+| VIS-05 | Phase 14 | Pending |
+| VIS-06 | Phase 14 | Pending |
+| VIS-07 | Phase 14 | Pending |
+| UX-01 | Phase 11 | Pending |
+| UX-02 | Phase 11 | Pending |
+| UX-03 | Phase 11 | Pending |
+| UX-04 | Phase 11 | Pending |
+| WEL-01 | Phase 11 | Pending |
+| WEL-02 | Phase 11 | Pending |
+| WEL-03 | Phase 14 | Pending |
+| WEL-04 | Phase 11 | Pending |
+| MON-01 | Phase 12 | Pending |
+| MON-02 | Phase 15 | Pending |
+| MON-03 | Phase 15 | Pending |
+| MON-04 | Phase 15 | Pending |
+| MON-05 | Phase 15 | Pending |
+| MON-06 | Phase 15 | Pending |
+| TEST-01 | Phase 16 | Pending |
+| TEST-02 | Phase 16 | Pending |
+| TEST-03 | Phase 16 | Pending |
+| TEST-04 | Phase 16 | Pending |
+| TEST-05 | Phase 16 | Pending |
+| TEST-06 | Phase 16 | Pending |
+| TEST-07 | Phase 16 | Pending |
+| ADMIN-01 | Phase 16 | Pending |
+| ADMIN-02 | Phase 16 | Pending |
+| ADMIN-03 | Phase 16 | Pending |
+| IMG-01 | Phase 13 | Pending |
+| IMG-02 | Phase 13 | Pending |
+| IMG-03 | Phase 13 | Pending |
+| IMG-04 | Phase 13 | Pending |
+| IMG-05 | Phase 13 | Pending |
+| IMG-06 | Phase 13 | Pending |
+| IMG-07 | Phase 13 | Pending |
 
 **Coverage:**
 - v2.0 requirements: 36 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 36 ⚠️
+- Mapped to phases: 36/36 (100%)
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-01-23*
-*Last updated: 2026-01-23 after initial definition*
+*Last updated: 2026-01-23 — traceability added*

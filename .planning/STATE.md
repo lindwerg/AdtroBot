@@ -4,43 +4,32 @@
 
 See: .planning/PROJECT.md (updated 2026-01-23)
 
-**Core value:** Качественная AI интерпретация астрологии и таро, которая конвертирует бесплатных пользователей в платных
-**Current focus:** v2.0 Production Polish & Visual Enhancement
+**Core value:** Качественная AI интерпретация астрологии и таро, которая конвертирует бесплатных пользователей в платных подписчиков
+**Current focus:** Phase 11 - Performance & UX Quick Wins
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements for v2.0
-Last activity: 2026-01-23 — Milestone v2.0 started
+Phase: 11 of 16 (Performance & UX Quick Wins)
+Plan: 0 of TBD in current phase
+Status: Ready to plan
+Last activity: 2026-01-23 — Roadmap v2.0 created (6 phases, 36 requirements)
 
-Progress: v1.0 complete (10 phases, 37 plans, 74 requirements) → v2.0 in planning
+Progress: [░░░░░░░░░░] 0% (v2.0: 0/6 phases)
 
 ## Performance Metrics
 
-**Velocity:**
+**Velocity (v1.0 baseline):**
 - Total plans completed: 37
 - Average duration: 7 min
-- Total execution time: 271 min
+- Total execution time: 271 min (~4.5 hours)
 
-**By Phase:**
+**By Phase (v1.0):**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 1 | 2/2 | 49 min | 25 min |
-| 2 | 2/2 | 16 min | 8 min |
-| 3 | 2/2 | 10 min | 5 min |
-| 4 | 2/2 | 13 min | 7 min |
-| 5 | 2/2 | 13 min | 7 min |
-| 6 | 3/3 | 11 min | 4 min |
-| 7 | 3/3 | 17 min | 6 min |
-| 8 | 3/3 | 18 min | 6 min |
-| 10 | 4/4 | 13 min | 3 min |
-| 9 | 14/14 | 97 min | 7 min |
+| 1-10 | 37/37 | 271 min | 7 min |
 
-**Recent Trend:**
-- Last 5 plans: 09-10 (4 min), 09-11 (5 min), 09-12 (45 min), 09-13 (5 min), 09-14 (4 min)
-- Trend: Checkpoint tasks take longer (human verification)
+**v2.0 metrics will be tracked separately.**
 
 *Updated after each plan completion*
 
@@ -48,52 +37,34 @@ Progress: v1.0 complete (10 phases, 37 plans, 74 requirements) → v2.0 in plann
 
 ### Decisions
 
-All v1.0 decisions archived in PROJECT.md Key Decisions table.
+Decisions logged in PROJECT.md Key Decisions table.
+Recent decisions affecting current work:
 
-See `.planning/milestones/v1.0-ROADMAP.md` for full decision history.
+- [v2.0 Research]: PostgreSQL для кэша вместо Redis (достаточная скорость, persistence, дешевле)
+- [v2.0 Research]: Together.ai + FLUX.1 для изображений (бесплатно 3 месяца unlimited)
+- [v2.0 Research]: Telethon для Telegram API тестов (активная разработка, StringSession для CI)
+- [v2.0 Research]: Prometheus metrics + custom counters (не Sentry - свой стек)
 
-**Key architectural decisions from v1.0:**
-- GPT-4o-mini via OpenRouter (cost optimization)
-- DbSessionMiddleware без auto-commit (explicit transaction control)
-- APScheduler + SQLAlchemyJobStore (persistent jobs)
-- YooKassa payment ID как PK (idempotency)
-- pyswisseph для natal calculations
-- svgwrite для SVG (MIT license, not AGPL kerykeion)
-- Telegraph для длинных интерпретаций
-- React SPA + JWT для админки
-- Atomic limit checks (UPDATE...RETURNING)
+### Pending Todos
 
-**Full history:** See `.planning/milestones/v1.0-ROADMAP.md`
-
-### Roadmap Evolution
-
-v1.0 roadmap archived to `.planning/milestones/v1.0-ROADMAP.md`
+None yet.
 
 ### Blockers/Concerns
 
-None — v1.0 shipped successfully
-
-**Production deployment pending:**
-- Configure Railway environment variables (TELEGRAM_BOT_TOKEN, OPENROUTER_API_KEY, YOOKASSA keys)
+**Production deployment (from v1.0):**
+- Configure Railway environment variables
 - Run migrations: `alembic upgrade head`
 - Configure YooKassa webhook URL
 - Add GEONAMES_USERNAME for geocoding
 
-### Quick Tasks (v1.0)
+## Session Continuity
 
-Archived to `.planning/milestones/v1.0-ROADMAP.md`
+Last session: 2026-01-23
+Stopped at: Roadmap v2.0 created, ready to plan Phase 11
+Resume file: None
 
-## v1.0 Shipped
+## v1.0 Reference
 
-**Summary:** 10 phases, 37 plans, 74 requirements ✅
-
-**Architecture:**
-- FastAPI + aiogram 3.x + PostgreSQL + React SPA
-- GPT-4o-mini via OpenRouter
-- ЮКасса payments with auto-renewal
-- pyswisseph natal calculations
-- Telegraph for long content
-
+**Shipped:** 2026-01-23
+**Stats:** 10 phases, 37 plans, 74 requirements
 **Full details:** `.planning/milestones/v1.0-ROADMAP.md`
-
-**Next Steps:** `/gsd:new-milestone` — start v2 planning
