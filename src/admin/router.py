@@ -1,13 +1,29 @@
 from datetime import timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.admin.auth import create_access_token, get_current_admin, verify_password
 from src.admin.models import Admin
-from src.admin.schemas import AdminInfo, Token
+from src.admin.schemas import (
+    AdminInfo,
+    BulkActionRequest,
+    BulkActionResponse,
+    GiftRequest,
+    Token,
+    UpdateSubscriptionRequest,
+    UserDetail,
+    UserListResponse,
+)
+from src.admin.services.users import (
+    bulk_action,
+    get_user_detail,
+    gift_to_user,
+    list_users,
+    update_user_subscription,
+)
 from src.config import settings
 from src.db.engine import get_session
 
@@ -50,3 +66,84 @@ async def login(
 async def get_me(current_admin: Admin = Depends(get_current_admin)) -> AdminInfo:
     """Get current admin info."""
     return AdminInfo.model_validate(current_admin)
+
+
+# User management endpoints
+
+
+@admin_router.get("/users", response_model=UserListResponse)
+async def users_list(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    search: str | None = Query(None),
+    zodiac_sign: str | None = Query(None),
+    is_premium: bool | None = Query(None),
+    has_detailed_natal: bool | None = Query(None),
+    sort_by: str = Query("created_at"),
+    sort_order: str = Query("desc"),
+    session: AsyncSession = Depends(get_session),
+    current_admin: Admin = Depends(get_current_admin),
+) -> UserListResponse:
+    """List users with filters and pagination."""
+    return await list_users(
+        session,
+        page=page,
+        page_size=page_size,
+        search=search,
+        zodiac_sign=zodiac_sign,
+        is_premium=is_premium,
+        has_detailed_natal=has_detailed_natal,
+        sort_by=sort_by,
+        sort_order=sort_order,
+    )
+
+
+@admin_router.get("/users/{user_id}", response_model=UserDetail)
+async def user_detail(
+    user_id: int = Path(...),
+    session: AsyncSession = Depends(get_session),
+    current_admin: Admin = Depends(get_current_admin),
+) -> UserDetail:
+    """Get detailed user info."""
+    user = await get_user_detail(session, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+
+@admin_router.patch("/users/{user_id}/subscription")
+async def update_subscription(
+    user_id: int = Path(...),
+    request: UpdateSubscriptionRequest = ...,
+    session: AsyncSession = Depends(get_session),
+    current_admin: Admin = Depends(get_current_admin),
+) -> dict[str, str]:
+    """Update user subscription (activate/cancel/extend)."""
+    success = await update_user_subscription(session, user_id, request)
+    if not success:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"status": "ok"}
+
+
+@admin_router.post("/users/{user_id}/gift")
+async def gift_user(
+    user_id: int = Path(...),
+    request: GiftRequest = ...,
+    session: AsyncSession = Depends(get_session),
+    current_admin: Admin = Depends(get_current_admin),
+) -> dict[str, str]:
+    """Give gift to user (premium days, detailed natal, spreads)."""
+    success = await gift_to_user(session, user_id, request)
+    if not success:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"status": "ok"}
+
+
+@admin_router.post("/users/bulk", response_model=BulkActionResponse)
+async def users_bulk_action(
+    request: BulkActionRequest,
+    session: AsyncSession = Depends(get_session),
+    current_admin: Admin = Depends(get_current_admin),
+) -> BulkActionResponse:
+    """Perform bulk action on multiple users."""
+    return await bulk_action(session, request)
