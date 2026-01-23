@@ -173,3 +173,61 @@ def validate_card_of_day(text: str) -> tuple[bool, str | None]:
         if errors:
             return False, str(errors[0].get("msg", "Validation failed"))
         return False, "Validation failed"
+
+
+class NatalChartOutput(BaseModel):
+    """Validation for natal chart interpretation output."""
+
+    text: str
+
+    @field_validator("text")
+    @classmethod
+    def validate_structure(cls, v: str) -> str:
+        """Validate natal chart interpretation structure and content."""
+        # Check minimum length (400-500 words ~ 800 chars in Russian)
+        if len(v) < 800:
+            raise ValueError("Интерпретация натальной карты слишком короткая")
+
+        # Check maximum length
+        if len(v) > 3000:
+            raise ValueError("Интерпретация натальной карты слишком длинная")
+
+        # Check for required sections (at least 3 of 5 from NatalChartPrompt)
+        # Sections: БОЛЬШАЯ ТРОЙКА, ЛИЧНОСТЬ, ПУТЬ РАЗВИТИЯ, КЛЮЧЕВЫЕ АСПЕКТЫ, ИТОГ
+        section_keywords = [
+            "большая тройка",
+            "личность",
+            "развити",  # Matches "ПУТЬ РАЗВИТИЯ" and "развитие"
+            "аспект",   # Matches "КЛЮЧЕВЫЕ АСПЕКТЫ"
+            "итог",
+        ]
+        text_lower = v.lower()
+        found = sum(1 for kw in section_keywords if kw in text_lower)
+        if found < 3:
+            raise ValueError(f"Отсутствуют разделы натальной карты (найдено {found}/5)")
+
+        # Check for forbidden AI self-references
+        error = _check_forbidden_patterns(v)
+        if error:
+            raise ValueError(error)
+
+        return v
+
+
+def validate_natal_chart(text: str) -> tuple[bool, str | None]:
+    """Validate natal chart interpretation output.
+
+    Args:
+        text: The generated natal chart interpretation text
+
+    Returns:
+        Tuple of (is_valid, error_message or None)
+    """
+    try:
+        NatalChartOutput(text=text)
+        return True, None
+    except ValidationError as e:
+        errors = e.errors()
+        if errors:
+            return False, str(errors[0].get("msg", "Validation failed"))
+        return False, "Validation failed"
