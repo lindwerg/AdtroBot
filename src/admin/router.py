@@ -11,6 +11,7 @@ from src.admin.schemas import (
     AdminInfo,
     BulkActionRequest,
     BulkActionResponse,
+    CreatePromoCodeRequest,
     DashboardMetrics,
     FunnelData,
     GiftRequest,
@@ -18,6 +19,8 @@ from src.admin.schemas import (
     HoroscopeContentListResponse,
     MessageHistoryResponse,
     PaymentListResponse,
+    PromoCodeListItem,
+    PromoCodeListResponse,
     SendMessageRequest,
     SendMessageResponse,
     SubscriptionListResponse,
@@ -25,6 +28,7 @@ from src.admin.schemas import (
     TarotSpreadListResponse,
     Token,
     UpdateHoroscopeContentRequest,
+    UpdatePromoCodeRequest,
     UpdateSubscriptionRequest,
     UpdateSubscriptionStatusRequest,
     UserDetail,
@@ -35,6 +39,12 @@ from src.admin.services.content import (
     get_all_horoscope_content,
     get_horoscope_content,
     update_horoscope_content,
+)
+from src.admin.services.promo import (
+    create_promo_code,
+    delete_promo_code,
+    list_promo_codes,
+    update_promo_code,
 )
 from src.admin.services.payments import (
     list_payments,
@@ -377,3 +387,59 @@ async def update_content_by_sign(
         session, zodiac_sign, request, current_admin.id
     )
     return HoroscopeContentItem.model_validate(content)
+
+
+# Promo codes management endpoints
+
+
+@admin_router.post("/promo-codes", response_model=PromoCodeListItem)
+async def create_promo(
+    request: CreatePromoCodeRequest,
+    session: AsyncSession = Depends(get_session),
+    current_admin: Admin = Depends(get_current_admin),
+) -> PromoCodeListItem:
+    """Create a new promo code."""
+    try:
+        promo = await create_promo_code(session, request)
+        return PromoCodeListItem.model_validate(promo)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@admin_router.get("/promo-codes", response_model=PromoCodeListResponse)
+async def promo_list(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    is_active: bool | None = Query(None),
+    session: AsyncSession = Depends(get_session),
+    current_admin: Admin = Depends(get_current_admin),
+) -> PromoCodeListResponse:
+    """List promo codes."""
+    return await list_promo_codes(session, page, page_size, is_active)
+
+
+@admin_router.patch("/promo-codes/{promo_id}")
+async def update_promo(
+    promo_id: int = Path(...),
+    request: UpdatePromoCodeRequest = ...,
+    session: AsyncSession = Depends(get_session),
+    current_admin: Admin = Depends(get_current_admin),
+) -> dict[str, str]:
+    """Update a promo code."""
+    success = await update_promo_code(session, promo_id, request)
+    if not success:
+        raise HTTPException(status_code=404, detail="Promo code not found")
+    return {"status": "ok"}
+
+
+@admin_router.delete("/promo-codes/{promo_id}")
+async def delete_promo(
+    promo_id: int = Path(...),
+    session: AsyncSession = Depends(get_session),
+    current_admin: Admin = Depends(get_current_admin),
+) -> dict[str, str]:
+    """Delete a promo code."""
+    success = await delete_promo_code(session, promo_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Promo code not found")
+    return {"status": "deleted"}
