@@ -17,7 +17,7 @@ v2.0 доводит MVP до production-ready состояния: критиче
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 11: Performance & UX Quick Wins** - Критические UX-фиксы без новых зависимостей
+- [x] **Phase 11: Performance & UX Quick Wins** - Критические UX-фиксы без новых зависимостей
 - [ ] **Phase 12: Caching & Background Jobs** - PostgreSQL cache + фоновая генерация гороскопов
 - [ ] **Phase 13: Image Generation** - AI генерация всех изображений (Together.ai)
 - [ ] **Phase 14: Visual Integration** - Интеграция изображений в бот + onboarding
@@ -39,9 +39,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 3 plans
 
 Plans:
-- [ ] 11-01-PLAN.md — Typing indicators + progress messages для AI операций
-- [ ] 11-02-PLAN.md — Welcome flow: engaging текст, /help, /about, BotFather setup
-- [ ] 11-03-PLAN.md — UX гороскопов: разделение общий/персональный, улучшенный onboarding
+- [x] 11-01-PLAN.md — Typing indicators + progress messages для AI операций
+- [x] 11-02-PLAN.md — Welcome flow: engaging текст, /help, /about, BotFather setup
+- [x] 11-03-PLAN.md — UX гороскопов: разделение общий/персональный, улучшенный onboarding
 
 ### Phase 12: Caching & Background Jobs
 **Goal**: Гороскопы загружаются мгновенно из кэша, AI генерация происходит в фоне
@@ -132,7 +132,7 @@ Phases execute in numeric order: 11 -> 11.1 -> 11.2 -> 12 -> ... -> 16
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 11. Performance & UX Quick Wins | v2.0 | 0/3 | Planned | - |
+| 11. Performance & UX Quick Wins | v2.0 | 3/3 | Complete | 2026-01-23 |
 | 12. Caching & Background Jobs | v2.0 | 0/TBD | Not started | - |
 | 13. Image Generation | v2.0 | 0/TBD | Not started | - |
 | 14. Visual Integration | v2.0 | 0/TBD | Not started | - |
@@ -141,4 +141,4 @@ Phases execute in numeric order: 11 -> 11.1 -> 11.2 -> 12 -> ... -> 16
 
 ---
 *Roadmap created: 2026-01-23*
-*Last updated: 2026-01-23*
+*Last updated: 2026-01-23 (Phase 11 complete)*
