@@ -10,14 +10,20 @@ from src.config import settings
 logger = structlog.get_logger()
 
 
-# Configure YooKassa on module load
-def _configure_yookassa():
+_configured = False
+
+
+def _ensure_configured():
+    """Lazy configuration - call before each API request."""
+    global _configured
+    if _configured:
+        return
     if settings.yookassa_shop_id and settings.yookassa_secret_key:
         Configuration.account_id = settings.yookassa_shop_id
         Configuration.secret_key = settings.yookassa_secret_key
-
-
-_configure_yookassa()
+        _configured = True
+    else:
+        raise ValueError("YooKassa credentials not configured")
 
 
 async def create_payment(
@@ -40,6 +46,7 @@ async def create_payment(
     Returns:
         YooKassa Payment object as dict
     """
+    _ensure_configured()
     idempotency_key = str(uuid.uuid4())
 
     payment_data = {
@@ -91,6 +98,7 @@ async def create_recurring_payment(
     Returns:
         YooKassa Payment object as dict
     """
+    _ensure_configured()
     idempotency_key = str(uuid.uuid4())
 
     payment_data = {
