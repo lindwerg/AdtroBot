@@ -7,7 +7,7 @@ from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from pytz import utc
-from sqlalchemy import and_, select
+from sqlalchemy import and_, delete, select
 
 from src.config import settings
 
@@ -44,6 +44,15 @@ def get_scheduler() -> AsyncIOScheduler:
             id="check_expiring_subscriptions",
             replace_existing=True,
             misfire_grace_time=3600,
+        )
+
+        # Add daily horoscope generation job at 00:00 Moscow time
+        _scheduler.add_job(
+            generate_daily_horoscopes,
+            CronTrigger(hour='0', minute=0, timezone="Europe/Moscow"),
+            id="generate_daily_horoscopes",
+            replace_existing=True,
+            misfire_grace_time=3600,  # 1 hour grace
         )
 
     return _scheduler
@@ -288,3 +297,42 @@ async def auto_renew_subscriptions() -> None:
                     )
                 except Exception:
                     pass  # User might have blocked bot
+
+
+# ============== Horoscope Generation Jobs ==============
+
+
+async def generate_daily_horoscopes() -> None:
+    """
+    Background job: generate horoscopes for all 12 zodiac signs.
+    Runs daily at 00:00 Moscow time.
+
+    Steps:
+    1. Delete old horoscopes (date < today)
+    2. Generate horoscopes for all 12 signs via HoroscopeCacheService
+    """
+    from src.bot.utils.zodiac import ZODIAC_SIGNS
+    from src.db.engine import async_session_maker
+    from src.db.models.horoscope_cache import HoroscopeCache
+    from src.services.horoscope_cache import get_horoscope_cache_service
+
+    today = date.today()
+
+    # FIRST: Delete old horoscopes (explicit cleanup)
+    async with async_session_maker() as session:
+        await session.execute(
+            delete(HoroscopeCache).where(HoroscopeCache.horoscope_date < today)
+        )
+        await session.commit()
+        logger.info("Cleaned up old horoscopes", before_date=str(today))
+
+    # THEN: Generate horoscopes for all 12 signs
+    cache_service = get_horoscope_cache_service()
+
+    async with async_session_maker() as session:
+        for sign_en, zodiac in ZODIAC_SIGNS.items():
+            result = await cache_service.get_horoscope(sign_en, session)
+            if result:
+                logger.info("Horoscope generated", sign=sign_en)
+            else:
+                logger.error("Failed to generate horoscope", sign=sign_en)
