@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-01-22)
 Phase: 8 of 9 (Premium Tarot + Natal)
 Plan: 3 of 3 completed in Phase 8
 Status: Phase 8 complete with gap closure
-Last activity: 2026-01-23 17:30 — Completed 08-03-PLAN.md (Telegraph Integration)
+Last activity: 2026-01-23 17:50 — Completed quick-001: NatalChartOutput validator fix
 
 Progress: [███████████████████░] 95% (19/20 plans)
 
@@ -140,6 +140,12 @@ Recent decisions affecting current work:
 - Add GEONAMES_USERNAME to Railway environment
 - Run 07-01 migration on Railway: `alembic upgrade head`
 - Run 08-01 migration on Railway: `alembic upgrade head`
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 001 | Create NatalChartOutput validator and use it in generate_natal_interpretation | 2026-01-23 | f9dd038 | [001-create-natalchartoutput-validator-and-us](./quick/001-create-natalchartoutput-validator-and-us/) |
 
 ### Blockers/Concerns
 
