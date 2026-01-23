@@ -3,8 +3,6 @@
 from telegraph import Telegraph
 from telegraph.exceptions import TelegraphException
 
-from src.core.config import get_settings
-
 
 class TelegraphService:
     """Service for publishing content to Telegraph."""
