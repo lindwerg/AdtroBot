@@ -4,6 +4,7 @@ import Layout from '@/components/Layout'
 import LoginPage from '@/pages/Login'
 import Dashboard from '@/pages/Dashboard'
 import UsersPage from '@/pages/Users'
+import UserDetailPage from '@/pages/UserDetail'
 
 // Auth check loader
 async function requireAuth() {
@@ -36,7 +37,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Dashboard /> },
       { path: 'users', element: <UsersPage /> },
-      { path: 'users/:id', element: <div>User Detail (Coming soon)</div> },
+      { path: 'users/:id', element: <UserDetailPage /> },
       { path: 'subscriptions', element: <div>Subscriptions (Coming soon)</div> },
       { path: 'payments', element: <div>Payments (Coming soon)</div> },
       { path: 'messages', element: <div>Messages (Coming soon)</div> },

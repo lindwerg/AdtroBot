@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
-import { ProTable, ProColumns } from '@ant-design/pro-components'
+import { ProTable } from '@ant-design/pro-components'
+import type { ProColumns } from '@ant-design/pro-components'
 import { Button, Tag, Space, message, Modal, InputNumber } from 'antd'
 import { UserOutlined, GiftOutlined, ExportOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
-import { getUsers, UserListItem, bulkAction } from '@/api/endpoints/users'
+import { getUsers, bulkAction } from '@/api/endpoints/users'
+import type { UserListItem } from '@/api/endpoints/users'
 
 const ZODIAC_SIGNS = [
   { value: 'aries', label: 'Овен' },
