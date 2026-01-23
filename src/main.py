@@ -84,18 +84,33 @@ app.include_router(admin_router)
 
 # Serve admin frontend static files
 admin_frontend_path = Path(__file__).parent.parent / "admin-frontend" / "dist"
+logger.info(
+    "Admin frontend path check",
+    path=str(admin_frontend_path),
+    exists=admin_frontend_path.exists(),
+    absolute=str(admin_frontend_path.absolute()),
+)
+
 if admin_frontend_path.exists():
     app.mount(
         "/admin/assets",
-        StaticFiles(directory=admin_frontend_path / "assets"),
+        StaticFiles(directory=str(admin_frontend_path / "assets")),
         name="admin-assets",
     )
+    logger.info("Admin static assets mounted at /admin/assets")
 
     @app.get("/admin/")
     @app.get("/admin/{full_path:path}")
     async def serve_admin_spa(full_path: str = ""):
         """Serve admin SPA for all /admin/* routes."""
         return FileResponse(admin_frontend_path / "index.html")
+
+    logger.info("Admin SPA routes registered")
+else:
+    logger.warning(
+        "Admin frontend dist not found, admin panel will not be available",
+        path=str(admin_frontend_path),
+    )
 
 
 @app.get("/health")
