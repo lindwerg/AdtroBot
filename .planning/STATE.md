@@ -127,7 +127,7 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-**Captured todos:** 0 (see `.planning/todos/pending/`)
+**Captured todos:** 2 (see `.planning/todos/pending/`)
 
 - ~~**Fix natal chart interpretation validation failure** (ai)~~ — FIXED in quick-001
 
