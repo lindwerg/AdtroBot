@@ -11,6 +11,7 @@ import TarotSpreadsPage from '@/pages/TarotSpreads'
 import MessagesPage from '@/pages/Messages'
 import ContentPage from '@/pages/Content'
 import PromoCodesPage from '@/pages/PromoCodes'
+import ABTestsPage from '@/pages/ABTests'
 
 // Auth check loader
 async function requireAuth() {
@@ -50,7 +51,7 @@ export const router = createBrowserRouter([
       { path: 'messages', element: <MessagesPage /> },
       { path: 'content', element: <ContentPage /> },
       { path: 'promo-codes', element: <PromoCodesPage /> },
-      { path: 'ab-tests', element: <div>A/B Tests (Coming soon)</div> },
+      { path: 'ab-tests', element: <ABTestsPage /> },
     ],
   },
 ])

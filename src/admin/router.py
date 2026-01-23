@@ -12,8 +12,11 @@ from src.admin.schemas import (
     AdminInfo,
     BulkActionRequest,
     BulkActionResponse,
+    CreateExperimentRequest,
     CreatePromoCodeRequest,
     DashboardMetrics,
+    ExperimentListItem,
+    ExperimentResults,
     FunnelData,
     GiftRequest,
     HoroscopeContentItem,
@@ -34,8 +37,17 @@ from src.admin.schemas import (
     UpdateSubscriptionStatusRequest,
     UserDetail,
     UserListResponse,
+    UTMAnalyticsResponse,
 )
 from src.admin.services.analytics import get_dashboard_metrics, get_funnel_data
+from src.admin.services.experiments import (
+    create_experiment,
+    get_experiment_results,
+    get_utm_analytics,
+    list_experiments,
+    start_experiment,
+    stop_experiment,
+)
 from src.admin.services.content import (
     get_all_horoscope_content,
     get_horoscope_content,
@@ -504,3 +516,82 @@ async def export_metrics(
         media_type="text/csv",
         headers={"Content-Disposition": "attachment; filename=metrics.csv"},
     )
+
+
+# A/B Experiments endpoints
+
+
+@admin_router.post("/experiments", response_model=ExperimentListItem)
+async def create_exp(
+    request: CreateExperimentRequest,
+    session: AsyncSession = Depends(get_session),
+    current_admin: Admin = Depends(get_current_admin),
+) -> ExperimentListItem:
+    """Create a new A/B experiment."""
+    exp = await create_experiment(session, request)
+    return ExperimentListItem.model_validate(exp)
+
+
+@admin_router.get("/experiments")
+async def list_exps(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    session: AsyncSession = Depends(get_session),
+    current_admin: Admin = Depends(get_current_admin),
+) -> dict:
+    """List all experiments."""
+    experiments, total = await list_experiments(session, page, page_size)
+    return {
+        "items": [ExperimentListItem.model_validate(e) for e in experiments],
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+    }
+
+
+@admin_router.post("/experiments/{experiment_id}/start")
+async def start_exp(
+    experiment_id: int = Path(...),
+    session: AsyncSession = Depends(get_session),
+    current_admin: Admin = Depends(get_current_admin),
+) -> dict[str, str]:
+    """Start an experiment."""
+    success = await start_experiment(session, experiment_id)
+    if not success:
+        raise HTTPException(status_code=400, detail="Cannot start experiment")
+    return {"status": "running"}
+
+
+@admin_router.post("/experiments/{experiment_id}/stop")
+async def stop_exp(
+    experiment_id: int = Path(...),
+    session: AsyncSession = Depends(get_session),
+    current_admin: Admin = Depends(get_current_admin),
+) -> dict[str, str]:
+    """Stop an experiment."""
+    success = await stop_experiment(session, experiment_id)
+    if not success:
+        raise HTTPException(status_code=400, detail="Cannot stop experiment")
+    return {"status": "completed"}
+
+
+@admin_router.get("/experiments/{experiment_id}/results", response_model=ExperimentResults)
+async def exp_results(
+    experiment_id: int = Path(...),
+    session: AsyncSession = Depends(get_session),
+    current_admin: Admin = Depends(get_current_admin),
+) -> ExperimentResults:
+    """Get experiment results."""
+    results = await get_experiment_results(session, experiment_id)
+    if not results:
+        raise HTTPException(status_code=404, detail="Experiment not found")
+    return results
+
+
+@admin_router.get("/utm-analytics", response_model=UTMAnalyticsResponse)
+async def utm_analytics(
+    session: AsyncSession = Depends(get_session),
+    current_admin: Admin = Depends(get_current_admin),
+) -> UTMAnalyticsResponse:
+    """Get UTM source analytics."""
+    return await get_utm_analytics(session)
