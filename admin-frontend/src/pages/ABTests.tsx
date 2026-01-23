@@ -31,8 +31,8 @@ import {
   stopExperiment,
   getExperimentResults,
   getUTMAnalytics,
-  ExperimentListItem,
 } from '@/api/endpoints/experiments'
+import type { ExperimentListItem } from '@/api/endpoints/experiments'
 
 export default function ABTestsPage() {
   const [createModalOpen, setCreateModalOpen] = useState(false)
