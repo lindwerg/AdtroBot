@@ -22,7 +22,7 @@ from src.services.ai.prompts import (
     PremiumHoroscopePrompt,
     TarotSpreadPrompt,
 )
-from src.services.ai.validators import validate_card_of_day, validate_horoscope, validate_tarot
+from src.services.ai.validators import validate_card_of_day, validate_horoscope, validate_natal_chart, validate_tarot
 
 logger = structlog.get_logger()
 
@@ -385,8 +385,8 @@ class AIService:
             if text is None:
                 return None  # API error, already logged
 
-            # Use horoscope validation (length + no AI self-reference)
-            is_valid, error = validate_horoscope(text)
+            # Use natal chart validation (checks correct sections)
+            is_valid, error = validate_natal_chart(text)
             if is_valid:
                 await set_cached_natal_interpretation(user_id, text)
                 logger.info(
