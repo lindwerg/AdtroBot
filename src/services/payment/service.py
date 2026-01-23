@@ -238,6 +238,22 @@ async def process_webhook_event(
         # Activate subscription if this is a subscription payment
         if user_id and plan_type:
             plan = PaymentPlan(plan_type)
+
+            # Handle one-time detailed natal purchase (not subscription)
+            if plan == PaymentPlan.DETAILED_NATAL:
+                # Mark user as purchased
+                stmt = select(User).where(User.telegram_id == int(user_id))
+                result = await session.execute(stmt)
+                user = result.scalar_one_or_none()
+                if user:
+                    user.detailed_natal_purchased_at = datetime.now(timezone.utc)
+                    await session.commit()
+                    await logger.ainfo(
+                        "Detailed natal purchased",
+                        user_id=user_id,
+                    )
+                return True
+
             await activate_subscription(
                 session,
                 int(user_id),
