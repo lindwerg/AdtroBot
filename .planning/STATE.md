@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-22)
 
 **Core value:** Качественная AI интерпретация астрологии и таро, которая конвертирует бесплатных пользователей в платных
-**Current focus:** Phase 8 Complete - Ready for Phase 9
+**Current focus:** Phase 8 Complete (with Telegraph gap plan) - Ready for Phase 9
 
 ## Current Position
 
 Phase: 8 of 9 (Premium Tarot + Natal)
-Plan: 2 of 2 completed in Phase 8
+Plan: 3 of 3 completed in Phase 8 (including gap plan)
 Status: Phase 8 complete
-Last activity: 2026-01-23 17:00 — Completed 08-02-PLAN.md (Natal Chart Display)
+Last activity: 2026-01-23 17:31 — Completed 08-03-PLAN.md (Telegraph Integration)
 
-Progress: [██████████████████░] 90% (18/20 plans)
+Progress: [███████████████████] 95% (19/20 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 18
+- Total plans completed: 19
 - Average duration: 8 min
-- Total execution time: 144 min
+- Total execution time: 147 min
 
 **By Phase:**
 
@@ -34,10 +34,10 @@ Progress: [██████████████████░] 90% (18/20
 | 5 | 2/2 | 13 min | 7 min |
 | 6 | 3/3 | 11 min | 4 min |
 | 7 | 3/3 | 17 min | 6 min |
-| 8 | 2/2 | 15 min | 8 min |
+| 8 | 3/3 | 18 min | 6 min |
 
 **Recent Trend:**
-- Last 5 plans: 07-01 (6 min), 07-02 (6 min), 07-03 (5 min), 08-01 (7 min), 08-02 (8 min)
+- Last 5 plans: 07-02 (6 min), 07-03 (5 min), 08-01 (7 min), 08-02 (8 min), 08-03 (3 min)
 - Trend: Consistent fast execution
 
 *Updated after each plan completion*
@@ -117,6 +117,9 @@ Recent decisions affecting current work:
 - UTC timezone conversion для точных расчётов натальной карты
 - 24-hour cache для natal interpretation (карта не меняется)
 - Main menu 2x3 grid с кнопкой "Натальная карта"
+- asyncio.to_thread() для синхронного Telegraph SDK
+- 10s timeout для Telegraph публикации, fallback на текст при неудаче
+- Inline button "Посмотреть интерпретацию" для Telegraph статей
 
 ### Pending Todos
 
@@ -136,8 +139,8 @@ From research:
 
 ## Session Continuity
 
-Last session: 2026-01-23 17:00
-Stopped at: Completed 08-02-PLAN.md (Natal Chart Display)
+Last session: 2026-01-23 17:31
+Stopped at: Completed 08-03-PLAN.md (Telegraph Integration)
 Resume file: None
 
 **What's Ready:**
@@ -239,6 +242,12 @@ Resume file: None
   - Premium users see chart PNG + AI interpretation
   - Free users see premium teaser
   - Users without birth data prompted to configure
+- **Telegraph Integration complete (08-03):**
+  - Telegraph service with async handling (asyncio.to_thread)
+  - Natal chart: PNG + button -> Telegraph article
+  - Celtic Cross: button -> Telegraph article
+  - Graceful fallback to direct text on Telegraph failure
+  - 10 second timeout prevents hanging
 
 **Next Steps:**
 - Phase 9: Admin Panel
