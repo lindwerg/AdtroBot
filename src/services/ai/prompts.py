@@ -461,3 +461,134 @@ class NatalChartPrompt:
 {chr(10).join(aspects_text)}
 
 Время рождения: {time_note}"""
+
+
+@dataclass
+class DetailedNatalPrompt:
+    """Prompt for detailed natal chart interpretation (3000-5000 words).
+
+    Uses sectioned generation for reliable long-form output.
+    """
+
+    SYSTEM = """Ты - профессиональный астролог с 20-летним опытом.
+Пиши детальную интерпретацию натальной карты для клиента.
+
+СТИЛЬ:
+- Обращайся на "ты", тепло и профессионально
+- Используй астрологические термины, но объясняй их простым языком
+- Приводи конкретные примеры из жизни ("Это может проявляться как...")
+- Создавай эффект узнавания себя
+- НЕ упоминай, что ты AI
+- НЕ используй фразы "как AI", "языковая модель", "я не могу"
+- НЕ извиняйся и не отказывайся
+
+СТРУКТУРА КАЖДОЙ СЕКЦИИ:
+1. Описание позиции (знак, дом, градус)
+2. Психологическое значение
+3. Конкретные проявления в жизни
+4. Сильные стороны
+5. Зоны роста и рекомендации"""
+
+    SECTIONS = [
+        {
+            "id": "core",
+            "title": "ЯДРО ЛИЧНОСТИ: Солнце, Луна, Асцендент",
+            "focus": "Большая Тройка - кто ты в глубине души, твои эмоции, как тебя видят другие",
+            "min_words": 600,
+            "planets": ["sun", "moon", "ascendant"],
+        },
+        {
+            "id": "mind",
+            "title": "МЫШЛЕНИЕ И КОММУНИКАЦИЯ: Меркурий",
+            "focus": "Как ты думаешь, учишься, обрабатываешь информацию, общаешься",
+            "min_words": 400,
+            "planets": ["mercury"],
+        },
+        {
+            "id": "love",
+            "title": "ЛЮБОВЬ И ОТНОШЕНИЯ: Венера",
+            "focus": "Как ты любишь, что ценишь в партнере, твой стиль в отношениях",
+            "min_words": 500,
+            "planets": ["venus"],
+        },
+        {
+            "id": "drive",
+            "title": "ЭНЕРГИЯ И ДЕЙСТВИЕ: Марс",
+            "focus": "Как ты действуешь, добиваешься целей, выражаешь агрессию и страсть",
+            "min_words": 400,
+            "planets": ["mars"],
+        },
+        {
+            "id": "growth",
+            "title": "РОСТ И УДАЧА: Юпитер",
+            "focus": "Где тебе везет, твои возможности для роста и расширения",
+            "min_words": 400,
+            "planets": ["jupiter"],
+        },
+        {
+            "id": "lessons",
+            "title": "УРОКИ И ОТВЕТСТВЕННОСТЬ: Сатурн",
+            "focus": "Твои кармические уроки, где нужна дисциплина, зоны зрелости",
+            "min_words": 400,
+            "planets": ["saturn"],
+        },
+        {
+            "id": "transformation",
+            "title": "ТРАНСФОРМАЦИЯ: Уран, Нептун, Плутон",
+            "focus": "Поколенческие влияния, глубинные трансформации, духовность",
+            "min_words": 400,
+            "planets": ["uranus", "neptune", "pluto"],
+        },
+        {
+            "id": "summary",
+            "title": "СИНТЕЗ И РЕКОМЕНДАЦИИ",
+            "focus": "Главные темы твоей карты, сильные стороны, практические советы",
+            "min_words": 500,
+            "planets": [],
+        },
+    ]
+
+    @staticmethod
+    def format_natal_for_prompt(natal_data: dict) -> str:
+        """Format natal data for inclusion in prompt."""
+        planets = natal_data["planets"]
+        angles = natal_data["angles"]
+
+        lines = []
+        # Planets
+        for name, data in planets.items():
+            sign_ru = data.get("sign_ru", data["sign"])
+            degree = data["degree"]
+            lines.append(f"{name.title()}: {sign_ru} {degree:.0f}°")
+
+        # Angles
+        lines.append(f"Асцендент: {angles['ascendant']['sign_ru']} {angles['ascendant']['degree']:.0f}°")
+        lines.append(f"MC: {angles['mc']['sign_ru']} {angles['mc']['degree']:.0f}°")
+
+        # Top aspects
+        aspects = natal_data["aspects"][:10]
+        if aspects:
+            lines.append("\nОсновные аспекты:")
+            for asp in aspects:
+                lines.append(f"  {asp['planet1_ru']} {asp['aspect_ru']} {asp['planet2_ru']}")
+
+        time_note = "известно" if natal_data["time_known"] else "неизвестно (12:00)"
+        lines.append(f"\nВремя рождения: {time_note}")
+
+        return "\n".join(lines)
+
+    @classmethod
+    def section_prompt(cls, section: dict, natal_data: dict) -> str:
+        """Generate prompt for a specific section."""
+        natal_text = cls.format_natal_for_prompt(natal_data)
+
+        return f"""Напиши секцию "{section['title']}" для детальной интерпретации натальной карты.
+
+Фокус этой секции: {section['focus']}
+
+ВАЖНО: Напиши МИНИМУМ {section['min_words']} слов. Это платный продукт, клиент ожидает глубокий анализ.
+
+Натальная карта:
+{natal_text}
+
+Пиши детально, с примерами из жизни. Начни сразу с содержания, без повторения заголовка."""
