@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-22)
 
 **Core value:** Качественная AI интерпретация астрологии и таро, которая конвертирует бесплатных пользователей в платных
-**Current focus:** Phase 10 In Progress - Natal Chart Improvements
+**Current focus:** Phase 9 In Progress - Admin Panel
 
 ## Current Position
 
-Phase: 10 of 10 (Improve Natal Chart)
-Plan: 4 of 4 completed in Phase 10
-Status: Phase 10 COMPLETE
-Last activity: 2026-01-23 — Completed 10-04: UI handler for detailed natal purchase
+Phase: 9 of 10 (Admin Panel)
+Plan: 2 of 14 completed in Phase 9
+Status: In progress
+Last activity: 2026-01-23 — Completed 09-02: Frontend scaffold with React, Vite, and Ant Design
 
-Progress: [████████████████████] 100% (23/23 plans)
+Progress: [████████████████████░░░░░░░] 78% (25/32 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 23
+- Total plans completed: 25
 - Average duration: 7 min
-- Total execution time: 169 min
+- Total execution time: 173 min
 
 **By Phase:**
 
@@ -36,9 +36,10 @@ Progress: [████████████████████] 100% (2
 | 7 | 3/3 | 17 min | 6 min |
 | 8 | 3/3 | 18 min | 6 min |
 | 10 | 4/4 | 13 min | 3 min |
+| 9 | 2/14 | 4 min | 2 min |
 
 **Recent Trend:**
-- Last 5 plans: 08-03 (3 min), 10-02 (6 min), 10-03 (3 min), 10-04 (4 min)
+- Last 5 plans: 10-02 (6 min), 10-03 (3 min), 10-04 (4 min), 09-02 (4 min)
 - Trend: Consistent fast execution
 
 *Updated after each plan completion*
@@ -143,6 +144,14 @@ Recent decisions affecting current work:
 - Button under photo via reply_markup on answer_photo
 - 15s Telegraph timeout for detailed natal publishing
 
+**Phase 9 (Admin Panel):**
+- React + Vite + TypeScript for SPA
+- Ant Design Pro Components for admin UI
+- Zustand with persist middleware for auth state
+- Axios interceptors: request adds Bearer token, response handles 401
+- React Router loaders for auth guards (requireAuth, redirectIfAuth)
+- Vite proxy /admin -> localhost:8000
+
 ### Roadmap Evolution
 
 - Phase 10 added (2026-01-23): Улучшить натальную карту - визуал, интерпретация, монетизация
@@ -179,7 +188,7 @@ From research:
 ## Session Continuity
 
 Last session: 2026-01-23
-Stopped at: Completed 10-04 (UI handler for detailed natal purchase)
+Stopped at: Completed 09-02 (Frontend scaffold with React, Vite, and Ant Design)
 Resume file: None
 
 **What's Ready:**
@@ -310,5 +319,15 @@ Resume file: None
   - buy_detailed_natal handler creates YooKassa payment (199 RUB)
   - show_detailed_natal handler generates/caches and displays via Telegraph
 
+- **Admin Frontend Scaffold complete (09-02):**
+  - Vite + React + TypeScript project
+  - Ant Design Pro Components (LoginForm, ProLayout, PageContainer)
+  - Zustand auth store with localStorage persistence
+  - Axios API client with JWT interceptor
+  - React Router with protected routes
+  - Login page -> /admin/token
+  - Dashboard placeholder
+  - ProLayout with 7 menu items
+
 **Next Steps:**
-- Phase 10 complete! All natal chart improvements implemented.
+- Continue Phase 9: Dashboard metrics (09-03), User management (09-04), etc.
