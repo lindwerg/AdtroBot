@@ -278,3 +278,129 @@ class UpdateSubscriptionStatusRequest(BaseModel):
     """Request to update subscription status."""
 
     status: str  # active, canceled, expired
+
+
+# === Messaging Schemas ===
+
+
+class SendMessageRequest(BaseModel):
+    """Request to send or schedule a message."""
+
+    text: str
+    target_user_id: int | None = None  # For single user
+    filters: dict | None = None  # For broadcast: {"is_premium": true, "zodiac_sign": "aries"}
+    scheduled_at: datetime | None = None  # For scheduling
+
+
+class MessageHistoryItem(BaseModel):
+    """Single message in history."""
+
+    id: int
+    text: str
+    filters: dict
+    target_user_id: int | None
+    scheduled_at: datetime | None
+    sent_at: datetime | None
+    total_recipients: int
+    delivered_count: int
+    failed_count: int
+    status: str
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class MessageHistoryResponse(BaseModel):
+    """Paginated message history response."""
+
+    items: list[MessageHistoryItem]
+    total: int
+    page: int
+    page_size: int
+
+
+class SendMessageResponse(BaseModel):
+    """Response after sending or scheduling message."""
+
+    message_id: int
+    status: str
+    recipients_count: int
+
+
+# === Tarot Spreads Schemas ===
+
+
+class TarotSpreadListItem(BaseModel):
+    """Tarot spread item in list response."""
+
+    id: int
+    user_id: int
+    telegram_id: int | None = None
+    username: str | None = None
+    spread_type: str
+    question: str
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TarotSpreadListResponse(BaseModel):
+    """Paginated tarot spread list response."""
+
+    items: list[TarotSpreadListItem]
+    total: int
+    page: int
+    page_size: int
+
+
+class CardPosition(BaseModel):
+    """Card position in spread detail."""
+
+    position: int
+    position_name: str
+    card_name: str
+    is_reversed: bool
+
+
+class TarotSpreadDetail(BaseModel):
+    """Full tarot spread detail with cards and interpretation."""
+
+    id: int
+    user_id: int
+    telegram_id: int | None = None
+    username: str | None = None
+    spread_type: str
+    question: str
+    cards: list[CardPosition]
+    interpretation: str | None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+# === Horoscope Content Management Schemas ===
+
+
+class HoroscopeContentItem(BaseModel):
+    """Horoscope content item for a zodiac sign."""
+
+    id: int
+    zodiac_sign: str
+    base_text: str
+    notes: str | None
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class HoroscopeContentListResponse(BaseModel):
+    """List of horoscope content for all zodiac signs."""
+
+    items: list[HoroscopeContentItem]
+
+
+class UpdateHoroscopeContentRequest(BaseModel):
+    """Request to update horoscope content for a zodiac sign."""
+
+    base_text: str
+    notes: str | None = None
