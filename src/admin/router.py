@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
+from fastapi.responses import StreamingResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -39,6 +40,11 @@ from src.admin.services.content import (
     get_all_horoscope_content,
     get_horoscope_content,
     update_horoscope_content,
+)
+from src.admin.services.export import (
+    export_metrics_csv,
+    export_payments_csv,
+    export_users_csv,
 )
 from src.admin.services.promo import (
     create_promo_code,
@@ -443,3 +449,58 @@ async def delete_promo(
     if not success:
         raise HTTPException(status_code=404, detail="Promo code not found")
     return {"status": "deleted"}
+
+
+# Export endpoints
+
+
+@admin_router.get("/export/users")
+async def export_users(
+    zodiac_sign: str | None = Query(None),
+    is_premium: bool | None = Query(None),
+    has_detailed_natal: bool | None = Query(None),
+    session: AsyncSession = Depends(get_session),
+    current_admin: Admin = Depends(get_current_admin),
+) -> StreamingResponse:
+    """Export users to CSV."""
+    stream = await export_users_csv(
+        session,
+        zodiac_sign=zodiac_sign,
+        is_premium=is_premium,
+        has_detailed_natal=has_detailed_natal,
+    )
+    return StreamingResponse(
+        iter([stream.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=users.csv"},
+    )
+
+
+@admin_router.get("/export/payments")
+async def export_payments(
+    status: str | None = Query(None),
+    session: AsyncSession = Depends(get_session),
+    current_admin: Admin = Depends(get_current_admin),
+) -> StreamingResponse:
+    """Export payments to CSV."""
+    stream = await export_payments_csv(session, status=status)
+    return StreamingResponse(
+        iter([stream.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=payments.csv"},
+    )
+
+
+@admin_router.get("/export/metrics")
+async def export_metrics(
+    days: int = Query(30, ge=1, le=365),
+    session: AsyncSession = Depends(get_session),
+    current_admin: Admin = Depends(get_current_admin),
+) -> StreamingResponse:
+    """Export daily metrics to CSV."""
+    stream = await export_metrics_csv(session, days=days)
+    return StreamingResponse(
+        iter([stream.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=metrics.csv"},
+    )
