@@ -22,7 +22,7 @@ logger = structlog.get_logger()
 # Color scheme (dark theme)
 BACKGROUND_COLOR = "#1a1a2e"
 WHEEL_COLOR = "#4a4e69"
-SIGN_COLOR = "#9a8c98"
+SIGN_COLOR = "#c9a227"  # Gold for zodiac symbols
 TEXT_COLOR = "#f2e9e4"
 HOUSE_LINE_COLOR = "#4a4e69"
 
@@ -109,28 +109,63 @@ def _polar_to_cart(cx: float, cy: float, r: float, angle_rad: float) -> tuple[fl
     return x, y
 
 
-def _generate_svg(chart_data: FullNatalChartResult, size: int = 600) -> str:
+def _generate_svg(chart_data: FullNatalChartResult, size: int = 800) -> str:
     """Generate SVG string for natal chart.
 
     Args:
         chart_data: Full natal chart data
-        size: Image size in pixels
+        size: Image size in pixels (default 800 for better detail)
 
     Returns:
         SVG string
     """
     dwg = svgwrite.Drawing(size=(size, size))
     center = size / 2
-    outer_r = size / 2 - 20
-    sign_r = outer_r - 30  # Radius for sign labels
-    inner_r = outer_r - 50  # Inner edge of zodiac band
-    planet_r = inner_r - 30  # Radius for planets
-    house_r = inner_r - 60  # Inner circle for houses
+    outer_r = size / 2 - 30  # Increased margin for 800px
+    sign_r = outer_r - 35  # Radius for sign labels
+    inner_r = outer_r - 60  # Inner edge of zodiac band
+    planet_r = inner_r - 40  # Radius for planets
+    house_r = inner_r - 80  # Inner circle for houses
 
-    # Background
-    dwg.add(dwg.rect((0, 0), (size, size), fill=BACKGROUND_COLOR))
+    # === DEFS: Gradients ===
+    # Background: cosmic radial gradient (dark center, lighter edges)
+    bg_grad = dwg.radialGradient(center=("50%", "50%"), r="70%", id="bg")
+    bg_grad.add_stop_color(0, "#0a0a14")     # Deep space center
+    bg_grad.add_stop_color(0.5, "#1a1a2e")   # Current dark blue
+    bg_grad.add_stop_color(1, "#252542")     # Lighter edge
+    dwg.defs.add(bg_grad)
 
-    # Outer circle (zodiac wheel)
+    # Zodiac band: linear gradient for depth
+    zodiac_grad = dwg.linearGradient(start=("0%", "0%"), end=("100%", "100%"), id="zodiac_band")
+    zodiac_grad.add_stop_color(0, "#3d3d5c")
+    zodiac_grad.add_stop_color(1, "#2d2d44")
+    dwg.defs.add(zodiac_grad)
+
+    # Planet glow gradients (gold for Sun/Jupiter, silver for others)
+    for name, color in [("gold", "#FFD700"), ("silver", "#C0C0C0")]:
+        glow = dwg.radialGradient(id=f"glow_{name}")
+        glow.add_stop_color(offset=0, color=color, opacity=1.0)
+        glow.add_stop_color(offset=0.5, color=color, opacity=0.25)
+        glow.add_stop_color(offset=1, color=color, opacity=0)
+        dwg.defs.add(glow)
+
+    # Background with gradient
+    dwg.add(dwg.rect((0, 0), (size, size), fill="url(#bg)"))
+
+    # Zodiac band fill (between outer_r and inner_r)
+    dwg.add(dwg.circle(
+        center=(center, center),
+        r=outer_r,
+        fill="url(#zodiac_band)"
+    ))
+    # Cut out center to create ring effect
+    dwg.add(dwg.circle(
+        center=(center, center),
+        r=inner_r,
+        fill="url(#bg)"
+    ))
+
+    # Outer circle (zodiac wheel border)
     dwg.add(dwg.circle(
         center=(center, center),
         r=outer_r,
@@ -139,7 +174,7 @@ def _generate_svg(chart_data: FullNatalChartResult, size: int = 600) -> str:
         stroke_width=2
     ))
 
-    # Inner circle
+    # Inner circle border
     dwg.add(dwg.circle(
         center=(center, center),
         r=inner_r,
@@ -292,13 +327,13 @@ def _generate_svg(chart_data: FullNatalChartResult, size: int = 600) -> str:
 
 async def generate_natal_png(
     chart_data: FullNatalChartResult,
-    size: int = 600,
+    size: int = 800,
 ) -> bytes:
     """Generate natal chart as PNG image.
 
     Args:
         chart_data: Full natal chart data
-        size: Image size in pixels (default 600)
+        size: Image size in pixels (default 800 for professional detail)
 
     Returns:
         PNG image bytes
