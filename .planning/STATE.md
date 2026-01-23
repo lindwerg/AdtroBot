@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-22)
 ## Current Position
 
 Phase: 9 of 10 (Admin Panel)
-Plan: 2 of 14 completed in Phase 9
+Plan: 4 of 14 completed in Phase 9
 Status: In progress
-Last activity: 2026-01-23 — Completed 09-02: Frontend scaffold with React, Vite, and Ant Design
+Last activity: 2026-01-23 — Completed 09-04: User management API
 
-Progress: [████████████████████░░░░░░░] 78% (25/32 plans)
+Progress: [█████████████████████░░░░░░] 81% (27/32 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 25
+- Total plans completed: 27
 - Average duration: 7 min
-- Total execution time: 173 min
+- Total execution time: 179 min
 
 **By Phase:**
 
@@ -36,10 +36,10 @@ Progress: [████████████████████░░░
 | 7 | 3/3 | 17 min | 6 min |
 | 8 | 3/3 | 18 min | 6 min |
 | 10 | 4/4 | 13 min | 3 min |
-| 9 | 2/14 | 4 min | 2 min |
+| 9 | 4/14 | 10 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 10-02 (6 min), 10-03 (3 min), 10-04 (4 min), 09-02 (4 min)
+- Last 5 plans: 10-03 (3 min), 10-04 (4 min), 09-02 (4 min), 09-03 (3 min), 09-04 (3 min)
 - Trend: Consistent fast execution
 
 *Updated after each plan completion*
@@ -151,6 +151,9 @@ Recent decisions affecting current work:
 - Axios interceptors: request adds Bearer token, response handles 401
 - React Router loaders for auth guards (requireAuth, redirectIfAuth)
 - Vite proxy /admin -> localhost:8000
+- User search by telegram_id (exact) or username (ILIKE)
+- Pagination 20 per page default, max 100
+- Bulk actions process users in loop with individual error tracking
 
 ### Roadmap Evolution
 
@@ -188,7 +191,7 @@ From research:
 ## Session Continuity
 
 Last session: 2026-01-23
-Stopped at: Completed 09-02 (Frontend scaffold with React, Vite, and Ant Design)
+Stopped at: Completed 09-04 (User management API)
 Resume file: None
 
 **What's Ready:**
@@ -329,5 +332,13 @@ Resume file: None
   - Dashboard placeholder
   - ProLayout with 7 menu items
 
+- **User Management API complete (09-04):**
+  - GET /admin/users: paginated list with search/filters
+  - GET /admin/users/{id}: full user detail with history
+  - PATCH /admin/users/{id}/subscription: activate/cancel/extend
+  - POST /admin/users/{id}/gift: premium_days/detailed_natal/tarot_spreads
+  - POST /admin/users/bulk: bulk actions for multiple users
+  - Service layer: list_users, get_user_detail, update_user_subscription, gift_to_user, bulk_action
+
 **Next Steps:**
-- Continue Phase 9: Dashboard metrics (09-03), User management (09-04), etc.
+- Continue Phase 9: User management frontend (09-05), Messaging system (09-06), etc.
