@@ -1,232 +1,365 @@
-# Feature Research: Telegram Астро/Таро Бот
+# Feature Research: v2.0 Visual & Performance Enhancements
 
-**Domain:** Freemium Telegram бот для гороскопов и таро
-**Researched:** 2026-01-22
-**Confidence:** MEDIUM-HIGH (основано на анализе 10+ реальных конкурентов)
+**Domain:** Telegram astrology/tarot bot with freemium model
+**Researched:** 2026-01-23
+**Confidence:** MEDIUM (WebSearch + official Telegram docs + existing codebase analysis)
 
-## Feature Landscape
+## Context: v2.0 Goals
 
-### Table Stakes (Пользователи Ожидают Это)
+v1.0 уже shipped с полным функционалом. v2.0 фокусируется на:
+1. **Performance** — быстрые ответы, фоновая генерация, кеширование
+2. **Visual enhancement** — изображения для key moments
+3. **UX fixes** — исправление pain points из v1.0
+4. **Monitoring** — tracking usage и costs
 
-Без этих функций бот воспринимается как неполноценный. Пользователи не дадут "кредит" за наличие, но уйдут при отсутствии.
+**User pain points из v1.0:**
+- Долгие ответы при нажатии кнопок (AI generation блокирует)
+- Непонятно за что платят (общий vs личный гороскоп выглядят одинаково)
+- Нет понятного пути free -> premium
+- Markdown разметка видна пользователям
+
+---
+
+## Feature Landscape for v2.0
+
+### Table Stakes (Users Expect These)
+
+Features users assume exist in professional Telegram bots. Missing these = product feels incomplete/amateur.
 
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| **Ежедневный гороскоп** | Базовое ожидание от любого астро-сервиса. 48% пользователей заходят ежедневно | LOW | Можно парсить или генерировать AI. Критично: персонализация по знаку |
-| **Выбор знака зодиака** | Пользователь должен "настроить" бота под себя при первом запуске | LOW | Onboarding flow: дата рождения → знак → сохранение |
-| **Карта дня Таро** | Стандартная функция всех таро-сервисов. Простой entry point | LOW | 1 карта + интерпретация. Визуал карты обязателен |
-| **Визуализация карт** | Пользователи ожидают видеть изображения карт, не только текст | MEDIUM | Колода Райдера-Уэйта стандарт. Нужны права или свои изображения |
-| **Push-уведомления** | 18-24% engagement rate при персонализированных пушах | LOW | Telegram напоминание утром. Опционально отключаемое |
-| **Простая навигация** | Clunky UX = 33% uninstall rate | LOW | Inline-кнопки, меню, понятные команды |
-| **Бесплатный базовый доступ** | Freemium модель — стандарт индустрии | LOW | Минимум: гороскоп дня + 1 карта таро |
-| **Сохранение данных пользователя** | Не спрашивать знак каждый раз | LOW | DB: user_id, birth_date, timezone |
+| **Typing indicator во время AI generation** | Telegram native UX pattern. Без него кажется что бот завис. | LOW | `bot.send_chat_action(action=ChatActions.TYPING)` каждые 5 сек во время AI запроса. Уже есть `asyncio.sleep` — заменить на typing loop. |
+| **Быстрый ответ на /start (<1 сек)** | Первое впечатление. Медленный старт = отток. | MEDIUM | Сейчас есть DB query. Нужен кеш существующих пользователей или отложенная загрузка. |
+| **Кеширование общих гороскопов** | 12 знаков x AI call = дорого и медленно. Контент одинаков для всех. | MEDIUM | Уже есть `_horoscope_cache` в `cache.py`. Нужна фоновая генерация через APScheduler каждые 12ч. |
+| **Markdown/HTML корректное форматирование** | Видимая разметка (*текст*) выглядит непрофессионально. | LOW | Использовать `parse_mode=HTML` или entity-based formatting. Уже есть `Text(), Bold()` — проверить все handlers. |
+| **Изображение welcome screen** | Визуальный хук. Чистый текст скучен. | LOW | Одно изображение. `send_photo()` + caption. file_id кешируется автоматически Telegram. |
+| **BotFather description и about** | Поиск в Telegram использует description. Без него бот не найдут. | LOW | Команды `/setdescription`, `/setabouttext` в BotFather. Копирайтинг. |
 
-### Differentiators (Конкурентное Преимущество)
+### Differentiators (Competitive Advantage)
 
-Эти функции выделяют продукт. Не обязательны для MVP, но критичны для retention и конверсии.
+Features that set AdtroBot apart в астро/таро нише. Не ожидаются, но добавляют ценность.
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| **AI-интерпретация раскладов** | Персонализированные толкования vs шаблонный текст. +30-45% engagement | HIGH | GPT/Claude API. Контекст вопроса + позиции карт |
-| **Натальная карта с расшифровкой** | Глубокая персонализация. Premium-фича у всех лидеров (Co-Star, Saturn.Love) | HIGH | Нужна астро-библиотека + AI расшифровка |
-| **12+ видов раскладов** | Tarot Go предлагает 12 раскладов. Разнообразие = retention | MEDIUM | 3 карты, Кельтский крест, Да/Нет, тематические |
-| **Уведомления о транзитах** | Saturn.Love USP. Персональные астро-события | HIGH | Расчёт транзитов + натальная карта пользователя |
-| **Совместимость** | Numia: популярная функция. Вирусный потенциал (шеринг) | MEDIUM | Синастрия: сравнение 2 карт. AI интерпретация |
-| **Голосовая озвучка** | Tarot Go: озвучка предсказаний. Accessibility + премиум feel | MEDIUM | TTS API (ElevenLabs, Yandex SpeechKit) |
-| **История раскладов** | Возможность вернуться к прошлым гаданиям | LOW | DB: user_readings table |
-| **Лунный календарь** | Saturn.Love: бесплатные уведомления о фазах Луны | LOW | Астро-данные + scheduled notifications |
-| **Тематические гороскопы** | Любовь/карьера/здоровье/финансы — разбивка по сферам | MEDIUM | Либо разные промпты AI, либо структурированный контент |
-| **PDF-отчёты** | Saturn.Love: экспорт в PDF. Premium feel | MEDIUM | PDF генерация (puppeteer, reportlab) |
+| **AI-generated изображения знаков зодиака** | Уникальный визуал вместо stock photos. Единый стиль = узнаваемость бренда. | HIGH | 12 изображений в едином стиле. TarotAI/CGDream для consistency. Генерация один раз, хранение file_id. |
+| **Визуальное разделение free vs premium** | Решает pain point "непонятно за что платят". | MEDIUM | Разные заголовки, emoji, структура текста. Premium = детальные сферы жизни с разделителями. |
+| **Soft paywall после value delivery** | Конверсия после демонстрации ценности, не до. | MEDIUM | Показать гороскоп -> потом teaser premium. Уже есть `PREMIUM_TEASER`. Усилить визуально. |
+| **Onboarding с интерактивными slides** | Engagement на старте, объяснение ценности. | HIGH | telegram-onboarding-kit или свой flow. Mini App для rich UI. |
+| **Персонализированные изображения таро** | AI генерация уникальных карт под вопрос. | VERY HIGH | MyShell/TarotAI patterns. Долгая генерация, высокая стоимость. Future consideration. |
+| **Progress bar при длинных операциях** | UX сигнал что бот работает. Снижает anxiety. | LOW | Редактирование сообщения: "Читаю карты... [====    ]" |
 
-### Anti-Features (Чего НЕ Делать)
+### Anti-Features (Commonly Requested, Often Problematic)
 
-Функции, которые кажутся хорошими идеями, но создают проблемы.
+Features that seem good but create problems in Telegram bot context.
 
 | Feature | Why Requested | Why Problematic | Alternative |
 |---------|---------------|-----------------|-------------|
-| **Слишком много пушей** | "Больше engagement" | Пользователи отключают все уведомления. 33% uninstall | 1-2 пуша в день max. Настройка частоты |
-| **Живые консультации с астрологами** | "Как у Numia" | Операционная сложность, модерация, оплата экспертам | AI-интерпретации с "человеческим" тоном |
-| **Социальная сеть внутри бота** | "Community engagement" | Модерация, спам, отвлечение от core value | Шеринг в существующие соцсети |
-| **Gamification с лидербордами** | "Retention через геймификацию" | Астрология — личное. Конкуренция неуместна | Персональные streaks, badges |
-| **Слишком много бесплатного** | "Нарастить базу" | Нет мотивации платить. 3-7% конверсия при правильном балансе | Явные ограничения: "1 расклад бесплатно, 20 в подписке" |
-| **Сложный onboarding** | "Собрать больше данных" | Long forms = dropout. Пользователи хотят сразу попробовать | Минимум данных вначале, запрос позже |
-| **Generic контент** | "Быстрее запустить" | 33% уходят из-за "copy-pasted horoscopes" | AI-генерация или качественный уникальный контент |
-| **Множество колод таро** | "Больше выбора" | Confusion, сложность поддержки, права | Одна качественная колода (Райдер-Уэйт) |
-| **Видео-консультации** | "Тренд 2025" | Инфраструктура, bandwidth, качество | Текст + аудио достаточно для MVP |
+| **Real-time AI streaming в сообщения** | "Как ChatGPT". Видно как печатается. | Telegram rate limits (30 msg/sec). Каждый edit = API call. Быстро упрешься в лимит. | Typing indicator + финальное сообщение. Для длинных текстов — Telegraph link. |
+| **Изображение для каждой карты таро (78 шт custom)** | "Полная колода с уникальным AI артом". | 78 генераций x стоимость. Долгая начальная генерация. Большой размер assets. | Текущие изображения достаточны. Фокус на интерпретации, не визуале карт. |
+| **Ежедневные push-уведомления с изображением** | "Красивые утренние сообщения". | Каждое изображение = bandwidth cost. 1000 юзеров x 30 дней = 30K images/month. | Текстовые уведомления + изображение только при открытии бота. |
+| **Mini App для всего функционала** | "Современный UI как приложение". | Разработка и поддержка двух интерфейсов. Mini App для простых ботов overkill. | Mini App только для onboarding/paywall если нужен rich UI. Основной функционал через бот. |
+| **Сложная gamification (достижения, уровни)** | "Увеличит retention". | Отвлекает от core value (астрология). Усложняет бота. | Простой retention: карта дня + streak counter (опционально в v3+). |
+| **Детальная натальная карта в сообщении** | "Всё в одном месте". | Telegram 4096 char limit. SVG не рендерится inline. | Telegraph для текста + SVG как документ. Уже реализовано в v1.0. |
+
+---
 
 ## Feature Dependencies
 
 ```
-[Onboarding: Дата рождения]
-    └──requires──> [Знак зодиака автоматически]
-                       └──enables──> [Ежедневный гороскоп]
-                       └──enables──> [Карта дня]
-                       └──enables──> [Натальная карта] (+ время + место)
+[Фоновая генерация гороскопов]
+    |--requires--> [APScheduler настроен] (уже есть в v1.0)
+                       |--enhances--> [Быстрые ответы на zodiac buttons]
 
-[AI интерпретация]
-    └──requires──> [OpenAI/Anthropic API интеграция]
-    └──enhances──> [Расклады Таро]
-    └──enhances──> [Натальная карта]
+[Изображения знаков зодиака]
+    |--requires--> [AI image generator выбран]
+                       |--requires--> [file_id storage schema]
 
-[Натальная карта]
-    └──requires──> [Астро-библиотека (swiss ephemeris)]
-    └──requires──> [Дата + время + место рождения]
-    └──enables──> [Транзиты]
-    └──enables──> [Совместимость]
+[Welcome изображение]
+    |--independent--> (можно делать первым)
 
-[Подписка/Оплата]
-    └──requires──> [Telegram Stars или ЮKassa]
-    └──enables──> [Премиум расклады]
-    └──enables──> [Натальная карта]
-    └──enables──> [Детальные гороскопы]
+[Soft paywall enhancement]
+    |--requires--> [Визуальное разделение free/premium]
+                       |--enhances--> [Conversion funnel clarity]
 
-[История раскладов]
-    └──requires──> [Database: readings table]
-    └──enhances──> [User retention]
+[Typing indicator]
+    |--requires--> [Refactor AI call handlers]
+                       |--enhances--> [User perceived performance]
 
-[Push-уведомления]
-    └──requires──> [Scheduler (cron/celery)]
-    └──enhances──> [DAU/retention]
+[Monitoring metrics]
+    |--requires--> [Database tables for tracking]
+                       |--enhances--> [Admin panel dashboards]
 ```
 
 ### Dependency Notes
 
-- **Натальная карта requires астро-библиотека:** Без swiss ephemeris или аналога невозможно рассчитать позиции планет
-- **AI интерпретация requires API:** Ключевой дифференциатор зависит от внешнего API. Fallback на шаблоны
-- **Транзиты requires натальная карта:** Нельзя показать транзиты без базовой карты пользователя
-- **Совместимость requires 2 натальные карты:** Нужны данные обоих людей
+- **Фоновая генерация requires APScheduler:** Уже есть в v1.0 для notifications. Добавить job для horoscope pre-generation.
+- **Изображения requires file_id storage:** Telegram кеширует file_id после первой отправки. Нужна таблица для хранения или config.
+- **Monitoring requires DB tables:** `horoscopes_today` metric нужна отдельная таблица tracking.
+- **Typing indicator requires handler refactor:** Текущие handlers делают AI call синхронно. Нужен background task + typing loop.
 
-## MVP Definition
+---
 
-### Launch With (v1.0) — Минимум для Валидации
+## v2.0 Phase Definition
 
-MVP должен доказать: "Пользователи готовы платить за AI-интерпретации таро"
+### Phase 1: Performance & UX Quick Wins
 
-- [x] **Onboarding** — дата рождения, определение знака
-- [x] **Ежедневный гороскоп** — бесплатно, по знаку зодиака
-- [x] **Карта дня** — бесплатно, 1 карта с базовой интерпретацией
-- [x] **Расклад на 3 карты** — 1 бесплатно/день, далее платно
-- [x] **AI интерпретация** — персонализированное толкование по вопросу
-- [x] **Оплата через Telegram Stars** — 20 раскладов = X Stars
-- [x] **Визуализация карт** — изображения Райдер-Уэйт
+Критические исправления без новых зависимостей. Максимальный impact на user experience.
 
-### Add After Validation (v1.x)
+- [ ] **Typing indicator** — LOW complexity, HIGH impact на perceived speed
+- [ ] **Markdown/HTML fix** — LOW complexity, профессиональный вид
+- [ ] **BotFather description** — LOW complexity, SEO в Telegram
+- [ ] **Progress messages** — LOW complexity, UX при AI generation
 
-Добавлять когда подтверждена конверсия и retention.
+### Phase 2: Caching & Background Jobs
 
-- [ ] **Натальная карта** — когда 100+ платящих пользователей
-- [ ] **Больше раскладов** (5-7 видов) — когда retention < 30% D7
-- [ ] **История раскладов** — когда пользователи запрашивают
-- [ ] **Push-уведомления** — когда DAU падает
+Performance foundation. Снижение latency и AI costs.
 
-### Future Consideration (v2+)
+- [ ] **Фоновая генерация 12 гороскопов** — MEDIUM complexity, daily job в APScheduler
+- [ ] **Warm cache on startup** — MEDIUM complexity, pre-load при запуске бота
+- [ ] **file_id caching для изображений** — LOW complexity, DB column или config
 
-Отложить до product-market fit.
+### Phase 3: Visual Enhancement
 
-- [ ] **Транзиты и уведомления о них** — сложная фича, требует астро-экспертизы
-- [ ] **Совместимость** — после натальных карт
-- [ ] **Тематические гороскопы по сферам** — расширение контента
-- [ ] **PDF-отчёты** — premium upsell
-- [ ] **Голосовая озвучка** — после валидации спроса
+Изображения и визуальное улучшение.
+
+- [ ] **Welcome screen image** — LOW complexity, один asset
+- [ ] **Zodiac sign images (12 шт)** — HIGH complexity, AI generation + consistency
+- [ ] **Premium vs free visual distinction** — MEDIUM complexity, formatting + emoji
+- [ ] **Paywall image** — LOW complexity, один asset
+
+### Phase 4: Onboarding & Conversion
+
+Conversion funnel optimization.
+
+- [ ] **Enhanced welcome text** — LOW complexity, copywriting
+- [ ] **Soft paywall flow** — MEDIUM complexity, message ordering
+- [ ] **Clear premium value proposition** — MEDIUM complexity, content structure
+
+### Phase 5: Monitoring
+
+Observability и metrics.
+
+- [ ] **horoscopes_today tracking table** — MEDIUM complexity, DB migration
+- [ ] **Bot health metrics endpoint** — MEDIUM complexity, FastAPI route
+- [ ] **API costs tracking** — MEDIUM complexity, middleware для OpenRouter calls
+
+---
 
 ## Feature Prioritization Matrix
 
 | Feature | User Value | Implementation Cost | Priority |
 |---------|------------|---------------------|----------|
-| Ежедневный гороскоп | HIGH | LOW | **P1** |
-| Карта дня таро | HIGH | LOW | **P1** |
-| Расклад 3 карты + AI | HIGH | MEDIUM | **P1** |
-| Визуализация карт | HIGH | LOW | **P1** |
-| Оплата (Telegram Stars) | HIGH | MEDIUM | **P1** |
-| Онбординг (дата рождения) | HIGH | LOW | **P1** |
-| История раскладов | MEDIUM | LOW | **P2** |
-| Push-уведомления | MEDIUM | LOW | **P2** |
-| Натальная карта | HIGH | HIGH | **P2** |
-| Больше раскладов | MEDIUM | MEDIUM | **P2** |
-| Детальный гороскоп по сферам | MEDIUM | MEDIUM | **P2** |
-| Транзиты | MEDIUM | HIGH | **P3** |
-| Совместимость | MEDIUM | HIGH | **P3** |
-| PDF-отчёты | LOW | MEDIUM | **P3** |
-| Голосовая озвучка | LOW | MEDIUM | **P3** |
-| Админ-панель аналитика | MEDIUM | MEDIUM | **P2** |
+| Typing indicator | HIGH | LOW | **P1** |
+| Markdown fix | HIGH | LOW | **P1** |
+| BotFather description | MEDIUM | LOW | **P1** |
+| Фоновая генерация гороскопов | HIGH | MEDIUM | **P1** |
+| Welcome image | MEDIUM | LOW | **P1** |
+| Zodiac images (12) | MEDIUM | HIGH | **P2** |
+| Premium visual distinction | HIGH | MEDIUM | **P1** |
+| Soft paywall enhancement | HIGH | MEDIUM | **P2** |
+| Monitoring metrics | MEDIUM | MEDIUM | **P2** |
+| Onboarding Mini App | LOW | HIGH | **P3** (defer) |
+| Персонализированные таро images | LOW | VERY HIGH | **P3** (defer) |
 
-**Priority Key:**
-- **P1:** Must have for launch (MVP)
-- **P2:** Should have, add в первые 2-4 недели после launch
-- **P3:** Nice to have, после подтверждения PMF
+**Priority key:**
+- **P1:** Must have for v2.0 — критично для UX и performance
+- **P2:** Should have — добавляет value, делать после P1
+- **P3:** Nice to have — future consideration, defer to v3+
 
-## Competitor Feature Analysis
+---
 
-| Feature | Saturn.Love | Numia | Tarot Go | @tarologia_robot | **Наш подход** |
-|---------|-------------|-------|----------|------------------|----------------|
-| Ежедневный гороскоп | Да (лунный) | Да | Нет | Нет | Да, бесплатно |
-| Карта дня | Нет | Нет | Да | Нет | Да, бесплатно |
-| AI расклады | Нет | Нет | Да | Да | Да, **USP** |
-| Натальная карта | Да, детальная | Да | Да | Нет | Платно |
-| Транзиты | Да, **USP** | Нет | Нет | Нет | v2+ |
-| Виды раскладов | N/A | N/A | 12 | 2 | 3-5 для MVP |
-| Совместимость | Нет | Да | Да | Нет | v2+ |
-| Freemium | Да (7 дней trial) | Да | Да | Да | Да |
-| Push-уведомления | Да | Да | Нет | Нет | Да |
-| Визуал карт | N/A | N/A | Да, HD | Да | Да |
-| Голосовая озвучка | Нет | Нет | Да | Нет | v2+ |
-| PDF-отчёты | Да | Нет | Нет | Нет | v2+ |
+## Implementation Recommendations
 
-### Конкурентное позиционирование
+### Typing Indicator: Паттерн
 
-**Saturn.Love** — фокус на ведической астрологии и транзитах. Сложный продукт для продвинутых.
+```python
+import asyncio
+from aiogram.enums import ChatAction
 
-**Numia** — массовый продукт с живыми консультациями. 10M+ пользователей. Операционно сложно.
+async def with_typing(bot, chat_id: int, coro):
+    """Wrapper для показа typing во время async операции."""
+    async def typing_loop():
+        while True:
+            await bot.send_chat_action(chat_id, ChatAction.TYPING)
+            await asyncio.sleep(4)  # Typing длится 5 сек, refresh каждые 4
 
-**Tarot Go** — чистый таро-бот с AI. 12 раскладов, озвучка. Прямой конкурент.
+    task = asyncio.create_task(typing_loop())
+    try:
+        return await coro
+    finally:
+        task.cancel()
 
-**@tarologia_robot** — простой бот с базовым AI. 2 расклада.
+# Использование:
+interpretation = await with_typing(bot, chat_id, ai.generate_interpretation(...))
+```
 
-**Наша ниша:** AI-качество интерпретаций + простота + конверсия. Не пытаемся быть "всё в одном".
+### Изображения: Подход
 
-## Ценообразование (Benchmark)
+**Рекомендация:** Использовать CGDream или FLUX.2 через getimg.ai для 12 zodiac images + 2 статичных (welcome, paywall).
 
-На основе анализа рынка:
+**Почему:**
+1. CGDream — 100 бесплатных credits/день, достаточно для генерации
+2. Transfer Style feature для consistency
+3. Один раз сгенерировать, сохранить file_id после первой отправки
 
-| Модель | Примеры | Наша рекомендация |
-|--------|---------|-------------------|
-| Подписка месяц | 299-499₽ или $5-15 | ~299₽/мес или эквивалент в Stars |
-| Разовая покупка | 50-100₽ за расклад | Пакет 20 раскладов ~299₽ |
-| Trial | 7 дней бесплатно | Не рекомендую — лучше ограничение по количеству |
+**Альтернатива:** Midjourney/DALL-E для высшего качества, но платно.
 
-**Рекомендация:** Freemium с лимитом (1 бесплатный расклад/день), пакет 20 раскладов за фиксированную цену.
+**file_id caching pattern:**
+```python
+# После первой отправки сохраняем file_id
+msg = await bot.send_photo(chat_id, photo=InputFile("welcome.jpg"))
+file_id = msg.photo[-1].file_id  # Highest resolution
+# Сохранить в config/DB
 
-## Метрики Успеха для Features
+# Последующие отправки — мгновенно через file_id
+await bot.send_photo(chat_id, photo=stored_file_id)
+```
 
-| Feature | Метрика | Target |
-|---------|---------|--------|
-| Ежедневный гороскоп | DAU return rate | >40% |
-| Карта дня | Usage rate | >60% DAU |
-| AI расклад | Completion rate | >80% |
-| Платные расклады | Conversion rate | 5-10% |
-| Push-уведомления | CTR | >15% |
-| Натальная карта | Upsell conversion | >20% от платящих |
+### Кеширование: Архитектура
+
+**Текущее состояние:** In-memory `_horoscope_cache` в `cache.py`. Очищается при рестарте.
+
+**Рекомендация для v2.0:**
+1. Сохранить in-memory для MVP (Railway рестарты редки)
+2. Добавить APScheduler job: генерация 12 гороскопов каждые 12ч
+3. Warm cache при старте бота если сегодня нет кеша
+
+**Фоновая генерация job:**
+```python
+from apscheduler.triggers.interval import IntervalTrigger
+
+async def generate_all_horoscopes():
+    """Pre-generate all 12 zodiac horoscopes."""
+    for sign in ZODIAC_SIGNS:
+        text = await ai.generate_horoscope(sign)
+        await set_cached_horoscope(sign, text)
+
+scheduler.add_job(
+    generate_all_horoscopes,
+    IntervalTrigger(hours=12),
+    id="horoscope_generation",
+    replace_existing=True
+)
+```
+
+**Future (если нужна персистентность):** Redis через Railway addon.
+
+### Visual Distinction: Шаблоны
+
+**Free гороскоп:**
+```
+Овен на 23.01.2026
+
+[Общий текст без деталей по сферам]
+
+--------------------
+Хочешь детальный прогноз по любви,
+карьере и здоровью? Подписка 299р/мес
+```
+
+**Premium гороскоп:**
+```
+Персональный гороскоп для Овен
+на 23.01.2026
+
+ЛЮБОВЬ
+[Детальный текст]
+
+КАРЬЕРА
+[Детальный текст]
+
+ЗДОРОВЬЕ
+[Детальный текст]
+
+ФИНАНСЫ
+[Детальный текст]
+```
+
+### Soft Paywall Flow
+
+Рекомендуемая последовательность на основе telegram-onboarding-kit patterns:
+
+1. **Value first:** Показать бесплатный контент (гороскоп/карту дня)
+2. **Natural break:** После контента, не прерывая
+3. **Clear CTA:** Конкретное предложение с ценой
+4. **One-click:** Inline button прямо к оплате
+
+```
+[Гороскоп текст]
+
+--------------------
+Это общий прогноз.
+
+С подпиской ты получишь:
+- Детальный гороскоп по 4 сферам жизни
+- Персональный прогноз по натальной карте
+- 20 раскладов таро в день
+
+[Подписка 299р/мес] [Подробнее]
+```
+
+---
+
+## Competitor Feature Analysis for v2.0
+
+| Feature | @HoroscopeBot | @Stellium | AdtroBot v2.0 Approach |
+|---------|---------------|-----------|------------------------|
+| Zodiac images | Stock photos | AI-generated | AI-generated в едином стиле |
+| Onboarding | Простой /start | Elaborate flow | Enhanced welcome + soft paywall |
+| Tarot visuals | Статичная колода | N/A | Текущая колода + AI интерпретации |
+| Premium distinction | Нет | Нет явной | Визуальное разделение headers + structure |
+| Response time | Быстро (кеш) | Медленно (AI) | Кеш для общих + typing для персональных |
+| Natal chart | Нет | Есть | Есть (v1.0) + SVG visualization |
+
+---
+
+## Integration with Existing v1.0 Codebase
+
+### Files to Modify
+
+| File | Changes |
+|------|---------|
+| `src/bot/handlers/horoscope.py` | Add typing indicator wrapper, visual distinction templates |
+| `src/bot/handlers/tarot.py` | Add typing indicator, progress messages |
+| `src/bot/handlers/start.py` | Add welcome image, enhanced text |
+| `src/services/ai/cache.py` | Add background generation trigger |
+| `src/services/scheduler.py` | Add horoscope generation job |
+| `src/bot/utils/formatting.py` | Fix markdown issues, add premium templates |
+
+### New Files Needed
+
+| File | Purpose |
+|------|---------|
+| `src/bot/utils/typing.py` | Typing indicator wrapper utility |
+| `src/config/images.py` | file_id storage for images |
+| `src/db/models/metrics.py` | Monitoring tables |
+| `src/admin/services/health.py` | Health metrics endpoint |
+
+---
 
 ## Sources
 
-### Конкуренты (проанализированы)
-- [Saturn.Love](https://saturn.love/ru) — ведическая астрология, натальные карты, транзиты
-- [Numia (@numiaclub_bot)](https://telegram.org.ru/20476-personalnyy-astrolog.html) — 10M+ пользователей, живые консультации
-- [Tarot Go](https://aidive.org/ai/tarot-go) — 12 раскладов, AI, озвучка
-- [@tarologia_robot](https://vc.ru/telegram/2231902-taro-onlajn-besplatno-gadaniya-ii-telegram) — простой таро-бот
+### Официальные источники (HIGH confidence)
+- [Telegram Bot API - sendChatAction](https://core.telegram.org/bots/api#sendchataction)
+- [Telegram Bot API - Sending files](https://core.telegram.org/bots/api#sending-files) — file_id caching
+- [aiogram 3 documentation](https://docs.aiogram.dev/en/dev-3.x/)
 
-### Исследования рынка
-- [Vocal Media: Why Astrology Apps Fail](https://vocal.media/humans/why-most-astrology-apps-fail-and-how-to-build-one-users-actually-trust) — 33% uninstall из-за плохого UX
-- [Vocal Media: User Engagement Best Practices](https://vocal.media/education/user-engagement-in-astrology-apps-best-practices-for-retention) — +50% retention с персонализацией
-- [IMG Global: How Astrology Apps Make Money](https://www.imgglobalinfotech.com/blog/how-astrology-apps-make-money) — модели монетизации
-- [VC.ru: Монетизация Telegram ботов](https://vc.ru/telegram/1916841-sozdanie-i-monetizatsiya-telegram-botov-v-2025-godu) — 3-7% конверсия, 299₽/мес оптимально
+### Паттерны и best practices (MEDIUM confidence)
+- [Telegram Onboarding Kit](https://github.com/Easterok/telegram-onboarding-kit) — onboarding/paywall patterns
+- [Optimising Telegram Bot Response Times](https://dev.to/imthedeveloper/optimising-telegram-bot-response-times-1a64)
+- [Building Telegram Bots That Scale](https://medium.com/@strongnationdev/the-secrets-behind-building-telegram-bots-that-scale-to-thousands-of-users-737236156377)
+- [Telegram Bot Analytics Metrics](https://bazucompany.com/blog/telegram-bot-analytics-metrics-you-must-track/)
 
-### Статистика
-- 48% пользователей астро-приложений заходят ежедневно
-- 18-24% engagement rate у персонализированных push-уведомлений
-- 30-45% рост engagement при персонализированных natal chart tools
-- 33% uninstall rate при плохом UX или generic контенте
+### AI Image Generation (MEDIUM confidence)
+- [CGDream Tarot Generator](https://cgdream.ai/features/ai-tarot-card-generator) — free credits, style transfer
+- [Vheer Zodiac Card Generator](https://vheer.com/ai-zodiac-card-generator) — zodiac-specific
+- [getimg.ai FLUX.2](https://getimg.ai/use-cases/ai-tarot-card-generator)
+
+### Существующий код (HIGH confidence)
+- `/Users/kirill/Desktop/AdtroBot/src/services/ai/cache.py` — текущая архитектура кеширования
+- `/Users/kirill/Desktop/AdtroBot/src/bot/handlers/start.py` — текущий onboarding flow
+- `/Users/kirill/Desktop/AdtroBot/src/bot/handlers/horoscope.py` — premium teaser pattern
 
 ---
-*Feature research для: Telegram Астро/Таро Freemium Bot*
-*Researched: 2026-01-22*
+*Feature research for: AdtroBot v2.0 Visual & Performance Enhancements*
+*Researched: 2026-01-23*

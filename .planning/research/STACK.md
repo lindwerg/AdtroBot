@@ -1,233 +1,473 @@
 # Stack Research
 
 **Domain:** Telegram бот с астрологией/таро + AI + платежи + админ панель
-**Researched:** 2026-01-22
+**Researched:** 2026-01-23 (v2.0 additions)
 **Confidence:** HIGH
 
-## Рекомендуемый стек
+## v2.0 Stack Additions
 
-### Core Technologies
+Этот документ расширяет v1.0 стек новыми технологиями для:
+- AI генерации изображений
+- Мониторинга и observability
+- Улучшенного кэширования
+- Тестирования через Telegram API
+- Background jobs оптимизации
 
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| **Python** | 3.11+ | Runtime | Стабильная версия с полной async поддержкой, оптимальный баланс скорости и совместимости |
-| **aiogram** | 3.24.0 | Telegram Bot Framework | Асинхронный, современный, активная разработка, FSM из коробки, webhook support. Стандарт для production ботов |
-| **FastAPI** | 0.128.0 | Web Framework (API + Админка) | Асинхронный, автодокументация OpenAPI, отличная экосистема, идеален для Railway |
-| **PostgreSQL** | 16+ | Database | Railway поддерживает нативно, надежность для платежей, масштабируемость |
-| **SQLAlchemy** | 2.0.46 | ORM | Async support 2.0, зрелый, Alembic миграции, совместим с SQLAdmin |
-| **Pydantic** | 2.12.5 | Validation | Интеграция с FastAPI, типизация, JSON Schema генерация |
+---
 
-### Supporting Libraries
+## 1. AI Image Generation
 
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| **yookassa** | 3.9.0 | ЮКасса SDK | Все платежные операции (подписки, webhooks) |
-| **openai** | 2.15.0 | OpenRouter API | AI интерпретации через OpenRouter (OpenAI-совместимый API) |
-| **sqladmin** | 0.22.0 | Admin Panel | Веб-админка для управления пользователями, подписками, контентом |
-| **alembic** | 1.18.1 | Migrations | Миграции схемы базы данных |
-| **asyncpg** | 0.31.0 | PostgreSQL Driver | Async драйвер для SQLAlchemy 2.0 |
-| **uvicorn** | 0.40.0 | ASGI Server | Production сервер для FastAPI на Railway |
-| **redis** | 7.1.0 | Cache/Sessions | FSM storage для aiogram, кэширование гороскопов |
-| **kerykeion** | 5.6.3 | Astrology Calculations | Расчет натальных карт (Swiss Ephemeris под капотом) |
-| **APScheduler** | 3.10.4 | Task Scheduler | Ежедневная генерация гороскопов |
+### Рекомендация: Together.ai + FLUX.1 [schnell]
 
-### Development Tools
+| Provider | Model | Цена | Free Tier | Качество |
+|----------|-------|------|-----------|----------|
+| **Together.ai** | FLUX.1 [schnell] | $0 (3 мес.) | **Unlimited 3 мес.** | Высокое, быстрое |
+| Replicate | FLUX.1 schnell | $0.015/img | 50 img/мес. | Высокое |
+| fal.ai | FLUX.2 dev | $0.012/MP | Preview бесплатно | Очень высокое |
+| OpenAI | DALL-E 3 | $0.04/img | Нет | Очень высокое |
 
-| Tool | Purpose | Notes |
-|------|---------|-------|
-| **ruff** | Linter + Formatter | Замена flake8/black/isort, быстрый |
-| **pytest** | Testing | С pytest-asyncio для async тестов |
-| **pytest-asyncio** | Async Tests | Тестирование async handlers |
-| **httpx** | HTTP Client | Async HTTP для тестов и внешних API |
-| **python-dotenv** | Env Management | Локальная разработка с .env файлами |
+**Почему Together.ai:**
+1. **Бесплатно 3 месяца** — unlimited генерации через FLUX.1-schnell-Free endpoint
+2. **Коммерческое использование разрешено** (в отличие от FLUX.1 dev)
+3. **OpenAI-совместимый API** — легко интегрировать через существующий openai SDK
+4. **Единый стиль** — FLUX.1 дает consistent visual style
+5. **Высокое качество** — 95% prompt adherence (vs 87% DALL-E 3, по бенчмаркам)
 
-## Installation
+### Интеграция
+
+```python
+# Используем существующий openai SDK с Together.ai base URL
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=settings.together_api_key,
+    base_url="https://api.together.xyz/v1"
+)
+
+response = client.images.generate(
+    model="black-forest-labs/FLUX.1-schnell-Free",
+    prompt="Mystical Aries zodiac sign, celestial art style, stars and constellations",
+    n=1
+)
+image_url = response.data[0].url
+```
+
+**Env variables:**
+```
+TOGETHER_API_KEY=...  # Новая переменная
+```
+
+### Fallback стратегия (после 3 месяцев)
+
+| Сценарий | Решение | Цена |
+|----------|---------|------|
+| Together.ai free истек | fal.ai FLUX.2 dev | $0.012/MP (~$0.01/img) |
+| Нужно дешевле | Replicate FLUX.1 schnell | $0.015/img |
+| Нужно лучше | OpenAI DALL-E 3 | $0.04/img |
+
+### Изображения для проекта (15-20 штук)
+
+При использовании Together.ai free tier:
+- Welcome image: 1 шт. — **$0**
+- 12 знаков зодиака: 12 шт. — **$0**
+- Таро расклады: 3 шт. (3-card, Celtic cross, card of day) — **$0**
+- Натальная карта: 1 шт. — **$0**
+- Paywall: 1 шт. — **$0**
+
+**Итого: $0** (при генерации в free период)
+
+### Что НЕ использовать
+
+| Avoid | Why |
+|-------|-----|
+| Midjourney | Нет API, только Discord |
+| DALL-E 3 напрямую | Дороже ($0.04/img), нет free tier |
+| Self-hosted SD | Требует GPU, overkill для 20 изображений |
+| Hugging Face Inference | Лимиты free tier сократились, 402 errors |
+
+---
+
+## 2. Monitoring & Observability
+
+### Рекомендация: Sentry.io (Free Tier)
+
+| Tool | Free Tier | Интеграция | Для чего |
+|------|-----------|------------|----------|
+| **Sentry.io** | 5K events/мес. | FastAPI native | Errors + Performance |
+| Prometheus + Grafana | Unlimited (self-hosted) | Сложная настройка | Metrics |
+| Datadog | 14 дней trial | Платный | Full observability |
+
+**Почему Sentry:**
+1. **5,000 events бесплатно** — достаточно для MVP/SMB
+2. **FastAPI integration** — автоматическая, просто `pip install sentry-sdk`
+3. **Error tracking** — все исключения с трейсами
+4. **Performance monitoring** — response times, slow queries
+5. **Railway совместимость** — просто добавить SENTRY_DSN env var
+
+### Интеграция
+
+```python
+# src/main.py — добавить в начало
+import sentry_sdk
+from sentry_sdk.integrations.fastapi import FastApiIntegration
+from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+
+sentry_sdk.init(
+    dsn=settings.sentry_dsn,
+    traces_sample_rate=0.1,  # 10% транзакций для performance
+    integrations=[
+        FastApiIntegration(),
+        SqlalchemyIntegration(),
+    ],
+    environment=settings.environment,  # "production" / "development"
+)
+```
+
+**Env variables:**
+```
+SENTRY_DSN=https://xxx@sentry.io/xxx
+ENVIRONMENT=production
+```
+
+### Дополнительные метрики (в коде)
+
+Для horoscopes_today, API costs, Bot Health — использовать **PostgreSQL таблицу**:
+
+```sql
+CREATE TABLE metrics (
+    id SERIAL PRIMARY KEY,
+    metric_name VARCHAR(100) NOT NULL,
+    metric_value DECIMAL NOT NULL,
+    recorded_at TIMESTAMP DEFAULT NOW(),
+    metadata JSONB
+);
+
+-- Примеры записей:
+-- ('horoscopes_today', 12, now(), '{"date": "2026-01-23"}')
+-- ('api_cost_openrouter', 0.0012, now(), '{"model": "gpt-4o-mini", "tokens": 500}')
+-- ('bot_response_time_ms', 234, now(), '{"handler": "horoscope"}')
+```
+
+**Не нужно:**
+- Prometheus — overkill, требует отдельный сервис
+- Grafana — overkill для текущего масштаба
+- Custom metrics server — PostgreSQL достаточно
+
+---
+
+## 3. Caching Solution
+
+### Рекомендация: PostgreSQL-based caching (текущий подход)
+
+| Solution | Цена/мес. | Latency | Persistence | Для AdtroBot |
+|----------|-----------|---------|-------------|--------------|
+| **PostgreSQL cache table** | $0 (уже есть) | ~5-10ms | Да | Рекомендуется |
+| Railway Redis addon | ~$5-10 | ~1ms | Да | Не нужно |
+| In-memory (текущий) | $0 | <1ms | Нет (теряется при рестарте) | Не для production |
+
+**Почему PostgreSQL вместо Redis:**
+1. **Уже есть** — не нужен дополнительный сервис
+2. **Persistence** — кэш переживает рестарты
+3. **Достаточная скорость** — 5-10ms для гороскопов нормально
+4. **Дешевле** — Redis addon = +$5-10/мес.
+5. **Проще** — одна БД вместо двух
+
+### Схема кэширования
+
+```sql
+CREATE TABLE horoscope_cache (
+    id SERIAL PRIMARY KEY,
+    zodiac_sign VARCHAR(20) NOT NULL,
+    cache_date DATE NOT NULL,
+    horoscope_text TEXT NOT NULL,
+    generated_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(zodiac_sign, cache_date)
+);
+
+CREATE INDEX idx_horoscope_cache_date ON horoscope_cache(cache_date);
+```
+
+### Миграция с in-memory
+
+Текущий `src/services/ai/cache.py` использует in-memory dict. Для v2.0:
+1. Добавить таблицу `horoscope_cache`
+2. Background job генерирует 12 гороскопов каждые 12ч
+3. Handlers читают из таблицы (не генерируют на лету)
+
+**Redis НЕ нужен потому что:**
+- FSM storage в aiogram — MemoryStorage работает (state не критичен)
+- Кэш гороскопов — PostgreSQL достаточно
+- Rate limiting — не требуется на текущем масштабе
+
+---
+
+## 4. Telegram API Testing
+
+### Рекомендация: Telethon + pytest
+
+| Library | Purpose | Active | Docs |
+|---------|---------|--------|------|
+| **Telethon** | MTProto user client | Да | Отличные |
+| Pyrogram | MTProto user client | **Не поддерживается** | Хорошие |
+| python-telegram-bot | Bot API only | Да | Не для тестов |
+
+**Почему Telethon:**
+1. **Активная разработка** — v1.42.0, обновляется
+2. **Pyrogram больше не поддерживается** — автор прекратил разработку
+3. **MTProto** — прямой доступ к Telegram API, не через Bot API
+4. **User client** — можно симулировать реального пользователя
+5. **StringSession** — удобно для CI/CD (session в env var)
+
+### Интеграция
 
 ```bash
-# Core
-pip install aiogram==3.24.0 fastapi==0.128.0 uvicorn==0.40.0 pydantic==2.12.5
-
-# Database
-pip install sqlalchemy==2.0.46 asyncpg==0.31.0 alembic==1.18.1 psycopg2-binary
-
-# Admin
-pip install sqladmin==0.22.0
-
-# Integrations
-pip install yookassa==3.9.0 openai==2.15.0 redis==7.1.0
-
-# Astrology
-pip install kerykeion==5.6.3
-
-# Scheduler
-pip install apscheduler==3.10.4
-
-# Dev dependencies
-pip install -D ruff pytest pytest-asyncio httpx python-dotenv
+pip install telethon==1.42.0
 ```
 
-Или единым requirements.txt:
-```
-aiogram==3.24.0
-fastapi==0.128.0
-uvicorn[standard]==0.40.0
-pydantic==2.12.5
-sqlalchemy[asyncio]==2.0.46
-asyncpg==0.31.0
-alembic==1.18.1
-psycopg2-binary
-sqladmin[full]==0.22.0
-yookassa==3.9.0
-openai==2.15.0
-redis==7.1.0
-kerykeion==5.6.3
-apscheduler==3.10.4
-python-dotenv
-```
+```python
+# tests/test_telegram_bot.py
+import pytest
+from telethon import TelegramClient
+from telethon.sessions import StringSession
 
-## Alternatives Considered
+# Получить api_id и api_hash на https://my.telegram.org
+API_ID = int(os.environ["TELEGRAM_API_ID"])
+API_HASH = os.environ["TELEGRAM_API_HASH"]
+SESSION_STRING = os.environ["TELEGRAM_SESSION_STRING"]
+BOT_USERNAME = "@AdtroBot"
 
-| Recommended | Alternative | When to Use Alternative |
-|-------------|-------------|-------------------------|
-| **aiogram** | python-telegram-bot | Если команда не знакома с asyncio; для простых синхронных ботов |
-| **PostgreSQL** | SQLite | Только для локальной разработки/прототипа. НЕ для production с платежами |
-| **SQLAlchemy** | SQLModel | Если нужен более простой ORM без сложных запросов |
-| **sqladmin** | starlette-admin | Если нужна поддержка ORM отличных от SQLAlchemy |
-| **kerykeion** | AstrologerAPI | Если нужен closed-source (kerykeion AGPL) или SaaS без локальных расчетов |
-| **APScheduler** | Celery | Если нужен distributed task queue с workers (overkill для этого проекта) |
-| **Redis** | Memory FSM | Только для разработки. Production требует persistent storage |
+@pytest.fixture
+async def client():
+    client = TelegramClient(
+        StringSession(SESSION_STRING),
+        API_ID,
+        API_HASH
+    )
+    await client.start()
+    yield client
+    await client.disconnect()
 
-## Что НЕ использовать
+@pytest.mark.asyncio
+async def test_start_command(client):
+    """Test /start returns welcome message."""
+    await client.send_message(BOT_USERNAME, "/start")
+    response = await client.get_messages(BOT_USERNAME, limit=1)
+    assert response[0].text is not None
+    assert "Добро пожаловать" in response[0].text or "привет" in response[0].text.lower()
 
-| Avoid | Why | Use Instead |
-|-------|-----|-------------|
-| **python-telegram-bot (sync mode)** | Блокирующие вызовы снижают throughput, не оптимально для бота с AI вызовами | aiogram 3.x (полностью async) |
-| **Flask** | WSGI, синхронный, требует отдельных workers для async | FastAPI (нативный ASGI) |
-| **SQLite в production** | Не подходит для concurrent writes, нет транзакций уровня PostgreSQL | PostgreSQL |
-| **Django Admin** | Overkill, синхронный, требует Django ORM | sqladmin (легковесный, async) |
-| **flatlib** | Устаревшая, не поддерживается активно | kerykeion (активная разработка, Pydantic 2) |
-| **Gunicorn напрямую** | WSGI сервер, для FastAPI нужен uvicorn worker | uvicorn или gunicorn с UvicornWorker |
-| **MongoDB** | Реляционные данные (пользователи, подписки, платежи) лучше в SQL | PostgreSQL |
-| **aioyookassa** | Сторонняя обертка, официальный SDK yookassa синхронный но надежный | yookassa (официальный SDK) + run_in_threadpool |
-
-## Stack Patterns by Variant
-
-**Если нужен closed-source (kerykeion AGPL ограничение):**
-- Использовать AstrologerAPI (hosted API от автора kerykeion)
-- Или написать собственные расчеты на pyswisseph (более низкоуровневый)
-- Или использовать immanuel-python (MIT лицензия, но менее функциональный)
-
-**Если Railway не подходит для Redis:**
-- aiogram поддерживает MemoryStorage для FSM (только для dev)
-- Или использовать Redis addon в Railway
-- Или внешний Redis (Upstash, Redis Cloud)
-
-**Если нужна высокая нагрузка (10K+ пользователей):**
-- Добавить Celery для background AI генерации
-- Horizontal scaling на Railway (multiple instances)
-- Connection pooling для PostgreSQL (asyncpg pool)
-
-## Version Compatibility
-
-| Package A | Compatible With | Notes |
-|-----------|-----------------|-------|
-| SQLAlchemy 2.0.46 | asyncpg 0.31.0 | Протестировано, работает стабильно |
-| SQLAlchemy 2.0.46 | sqladmin 0.22.0 | Полная совместимость |
-| FastAPI 0.128.0 | Pydantic 2.12.5 | FastAPI требует Pydantic v2 |
-| aiogram 3.24.0 | Python 3.10+ | aiogram 3.x не работает на Python < 3.10 |
-| uvicorn 0.40.0 | Python 3.10+ | Требует Python 3.10+ |
-| kerykeion 5.6.3 | Pydantic 2.x | Использует Pydantic v2 модели |
-
-## Railway Deployment Notes
-
-**Рекомендуемая конфигурация railway.json:**
-```json
-{
-  "$schema": "https://railway.app/railway.schema.json",
-  "build": {
-    "builder": "NIXPACKS"
-  },
-  "deploy": {
-    "startCommand": "uvicorn app.main:app --host 0.0.0.0 --port $PORT",
-    "healthcheckPath": "/health",
-    "healthcheckTimeout": 30,
-    "restartPolicyType": "ON_FAILURE"
-  }
-}
+@pytest.mark.asyncio
+async def test_horoscope_button(client):
+    """Test horoscope flow."""
+    await client.send_message(BOT_USERNAME, "/start")
+    # Получить inline кнопки и нажать на гороскоп
+    messages = await client.get_messages(BOT_USERNAME, limit=1)
+    # ... проверить наличие кнопок
 ```
 
-**Сервисы в Railway:**
-1. **Web Service** - FastAPI (админка + webhooks от Telegram и ЮКасса)
-2. **PostgreSQL** - Railway PostgreSQL plugin
-3. **Redis** - Railway Redis plugin или Upstash
+### Генерация StringSession
 
-**Переменные окружения:**
-```
-DATABASE_URL=postgresql+asyncpg://...
-REDIS_URL=redis://...
-TELEGRAM_BOT_TOKEN=...
-OPENROUTER_API_KEY=...
-YOOKASSA_SHOP_ID=...
-YOOKASSA_SECRET_KEY=...
+```python
+# scripts/generate_session.py (запустить один раз локально)
+from telethon.sync import TelegramClient
+from telethon.sessions import StringSession
+
+with TelegramClient(StringSession(), API_ID, API_HASH) as client:
+    print("Session string:", client.session.save())
+    # Сохранить в TELEGRAM_SESSION_STRING
 ```
 
-## Architecture Decision: Monolith vs Microservices
-
-**Рекомендация: Monolith (один FastAPI сервис)**
-
-Причины:
-1. Проще деплой на Railway (один сервис)
-2. Меньше latency между компонентами
-3. Проще отладка
-4. Для MVP/SMB нагрузки достаточно
-5. aiogram webhook handlers + FastAPI routes в одном приложении
-
-**Структура:**
+**Env variables для тестов:**
 ```
-app/
-├── main.py              # FastAPI + aiogram webhook
-├── bot/                 # Telegram bot handlers
-│   ├── handlers/
-│   └── middlewares/
-├── api/                 # REST API endpoints
-├── admin/               # SQLAdmin configuration
-├── services/            # Business logic
-│   ├── astrology.py
-│   ├── tarot.py
-│   ├── ai.py
-│   └── payments.py
-├── models/              # SQLAlchemy models
-├── schemas/             # Pydantic schemas
-└── core/                # Config, dependencies
+TELEGRAM_API_ID=12345678
+TELEGRAM_API_HASH=0123456789abcdef...
+TELEGRAM_SESSION_STRING=1BVtsOH...
 ```
 
-## Confidence Assessment
+### Playwright для Web Testing
 
-| Component | Confidence | Reason |
-|-----------|------------|--------|
-| aiogram 3.24.0 | HIGH | Официальная документация, активная разработка, PyPI verified |
-| FastAPI 0.128.0 | HIGH | Индустриальный стандарт, официальная документация |
-| PostgreSQL + asyncpg | HIGH | Проверенная комбинация, Railway native support |
-| yookassa 3.9.0 | HIGH | Официальный SDK от YooMoney, недавний релиз |
-| openai SDK + OpenRouter | HIGH | OpenRouter официально поддерживает OpenAI SDK |
-| sqladmin 0.22.0 | MEDIUM | Работает хорошо, но менее зрелый чем Django Admin |
-| kerykeion 5.6.3 | MEDIUM | AGPL лицензия требует внимания, но функционал отличный |
-| Redis FSM storage | HIGH | Документировано в aiogram, стандартный паттерн |
+Playwright остается для:
+- Admin panel testing (React SPA)
+- Telegram Web App (если добавится)
+
+```bash
+pip install playwright pytest-playwright
+playwright install chromium
+```
+
+---
+
+## 5. Background Jobs
+
+### Рекомендация: APScheduler (оставить текущий)
+
+| Solution | Complexity | Redis Required | Для AdtroBot |
+|----------|------------|----------------|--------------|
+| **APScheduler** | Низкая | Нет | Рекомендуется |
+| ARQ | Средняя | Да | Overkill |
+| Celery | Высокая | Да (или RabbitMQ) | Overkill |
+| Dramatiq | Средняя | Да | Overkill |
+
+**Почему оставить APScheduler:**
+1. **Уже работает** — настроен с SQLAlchemyJobStore
+2. **Не требует Redis** — jobs в PostgreSQL
+3. **Достаточно для задач:**
+   - Генерация 12 гороскопов каждые 12ч
+   - Проверка подписок
+   - Отправка уведомлений
+4. **Простота** — нет отдельных worker процессов
+
+### Улучшения для v2.0
+
+```python
+# Добавить job для pre-generation horoscopes
+from apscheduler.triggers.cron import CronTrigger
+
+scheduler.add_job(
+    generate_all_horoscopes,  # Новая функция
+    CronTrigger(hour="6,18", minute=0, timezone="Europe/Moscow"),
+    id="generate_all_horoscopes",
+    replace_existing=True,
+    misfire_grace_time=3600,
+)
+
+async def generate_all_horoscopes():
+    """Pre-generate 12 horoscopes for all zodiac signs."""
+    from src.services.ai.client import generate_horoscope
+    from src.db.engine import async_session_maker
+
+    signs = ["aries", "taurus", "gemini", ...]
+    async with async_session_maker() as session:
+        for sign in signs:
+            text = await generate_horoscope(sign)
+            # Сохранить в horoscope_cache таблицу
+            ...
+```
+
+**ARQ/Celery НЕ нужны потому что:**
+- Нет distributed workers
+- Нет очередей с миллионами задач
+- APScheduler + SQLAlchemy хватает
+
+---
+
+## Полный v2.0 Stack Summary
+
+### Новые зависимости
+
+```bash
+# v2.0 additions
+pip install sentry-sdk==2.50.0      # Monitoring
+pip install telethon==1.42.0        # Telegram API testing
+pip install playwright==1.50.0      # Web testing (admin)
+pip install pytest-playwright       # Playwright pytest plugin
+```
+
+### pyproject.toml additions
+
+```toml
+[project]
+dependencies = [
+    # ... existing v1.0 deps ...
+    "sentry-sdk>=2.50.0",
+]
+
+[tool.poetry.group.dev.dependencies]
+# ... existing ...
+telethon = ">=1.42.0"
+playwright = ">=1.50.0"
+pytest-playwright = ">=0.6.0"
+```
+
+### Environment Variables (новые)
+
+```
+# Image Generation (Together.ai)
+TOGETHER_API_KEY=xxx
+
+# Monitoring (Sentry)
+SENTRY_DSN=https://xxx@sentry.io/xxx
+ENVIRONMENT=production
+
+# Testing (Telethon) - только для dev/CI
+TELEGRAM_API_ID=xxx
+TELEGRAM_API_HASH=xxx
+TELEGRAM_SESSION_STRING=xxx
+```
+
+---
+
+## Что НЕ добавлять
+
+| Technology | Why Not |
+|------------|---------|
+| Redis | Не нужен — PostgreSQL хватает для кэша и scheduler |
+| Celery / ARQ | Overkill — APScheduler достаточно |
+| Prometheus / Grafana | Overkill — Sentry + PostgreSQL metrics |
+| Self-hosted SD/Flux | Overkill — Together.ai free tier |
+| Pyrogram | Не поддерживается — использовать Telethon |
+| MongoDB | Данные реляционные — PostgreSQL лучше |
+
+---
+
+## Version Compatibility (v2.0 additions)
+
+| Package | Compatible With | Notes |
+|---------|-----------------|-------|
+| sentry-sdk 2.50.0 | FastAPI 0.128.0 | Native integration |
+| sentry-sdk 2.50.0 | SQLAlchemy 2.0 | Native integration |
+| telethon 1.42.0 | Python 3.11+ | Asyncio native |
+| playwright 1.50.0 | Python 3.10+ | Chromium included |
+
+---
+
+## Railway Deployment Notes (v2.0)
+
+**Дополнительные env vars:**
+```
+TOGETHER_API_KEY=...
+SENTRY_DSN=...
+ENVIRONMENT=production
+```
+
+**Не нужно добавлять сервисы:**
+- Redis — не нужен
+- Worker processes — не нужны
+- Metrics server — не нужен
+
+**Единственный сервис остается:**
+1. Web Service (FastAPI + aiogram webhook + APScheduler)
+2. PostgreSQL (данные + кэш + scheduler jobs + metrics)
+
+---
 
 ## Sources
 
-- [aiogram PyPI](https://pypi.org/project/aiogram/) - версия 3.24.0, Jan 2, 2026
-- [aiogram Documentation](https://docs.aiogram.dev/en/latest/) - FSM, handlers
-- [FastAPI PyPI](https://pypi.org/project/fastapi/) - версия 0.128.0, Dec 27, 2025
-- [Railway FastAPI Guide](https://docs.railway.com/guides/fastapi) - deployment patterns
-- [SQLAlchemy PyPI](https://pypi.org/project/SQLAlchemy/) - версия 2.0.46, Jan 21, 2026
-- [yookassa PyPI](https://pypi.org/project/yookassa/) - версия 3.9.0, Dec 17, 2025
-- [yookassa GitHub](https://github.com/yoomoney/yookassa-sdk-python) - официальный SDK
-- [OpenRouter Docs](https://openrouter.ai/docs/quickstart) - OpenAI SDK compatibility
-- [sqladmin GitHub](https://github.com/aminalaee/sqladmin) - SQLAlchemy Admin
-- [kerykeion PyPI](https://pypi.org/project/kerykeion/) - версия 5.6.3, Jan 19, 2026
-- [kerykeion.net](https://www.kerykeion.net/) - AGPL licensing info
+### AI Image Generation
+- [Together.ai Flux Blog](https://www.together.ai/blog/flux-api-is-now-available-on-together-ai-new-pro-free-access-to-flux-schnell) — free tier info
+- [Together.ai Pricing](https://www.together.ai/pricing) — pricing details
+- [WaveSpeedAI Guide](https://wavespeed.ai/blog/posts/complete-guide-ai-image-apis-2026/) — API comparison
+- [Replicate](https://replicate.com/collections/text-to-image) — alternative pricing
+
+### Monitoring
+- [Sentry FastAPI Docs](https://docs.sentry.io/platforms/python/integrations/fastapi/) — integration guide
+- [Sentry Pricing](https://sentry.io/pricing/) — free tier (5K events)
+- [sentry-sdk PyPI](https://pypi.org/project/sentry-sdk/) — version 2.50.0
+
+### Telegram Testing
+- [Telethon GitHub](https://github.com/LonamiWebs/Telethon) — MTProto library
+- [Telethon Docs](https://docs.telethon.dev/en/stable/) — usage examples
+- [Telethon PyPI](https://pypi.org/project/Telethon/) — version 1.42.0
+- [Pyrogram Status](https://docs.pyrogram.org/) — "no longer maintained"
+
+### Caching & Background Jobs
+- [Railway Redis Docs](https://docs.railway.com/guides/redis) — pricing context
+- [Railway Pricing](https://railway.com/pricing) — usage-based model
+- [APScheduler Docs](https://apscheduler.readthedocs.io/) — SQLAlchemyJobStore
+
+### Playwright
+- [Playwright Python](https://playwright.dev/python/) — official docs
+- [Playwright Releases](https://github.com/microsoft/playwright/releases) — version 1.50.0
 
 ---
-*Stack research for: AdtroBot - Telegram астро/таро бот*
-*Researched: 2026-01-22*
+*Stack research for: AdtroBot v2.0 — Visual Enhancement, Monitoring, Performance*
+*Researched: 2026-01-23*

@@ -1,8 +1,606 @@
 # Architecture Research
 
 **Domain:** Telegram бот с подписками, админ панелью и AI интеграцией
-**Researched:** 2026-01-22
+**Researched:** 2026-01-22 (v1.0), 2026-01-23 (v2.0 дополнение)
 **Confidence:** HIGH
+
+---
+
+## v2.0 Дополнение: Visual Assets, Caching, Background Jobs, Monitoring
+
+### Обзор изменений v2.0
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                          Railway Service                                 │
+├─────────────────────────────────────────────────────────────────────────┤
+│  ┌────────────────┐    ┌────────────────┐    ┌────────────────┐        │
+│  │   FastAPI      │    │    aiogram     │    │  APScheduler   │        │
+│  │   + /metrics   │────│   Dispatcher   │    │ + pre-gen job  │        │
+│  │   + /health    │    │                │    │ + metrics job  │        │
+│  └───────┬────────┘    └───────┬────────┘    └───────┬────────┘        │
+│          │                     │                     │                  │
+│  ┌───────┴───────────┐  ┌──────┴───────────┐  ┌─────┴────────────┐     │
+│  │  Metrics          │  │  Redis Cache     │  │  Image Service   │     │
+│  │  Collector        │  │  (horoscopes,    │  │  (PostgreSQL     │     │
+│  │  (prometheus-     │  │   file_ids)      │  │   + file_id)     │     │
+│  │  fastapi-instr.)  │  │                  │  │                  │     │
+│  └───────────────────┘  └────────┬─────────┘  └────────┬─────────┘     │
+│                                  │                     │                │
+│  ┌───────────────────────────────┴─────────────────────┴───────────────┐│
+│  │                      SQLAlchemy Async                                ││
+│  └──────────────────────────────────────────────────────────────────────┘│
+├─────────────────────────────────────────────────────────────────────────┤
+│              PostgreSQL                          Redis Addon            │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐     ┌──────────────┐        │
+│  │  Users   │  │ Images   │  │ Metrics  │     │ Horoscope    │        │
+│  │          │  │ (meta+   │  │ History  │     │ Cache (12h)  │        │
+│  │          │  │ file_id) │  │          │     │              │        │
+│  └──────────┘  └──────────┘  └──────────┘     └──────────────┘        │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### Новые компоненты v2.0
+
+| Компонент | Назначение | Интеграция |
+|-----------|------------|------------|
+| Redis Cache | TTL-кэш для гороскопов | Заменяет in-memory cache |
+| Image Storage | file_id в PostgreSQL | Новая таблица zodiac_images |
+| Pre-generation Job | Фоновая генерация | Расширение APScheduler |
+| Prometheus Metrics | Метрики приложения | prometheus-fastapi-instrumentator |
+| Metrics History | Исторические данные | Новая таблица metric_snapshots |
+
+---
+
+## Компонент 1: Image Storage + Serving
+
+### Рекомендация: PostgreSQL + Telegram file_id
+
+**Почему НЕ внешний storage (S3, R2):**
+1. Telegram принимает изображения по file_id — бесплатно, мгновенно
+2. Railway не имеет встроенного blob storage
+3. Дополнительный сервис = стоимость + сложность
+
+**Паттерн: Upload Once, Serve by file_id**
+
+```
+┌───────────────┐     ┌──────────────┐     ┌─────────────────┐
+│ AI генерирует │────>│ Telegram     │────>│ Сохранить       │
+│ изображение   │     │ send_photo() │     │ file_id в БД    │
+│ (bytes)       │     │              │     │                 │
+└───────────────┘     └──────────────┘     └─────────────────┘
+                              │
+                              v
+                      ┌──────────────────┐
+                      │ Повторная отправка│
+                      │ по file_id       │
+                      │ (бесплатно)      │
+                      └──────────────────┘
+```
+
+### Модель данных
+
+```python
+class ZodiacImage(Base):
+    """Изображения знаков зодиака."""
+    __tablename__ = "zodiac_images"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    zodiac_sign: Mapped[str] = mapped_column(String(20), unique=True, index=True)
+    image_type: Mapped[str] = mapped_column(String(20))  # "daily", "weekly"
+    telegram_file_id: Mapped[str] = mapped_column(String(200))
+    created_at: Mapped[datetime] = mapped_column(default=func.now())
+```
+
+### Интеграция с aiogram 3
+
+```python
+from aiogram.types import BufferedInputFile
+
+async def send_horoscope_with_image(
+    bot: Bot,
+    chat_id: int,
+    zodiac_sign: str,
+    horoscope_text: str,
+    session: AsyncSession,
+):
+    # Получить file_id из БД
+    image = await session.scalar(
+        select(ZodiacImage).where(ZodiacImage.zodiac_sign == zodiac_sign)
+    )
+
+    if image and image.telegram_file_id:
+        # Отправить по file_id (быстро, бесплатно)
+        await bot.send_photo(
+            chat_id=chat_id,
+            photo=image.telegram_file_id,
+            caption=horoscope_text,
+        )
+    else:
+        await bot.send_message(chat_id=chat_id, text=horoscope_text)
+```
+
+### Первоначальная загрузка
+
+```python
+async def upload_zodiac_image(
+    zodiac_sign: str,
+    image_bytes: bytes,
+    bot: Bot,
+    session: AsyncSession,
+    admin_chat_id: int,
+):
+    photo = BufferedInputFile(file=image_bytes, filename=f"{zodiac_sign}.png")
+    message = await bot.send_photo(chat_id=admin_chat_id, photo=photo)
+    file_id = message.photo[-1].file_id
+
+    image = ZodiacImage(
+        zodiac_sign=zodiac_sign,
+        image_type="daily",
+        telegram_file_id=file_id,
+    )
+    session.add(image)
+    await session.commit()
+    return file_id
+```
+
+---
+
+## Компонент 2: Caching Layer
+
+### Рекомендация: Redis addon
+
+**Сравнение Redis vs PostgreSQL UNLOGGED:**
+
+| Критерий | Redis | PostgreSQL UNLOGGED |
+|----------|-------|---------------------|
+| Latency | ~0.1ms | ~1-2ms |
+| TTL support | Нативный | Ручная очистка |
+| Complexity | Простой key-value | Требует таблицы |
+| Railway cost | ~$5/мес | Включен |
+
+**Вывод:** Для 12 гороскопов Redis упрощает TTL-логику.
+
+### Что кэшировать
+
+| Данные | Key | TTL | Размер |
+|--------|-----|-----|--------|
+| Дневной гороскоп | `horoscope:{sign}:{date}` | 12h | ~2KB x 12 |
+| file_id изображений | `image:{sign}:{type}` | 24h | ~100B x 12 |
+| Health status | `health:openrouter` | 5min | ~100B |
+
+### Redis Client
+
+```python
+# src/services/redis.py
+import redis.asyncio as redis
+from src.config import settings
+
+_redis_client: redis.Redis | None = None
+
+async def get_redis() -> redis.Redis:
+    global _redis_client
+    if _redis_client is None:
+        _redis_client = redis.from_url(
+            settings.redis_url,
+            encoding="utf-8",
+            decode_responses=True,
+        )
+    return _redis_client
+
+async def close_redis():
+    global _redis_client
+    if _redis_client:
+        await _redis_client.close()
+        _redis_client = None
+```
+
+### Кэш гороскопов
+
+```python
+# src/services/ai/redis_cache.py
+from datetime import date
+
+HOROSCOPE_TTL = 12 * 60 * 60  # 12 hours
+
+async def get_cached_horoscope(sign: str) -> str | None:
+    redis = await get_redis()
+    key = f"horoscope:{sign}:{date.today().isoformat()}"
+    return await redis.get(key)
+
+async def set_cached_horoscope(sign: str, text: str) -> None:
+    redis = await get_redis()
+    key = f"horoscope:{sign}:{date.today().isoformat()}"
+    await redis.setex(key, HOROSCOPE_TTL, text)
+```
+
+### Fallback на in-memory
+
+```python
+async def get_cached_horoscope(sign: str) -> str | None:
+    try:
+        redis = await get_redis()
+        return await redis.get(f"horoscope:{sign}:{date.today().isoformat()}")
+    except Exception:
+        from src.services.ai.cache import get_cached_horoscope as memory_cache
+        return await memory_cache(sign)
+```
+
+---
+
+## Компонент 3: Background Jobs
+
+### Рекомендация: Расширить APScheduler
+
+**Почему НЕ Celery:**
+- Celery требует отдельный worker (отдельный Railway service)
+- Для 12 гороскопов каждые 12 часов — overkill
+- APScheduler с SQLAlchemyJobStore уже работает
+
+### Новые jobs
+
+```python
+# src/services/scheduler.py
+
+def get_scheduler() -> AsyncIOScheduler:
+    global _scheduler
+    if _scheduler is None:
+        # ... existing setup ...
+
+        # Pre-generation job
+        _scheduler.add_job(
+            pregenerate_horoscopes,
+            CronTrigger(hour="0,12", minute=5, timezone="Europe/Moscow"),
+            id="pregenerate_horoscopes",
+            replace_existing=True,
+            misfire_grace_time=3600,
+        )
+
+        # Metrics collection job
+        _scheduler.add_job(
+            collect_daily_metrics,
+            CronTrigger(hour=23, minute=55, timezone="Europe/Moscow"),
+            id="collect_daily_metrics",
+            replace_existing=True,
+            misfire_grace_time=3600,
+        )
+
+    return _scheduler
+```
+
+### Pre-generation
+
+```python
+async def pregenerate_horoscopes() -> None:
+    """Pre-generate all 12 horoscopes."""
+    from src.services.ai.client import generate_horoscope
+    from src.services.ai.redis_cache import set_cached_horoscope
+    from src.bot.utils.zodiac import ZODIAC_SIGNS
+
+    await logger.ainfo("Starting horoscope pre-generation")
+
+    for sign in ZODIAC_SIGNS:
+        try:
+            text = await generate_horoscope(sign)
+            await set_cached_horoscope(sign, text)
+            await logger.ainfo("Generated horoscope", sign=sign)
+        except Exception as e:
+            await logger.aerror("Failed to generate", sign=sign, error=str(e))
+
+    await logger.ainfo("Pre-generation complete")
+```
+
+### Graceful degradation
+
+```python
+async def get_horoscope(sign: str) -> str:
+    # 1. Try cache
+    cached = await get_cached_horoscope(sign)
+    if cached:
+        return cached
+
+    # 2. Generate on-demand
+    text = await generate_horoscope(sign)
+    await set_cached_horoscope(sign, text)
+    return text
+```
+
+---
+
+## Компонент 4: Monitoring
+
+### Prometheus Metrics
+
+```python
+# src/main.py
+from prometheus_fastapi_instrumentator import Instrumentator
+
+app = FastAPI(lifespan=lifespan)
+Instrumentator().instrument(app).expose(app, endpoint="/metrics")
+```
+
+**Встроенные метрики:**
+- `http_requests_total` — counter по handler/status/method
+- `http_request_size_bytes` — размер запросов
+- `http_response_size_bytes` — размер ответов
+- `http_request_duration_seconds` — latency
+
+### Custom Business Metrics
+
+```python
+# src/services/metrics.py
+from prometheus_client import Counter, Gauge, Histogram
+
+HOROSCOPES_GENERATED = Counter(
+    "horoscopes_generated_total",
+    "Total horoscopes generated",
+    ["sign", "source"],  # source: "cache" | "generated"
+)
+
+ACTIVE_SUBSCRIBERS = Gauge(
+    "active_subscribers",
+    "Current number of active premium subscribers",
+)
+
+API_COST_CENTS = Counter(
+    "api_cost_cents_total",
+    "Total API cost in cents",
+    ["provider", "model"],
+)
+
+AI_REQUEST_LATENCY = Histogram(
+    "ai_request_latency_seconds",
+    "AI API request latency",
+    ["provider"],
+    buckets=[0.5, 1, 2, 5, 10, 30],
+)
+```
+
+### OpenRouter Cost Tracking
+
+```python
+async def generate_with_tracking(prompt: str) -> tuple[str, dict]:
+    response = await openrouter_client.chat.completions.create(...)
+
+    usage = response.usage
+    if usage:
+        cost_cents = int(getattr(usage, "cost", 0) * 100)
+        API_COST_CENTS.labels(provider="openrouter", model=model).inc(cost_cents)
+
+    return response.choices[0].message.content, usage
+```
+
+### Extended Health Check
+
+```python
+@app.get("/health")
+async def health():
+    checks = {}
+
+    # Database
+    try:
+        async with AsyncSessionLocal() as session:
+            await session.execute(text("SELECT 1"))
+        checks["database"] = "ok"
+    except Exception as e:
+        checks["database"] = f"error: {e}"
+
+    # Redis
+    try:
+        redis = await get_redis()
+        await redis.ping()
+        checks["redis"] = "ok"
+    except Exception as e:
+        checks["redis"] = f"error: {e}"
+
+    # Scheduler
+    scheduler = get_scheduler()
+    checks["scheduler"] = "running" if scheduler.running else "stopped"
+
+    overall = "ok" if all(v in ("ok", "running", "configured")
+                          for v in checks.values()) else "degraded"
+
+    return {"status": overall, "checks": checks}
+```
+
+### Metrics History (PostgreSQL)
+
+```python
+class MetricSnapshot(Base):
+    """Daily metrics for admin dashboard."""
+    __tablename__ = "metric_snapshots"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    date: Mapped[date] = mapped_column(index=True)
+    metric_name: Mapped[str] = mapped_column(String(50))
+    value: Mapped[float]
+    metadata: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+
+    __table_args__ = (
+        UniqueConstraint("date", "metric_name", name="uq_metric_date"),
+    )
+```
+
+---
+
+## Data Flow v2.0
+
+### Horoscope Request Flow
+
+```
+User requests horoscope
+         │
+         v
+┌─────────────────┐
+│ Check Redis     │─── HIT ──> Return cached + image
+│ cache           │
+└────────┬────────┘
+         │ MISS
+         v
+┌─────────────────┐
+│ Generate via    │
+│ OpenRouter      │
+└────────┬────────┘
+         │
+         v
+┌─────────────────┐
+│ Cache in Redis  │
+│ (12h TTL)       │
+└────────┬────────┘
+         │
+         v
+┌─────────────────┐
+│ Track metrics   │
+└────────┬────────┘
+         │
+         v
+┌─────────────────┐
+│ Send with image │
+│ (by file_id)    │
+└─────────────────┘
+```
+
+### Pre-generation Flow
+
+```
+Every 12 hours (00:05, 12:05 MSK)
+         │
+         v
+┌─────────────────┐
+│ For each of 12  │
+│ zodiac signs    │
+└────────┬────────┘
+         │
+         v
+┌─────────────────┐
+│ Generate via    │
+│ OpenRouter      │
+└────────┬────────┘
+         │
+         v
+┌─────────────────┐
+│ Store in Redis  │
+│ with 12h TTL    │
+└────────┬────────┘
+         │
+         v
+┌─────────────────┐
+│ Log metrics     │
+└─────────────────┘
+```
+
+---
+
+## Integration Points v2.0
+
+### Изменения в существующих файлах
+
+| Файл | Изменение |
+|------|-----------|
+| `src/config.py` | Добавить `redis_url: str` |
+| `src/main.py` | Prometheus instrumentator, расширить /health |
+| `src/services/scheduler.py` | Добавить `pregenerate_horoscopes`, `collect_daily_metrics` |
+| `src/services/ai/cache.py` | Заменить in-memory на Redis (с fallback) |
+| `src/bot/handlers/horoscope.py` | Интегрировать отправку с изображением |
+| `pyproject.toml` | Добавить `redis`, `prometheus-fastapi-instrumentator` |
+
+### Новые файлы
+
+| Файл | Назначение |
+|------|------------|
+| `src/services/redis.py` | Redis client singleton |
+| `src/services/metrics.py` | Custom Prometheus metrics |
+| `src/db/models/zodiac_image.py` | Модель для file_id изображений |
+| `src/db/models/metric_snapshot.py` | Модель для исторических метрик |
+| `migrations/versions/xxx_add_zodiac_images.py` | Миграция |
+| `migrations/versions/xxx_add_metric_snapshots.py` | Миграция |
+
+### Railway Configuration
+
+```yaml
+# Environment variables (Railway UI)
+REDIS_URL=redis://default:xxx@redis.railway.internal:6379
+```
+
+---
+
+## Anti-Patterns v2.0
+
+### Anti-Pattern 1: Storing Images as Blobs
+
+**Что делают:** Хранят image bytes в BYTEA
+**Почему плохо:** Увеличивает БД, медленнее, Telegram уже хранит
+**Вместо этого:** Загрузить один раз, хранить только file_id
+
+### Anti-Pattern 2: Celery для простых tasks
+
+**Что делают:** Celery + worker для 12 задач в день
+**Почему плохо:** Overkill, дополнительный сервис
+**Вместо этого:** APScheduler в том же процессе
+
+### Anti-Pattern 3: Prometheus без persistence
+
+**Что делают:** Только Prometheus, теряют метрики при restart
+**Почему плохо:** Railway = ephemeral storage
+**Вместо этого:** Daily snapshots в PostgreSQL
+
+### Anti-Pattern 4: Redis для persistent data
+
+**Что делают:** Хранят subscriptions в Redis
+**Почему плохо:** Redis = cache, данные могут потеряться
+**Вместо этого:** Redis только для TTL-кэша
+
+---
+
+## Build Order v2.0
+
+1. **Redis интеграция** — фундамент для кэширования
+2. **Миграция кэша на Redis** — заменить in-memory
+3. **Pre-generation job** — scheduled task
+4. **Image storage model** — ZodiacImage table
+5. **Image upload flow** — admin endpoint
+6. **Horoscope + image sending** — интеграция в handlers
+7. **Prometheus metrics** — instrumentator
+8. **Custom metrics** — бизнес-метрики
+9. **Health check расширение** — детальные checks
+10. **Metrics history** — daily snapshots
+11. **Admin dashboard integration** — графики
+
+**Зависимости:**
+- 2 требует 1
+- 3 требует 2
+- 6 требует 4, 5
+- 7-10 независимы от 1-6
+
+---
+
+## Sources v2.0
+
+**Redis vs PostgreSQL caching:**
+- [Redis is fast - I'll cache in Postgres](https://dizzy.zone/2025/09/24/Redis-is-fast-Ill-cache-in-Postgres/)
+- [I Replaced Redis with PostgreSQL](https://dev.to/polliog/i-replaced-redis-with-postgresql-and-its-faster-4942)
+
+**Telegram file handling:**
+- [aiogram 3 File Upload](https://docs.aiogram.dev/en/latest/api/upload_file.html)
+- [Telegram Bot API - sendPhoto](https://core.telegram.org/bots/api#sendphoto)
+
+**APScheduler + FastAPI:**
+- [Scheduled Jobs with FastAPI and APScheduler](https://ahaw021.medium.com/scheduled-jobs-with-fastapi-and-apscheduler-5a4c50580b0e)
+
+**Prometheus + FastAPI:**
+- [prometheus-fastapi-instrumentator](https://github.com/trallnag/prometheus-fastapi-instrumentator)
+
+**OpenRouter:**
+- [OpenRouter Usage Accounting](https://openrouter.ai/docs/use-cases/usage-accounting)
+
+**Railway:**
+- [Railway FastAPI Deployment](https://docs.railway.com/guides/fastapi)
+
+---
+
+# v1.0 Original Architecture (preserved below)
+
+---
 
 ## Standard Architecture
 
@@ -701,4 +1299,4 @@ ADMIN_PASSWORD=secure-password
 
 ---
 *Architecture research for: AdtroBot — Telegram бот гороскопов и таро*
-*Researched: 2026-01-22*
+*Researched: 2026-01-22 (v1.0), 2026-01-23 (v2.0)*
