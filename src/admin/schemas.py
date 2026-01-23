@@ -404,3 +404,53 @@ class UpdateHoroscopeContentRequest(BaseModel):
 
     base_text: str
     notes: str | None = None
+
+
+# === Promo Code Management Schemas ===
+
+
+class CreatePromoCodeRequest(BaseModel):
+    """Request to create a new promo code."""
+
+    code: str
+    discount_percent: int  # 10 = 10%
+    valid_until: datetime | None = None
+    max_uses: int | None = None  # None = unlimited
+    partner_id: int | None = None
+    partner_commission_percent: int | None = None
+
+
+class PromoCodeListItem(BaseModel):
+    """Promo code item in list response."""
+
+    id: int
+    code: str
+    discount_percent: int
+    valid_from: datetime
+    valid_until: datetime | None
+    max_uses: int | None
+    current_uses: int
+    partner_id: int | None
+    partner_commission_percent: int | None
+    is_active: bool
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PromoCodeListResponse(BaseModel):
+    """Paginated promo code list response."""
+
+    items: list[PromoCodeListItem]
+    total: int
+    page: int
+    page_size: int
+
+
+class UpdatePromoCodeRequest(BaseModel):
+    """Request to update a promo code."""
+
+    discount_percent: int | None = None
+    valid_until: datetime | None = None
+    max_uses: int | None = None
+    is_active: bool | None = None
