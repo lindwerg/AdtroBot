@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Free Horoscopes** - Ежедневный гороскоп для всех знаков, уведомления
 - [x] **Phase 4: Free Tarot** - Карта дня, расклад 3 карты, колода Райдер-Уэйт
 - [x] **Phase 5: AI Integration** - OpenRouter, GPT-4o-mini, AI интерпретации
-- [ ] **Phase 6: Payments** - ЮКасса интеграция, подписки, webhook обработка
+- [x] **Phase 6: Payments** - ЮКасса интеграция, подписки, webhook обработка
 - [ ] **Phase 7: Premium Horoscopes** - Детальные гороскопы по сферам, персональный прогноз
 - [ ] **Phase 8: Premium Tarot + Natal** - Кельтский крест, натальная карта, история раскладов
 - [ ] **Phase 9: Admin Panel** - Статистика, управление подписками, аналитика
@@ -116,9 +116,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 06-01-PLAN.md — Payment infrastructure (yookassa SDK, config, DB models, migration)
-- [ ] 06-02-PLAN.md — Payment service + webhook (async client, subscription service, webhook endpoint)
-- [ ] 06-03-PLAN.md — Subscription handlers (plan selection, payment flow, profile integration, limit checks, notifications)
+- [x] 06-01-PLAN.md — Payment infrastructure (yookassa SDK, config, DB models, migration)
+- [x] 06-02-PLAN.md — Payment service + webhook (async client, subscription service, webhook endpoint)
+- [x] 06-03-PLAN.md — Subscription handlers (plan selection, payment flow, profile integration, limit checks, notifications)
 
 ### Phase 7: Premium Horoscopes
 **Goal**: Платный пользователь получает детальные гороскопы по сферам жизни
@@ -178,7 +178,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 3. Free Horoscopes | 2/2 | Complete | 2026-01-22 |
 | 4. Free Tarot | 2/2 | Complete | 2026-01-22 |
 | 5. AI Integration | 2/2 | Complete | 2026-01-23 |
-| 6. Payments | 0/3 | Not started | - |
+| 6. Payments | 3/3 | Complete | 2026-01-23 |
 | 7. Premium Horoscopes | 0/1 | Not started | - |
 | 8. Premium Tarot + Natal | 0/2 | Not started | - |
 | 9. Admin Panel | 0/2 | Not started | - |

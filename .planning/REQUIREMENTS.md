@@ -58,16 +58,16 @@
 
 ### Payments & Subscriptions
 
-- [ ] **PAY-01**: Система интегрирована с ЮКасса SDK (официальная библиотека)
-- [ ] **PAY-02**: Пользователь может оформить месячную подписку
-- [ ] **PAY-03**: Подписка автоматически продлевается каждый месяц
-- [ ] **PAY-04**: Пользователь может отменить подписку
-- [ ] **PAY-05**: Webhook от ЮКасса обрабатывается idempotent (HTTP 200 немедленно)
-- [ ] **PAY-06**: Webhook обновляет статус подписки в БД (активна/истекла/отменена)
-- [ ] **PAY-07**: Система отслеживает лимиты пользователя (бесплатный/платный)
-- [ ] **PAY-08**: Лимиты проверяются атомарными операциями в БД (защита от race conditions)
-- [ ] **PAY-09**: Пользователь видит оставшиеся лимиты (расклады таро)
-- [ ] **PAY-10**: Пользователь получает уведомление об истечении подписки
+- [x] **PAY-01**: Система интегрирована с ЮКасса SDK (официальная библиотека)
+- [x] **PAY-02**: Пользователь может оформить месячную подписку
+- [x] **PAY-03**: Подписка автоматически продлевается каждый месяц
+- [x] **PAY-04**: Пользователь может отменить подписку
+- [x] **PAY-05**: Webhook от ЮКасса обрабатывается idempotent (HTTP 200 немедленно)
+- [x] **PAY-06**: Webhook обновляет статус подписки в БД (активна/истекла/отменена)
+- [x] **PAY-07**: Система отслеживает лимиты пользователя (бесплатный/платный)
+- [x] **PAY-08**: Лимиты проверяются атомарными операциями в БД (защита от race conditions)
+- [x] **PAY-09**: Пользователь видит оставшиеся лимиты (расклады таро)
+- [x] **PAY-10**: Пользователь получает уведомление об истечении подписки
 
 ### Bot UX & Navigation
 
@@ -75,7 +75,7 @@
 - [x] **BOT-02**: Пользователь может выбрать действие через inline кнопки
 - [x] **BOT-03**: Бот обрабатывает команды (/start, /help, /horoscope, /tarot, /natal, /subscribe)
 - [x] **BOT-04**: Бот использует Finite State Machine для диалогов (aiogram FSM)
-- [ ] **BOT-05**: Все ответы красиво отформатированы (emoji, markdown, структура)
+- [x] **BOT-05**: Все ответы красиво отформатированы (emoji, markdown, структура)
 - [x] **BOT-06**: Бот работает через webhook (не polling) для Railway
 - [x] **BOT-07**: Бот обрабатывает ошибки gracefully (понятные сообщения пользователю)
 
@@ -173,21 +173,21 @@
 | AI-05 | Phase 5 | Pending |
 | AI-06 | Phase 5 | Pending |
 | AI-07 | Phase 5 | Pending |
-| PAY-01 | Phase 6 | Pending |
-| PAY-02 | Phase 6 | Pending |
-| PAY-03 | Phase 6 | Pending |
-| PAY-04 | Phase 6 | Pending |
-| PAY-05 | Phase 6 | Pending |
-| PAY-06 | Phase 6 | Pending |
-| PAY-07 | Phase 6 | Pending |
-| PAY-08 | Phase 6 | Pending |
-| PAY-09 | Phase 6 | Pending |
-| PAY-10 | Phase 6 | Pending |
+| PAY-01 | Phase 6 | Complete |
+| PAY-02 | Phase 6 | Complete |
+| PAY-03 | Phase 6 | Complete |
+| PAY-04 | Phase 6 | Complete |
+| PAY-05 | Phase 6 | Complete |
+| PAY-06 | Phase 6 | Complete |
+| PAY-07 | Phase 6 | Complete |
+| PAY-08 | Phase 6 | Complete |
+| PAY-09 | Phase 6 | Complete |
+| PAY-10 | Phase 6 | Complete |
 | BOT-01 | Phase 2 | Complete |
 | BOT-02 | Phase 2 | Complete |
 | BOT-03 | Phase 2 | Complete |
 | BOT-04 | Phase 2 | Complete |
-| BOT-05 | Phase 6 | Pending |
+| BOT-05 | Phase 6 | Complete |
 | BOT-06 | Phase 2 | Complete |
 | BOT-07 | Phase 2 | Complete |
 | ADMIN-01 | Phase 9 | Pending |
