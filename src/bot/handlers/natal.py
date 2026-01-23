@@ -1,8 +1,16 @@
 """Natal chart handlers for premium users."""
 
+import asyncio
+
 import structlog
 from aiogram import F, Router
-from aiogram.types import BufferedInputFile, CallbackQuery, Message
+from aiogram.types import (
+    BufferedInputFile,
+    CallbackQuery,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Message,
+)
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -25,6 +33,9 @@ router = Router(name="natal")
 
 # Telegram message character limit
 MAX_MESSAGE_LENGTH = 4096
+
+# Telegraph timeout (seconds)
+TELEGRAPH_TIMEOUT = 10.0
 
 # Track users currently generating natal chart (prevent duplicate requests)
 _generating_natal: set[int] = set()
@@ -68,23 +79,65 @@ async def show_natal_chart(
             natal_data=natal_data,
         )
 
+        # Try to publish to Telegraph if interpretation exists
+        telegraph_url = None
+        if interpretation:
+            try:
+                telegraph_service = get_telegraph_service()
+                title = f"Натальная карта — {user.birth_date.strftime('%d.%m.%Y')}"
+                if user.birth_city:
+                    title += f", {user.birth_city}"
+
+                telegraph_url = await asyncio.wait_for(
+                    telegraph_service.publish_article(title, interpretation),
+                    timeout=TELEGRAPH_TIMEOUT,
+                )
+            except asyncio.TimeoutError:
+                logger.warning("telegraph_timeout", user_id=user.telegram_id)
+            except Exception as e:
+                logger.error(
+                    "telegraph_error", user_id=user.telegram_id, error=str(e)
+                )
+
         # Delete loading message
         await loading_msg.delete()
 
-        # Send chart image
+        # Send chart image with Telegraph button or fallback to text
         photo = BufferedInputFile(png_bytes, filename="natal_chart.png")
-        await message.answer_photo(
-            photo=photo,
-            caption="Твоя натальная карта",
-        )
 
-        # Send interpretation
-        if interpretation:
-            await message.answer(interpretation)
-        else:
-            await message.answer(
-                "⚠️ Не удалось создать интерпретацию. Попробуй позже."
+        if telegraph_url:
+            # Success: send PNG with button to Telegraph article
+            keyboard = InlineKeyboardMarkup(
+                inline_keyboard=[
+                    [
+                        InlineKeyboardButton(
+                            text="Посмотреть интерпретацию",
+                            url=telegraph_url,
+                        )
+                    ]
+                ]
             )
+            await message.answer_photo(
+                photo=photo,
+                caption="Твоя натальная карта",
+                reply_markup=keyboard,
+            )
+        else:
+            # Fallback: send PNG + text directly
+            await message.answer_photo(
+                photo=photo,
+                caption="Твоя натальная карта",
+            )
+
+            if interpretation:
+                # Split long text if needed
+                chunks = _split_text(interpretation, MAX_MESSAGE_LENGTH)
+                for chunk in chunks:
+                    await message.answer(chunk)
+            else:
+                await message.answer(
+                    "Не удалось создать интерпретацию. Попробуй позже."
+                )
 
         # Show navigation keyboard
         await message.answer(
