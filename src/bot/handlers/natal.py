@@ -68,53 +68,20 @@ async def show_natal_chart(
         # Delete loading message
         await loading_msg.delete()
 
-        # Publish interpretation to Telegraph
-        telegraph_url = None
-        if interpretation:
-            try:
-                telegraph_service = get_telegraph_service()
-                birth_info = f"{user.birth_date.strftime('%d.%m.%Y')}"
-                if user.birth_city:
-                    birth_info += f", {user.birth_city}"
-
-                telegraph_url = await telegraph_service.publish_article(
-                    title=f"Натальная карта — {birth_info}",
-                    content=interpretation,
-                    author="AdtroBot"
-                )
-            except Exception as e:
-                logger.error(
-                    "telegraph_publish_error",
-                    user_id=user.telegram_id,
-                    error=str(e),
-                )
-
-        # Create inline keyboard with Telegraph link
-        from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-        keyboard = None
-        if telegraph_url:
-            keyboard = InlineKeyboardMarkup(
-                inline_keyboard=[
-                    [InlineKeyboardButton(
-                        text="📖 Посмотреть интерпретацию",
-                        url=telegraph_url
-                    )]
-                ]
-            )
-
-        # Send chart image with button
+        # Send chart image
         photo = BufferedInputFile(png_bytes, filename="natal_chart.png")
-        caption = "Твоя натальная карта"
-        if telegraph_url:
-            caption += "\n\nНажми на кнопку ниже, чтобы прочитать полную интерпретацию."
-        else:
-            caption += "\n\n⚠️ Не удалось создать интерпретацию. Попробуй позже."
-
         await message.answer_photo(
             photo=photo,
-            caption=caption,
-            reply_markup=keyboard,
+            caption="Твоя натальная карта",
         )
+
+        # Send interpretation
+        if interpretation:
+            await message.answer(interpretation)
+        else:
+            await message.answer(
+                "⚠️ Не удалось создать интерпретацию. Попробуй позже."
+            )
 
         # Show navigation keyboard
         await message.answer(

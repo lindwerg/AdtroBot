@@ -379,7 +379,8 @@ class AIService:
             text = await self._generate(
                 system_prompt=NatalChartPrompt.SYSTEM,
                 user_prompt=NatalChartPrompt.user(natal_data),
-                max_tokens=4000,  # 1000-1500 words needs more tokens
+                max_tokens=1500,  # 400-500 words - reduced
+                timeout=45,  # Shorter timeout
             )
 
             if text is None:
