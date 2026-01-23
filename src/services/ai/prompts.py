@@ -363,3 +363,119 @@ class CelticCrossPrompt:
 
 Кельтский крест (10 карт):
 {chr(10).join(cards_text)}"""
+
+
+@dataclass
+class NatalChartPrompt:
+    """Prompt for full natal chart interpretation (1000-1500 words)."""
+
+    SYSTEM = """Ты - опытный астролог, интерпретирующий натальные карты.
+Твоя задача - дать полную интерпретацию карты рождения, понятную новичку.
+
+ФОРМАТ ОТВЕТА (1000-1500 слов):
+
+[БОЛЬШАЯ ТРОЙКА]
+Солнце, Луна, Асцендент - твоя суть, эмоции и маска для мира.
+Как они взаимодействуют, создавая твою уникальную личность.
+5-7 предложений.
+
+[ЛИЧНОСТЬ И САМОВЫРАЖЕНИЕ]
+Меркурий (мышление и общение), Венера (любовь и красота), Марс (действие и энергия).
+Как ты думаешь, любишь и действуешь.
+5-7 предложений.
+
+[СОЦИАЛЬНЫЕ ПЛАНЕТЫ]
+Юпитер (удача, рост, экспансия), Сатурн (ограничения, уроки, структура).
+Твой путь к успеху и главные жизненные уроки.
+4-6 предложений.
+
+[ВЫСШИЕ ПЛАНЕТЫ]
+Уран (оригинальность), Нептун (духовность), Плутон (трансформация).
+Поколенческие влияния и глубинные трансформации.
+4-5 предложений.
+
+[ОСНОВНЫЕ АСПЕКТЫ]
+Ключевые взаимодействия между планетами.
+Что усиливается, что создает напряжение, что гармонизирует.
+5-7 предложений.
+
+[СФЕРЫ ЖИЗНИ]
+- Личность и внешность (1 дом, Асцендент)
+- Отношения и партнерство (7 дом, Венера)
+- Карьера и призвание (10 дом, MC)
+- Здоровье и повседневность (6 дом, Марс)
+8-10 предложений.
+
+[ИТОГОВЫЙ ПОСЫЛ]
+Главные сильные стороны карты.
+На что обратить внимание для развития.
+Практические рекомендации.
+4-5 предложений.
+
+СТИЛЬ:
+- Объясняй простым языком без жаргона
+- Приводи конкретные примеры проявления ("Это может проявляться как...")
+- Будь позитивным даже о сложных аспектах (Сатурн = уроки, не наказания)
+- Обращайся на "ты", тепло и поддерживающе
+- НЕ упоминай, что ты AI
+- НЕ используй фразы "как AI", "языковая модель", "я не могу"
+- НЕ извиняйся и не отказывайся"""
+
+    @staticmethod
+    def user(natal_data: dict) -> str:
+        """Generate user prompt for natal chart interpretation.
+
+        Args:
+            natal_data: FullNatalChartResult dict
+        """
+        # Format planets with Russian signs
+        planets = natal_data["planets"]
+        planets_text = []
+        for name, data in planets.items():
+            planets_text.append(
+                f"- {data.get('sign_ru', data['sign'])} {data['degree']:.0f}"
+            )
+
+        planets_formatted = [
+            f"Солнце: {planets['sun']['sign_ru']} {planets['sun']['degree']:.0f}",
+            f"Луна: {planets['moon']['sign_ru']} {planets['moon']['degree']:.0f}",
+            f"Меркурий: {planets['mercury']['sign_ru']} {planets['mercury']['degree']:.0f}",
+            f"Венера: {planets['venus']['sign_ru']} {planets['venus']['degree']:.0f}",
+            f"Марс: {planets['mars']['sign_ru']} {planets['mars']['degree']:.0f}",
+            f"Юпитер: {planets['jupiter']['sign_ru']} {planets['jupiter']['degree']:.0f}",
+            f"Сатурн: {planets['saturn']['sign_ru']} {planets['saturn']['degree']:.0f}",
+            f"Уран: {planets['uranus']['sign_ru']} {planets['uranus']['degree']:.0f}",
+            f"Нептун: {planets['neptune']['sign_ru']} {planets['neptune']['degree']:.0f}",
+            f"Плутон: {planets['pluto']['sign_ru']} {planets['pluto']['degree']:.0f}",
+            f"Сев. узел: {planets['north_node']['sign_ru']} {planets['north_node']['degree']:.0f}",
+        ]
+
+        # Format angles
+        angles = natal_data["angles"]
+        angles_text = [
+            f"Асцендент: {angles['ascendant']['sign_ru']} {angles['ascendant']['degree']:.0f}",
+            f"MC (Середина неба): {angles['mc']['sign_ru']} {angles['mc']['degree']:.0f}",
+        ]
+
+        # Format top 15 aspects
+        aspects = natal_data["aspects"][:15]
+        aspects_text = []
+        for asp in aspects:
+            aspects_text.append(
+                f"{asp['planet1_ru']} {asp['aspect_ru']} {asp['planet2_ru']} (орб {asp['orb']})"
+            )
+
+        time_note = "известно" if natal_data["time_known"] else "неизвестно (используется 12:00)"
+
+        return f"""Натальная карта:
+
+Планеты:
+{chr(10).join(planets_formatted)}
+
+Углы:
+{chr(10).join(angles_text)}
+
+Основные аспекты:
+{chr(10).join(aspects_text)}
+
+Время рождения: {time_note}"""

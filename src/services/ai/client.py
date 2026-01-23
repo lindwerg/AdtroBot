@@ -7,15 +7,18 @@ from src.config import settings
 from src.services.ai.cache import (
     get_cached_card_of_day,
     get_cached_horoscope,
+    get_cached_natal_interpretation,
     get_cached_premium_horoscope,
     set_cached_card_of_day,
     set_cached_horoscope,
+    set_cached_natal_interpretation,
     set_cached_premium_horoscope,
 )
 from src.services.ai.prompts import (
     CardOfDayPrompt,
     CelticCrossPrompt,
     HoroscopePrompt,
+    NatalChartPrompt,
     PremiumHoroscopePrompt,
     TarotSpreadPrompt,
 )
@@ -347,6 +350,60 @@ class AIService:
             )
 
         logger.error("celtic_cross_validation_exhausted")
+        return None
+
+    async def generate_natal_interpretation(
+        self,
+        user_id: int,
+        natal_data: dict,
+    ) -> str | None:
+        """Generate full natal chart interpretation (1000-1500 words).
+
+        Uses 24-hour cache since natal chart doesn't change.
+
+        Args:
+            user_id: Telegram user ID (for caching)
+            natal_data: FullNatalChartResult from calculate_full_natal_chart()
+
+        Returns:
+            Natal interpretation text or None if all retries fail
+        """
+        # Check cache first (24 hour TTL)
+        cached = await get_cached_natal_interpretation(user_id)
+        if cached:
+            logger.debug("natal_interpretation_cache_hit", user_id=user_id)
+            return cached
+
+        # Generate with validation retry
+        for attempt in range(self.MAX_VALIDATION_RETRIES + 1):
+            text = await self._generate(
+                system_prompt=NatalChartPrompt.SYSTEM,
+                user_prompt=NatalChartPrompt.user(natal_data),
+                max_tokens=4000,  # 1000-1500 words needs more tokens
+            )
+
+            if text is None:
+                return None  # API error, already logged
+
+            # Use horoscope validation (length + no AI self-reference)
+            is_valid, error = validate_horoscope(text)
+            if is_valid:
+                await set_cached_natal_interpretation(user_id, text)
+                logger.info(
+                    "natal_interpretation_generated",
+                    user_id=user_id,
+                    chars=len(text),
+                )
+                return text
+
+            logger.warning(
+                "natal_interpretation_validation_failed",
+                error=error,
+                attempt=attempt + 1,
+                user_id=user_id,
+            )
+
+        logger.error("natal_interpretation_validation_exhausted", user_id=user_id)
         return None
 
 

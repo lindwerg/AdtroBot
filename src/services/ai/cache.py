@@ -34,6 +34,11 @@ _card_of_day_cache: dict[str, CardOfDayCacheEntry] = {}
 _premium_horoscope_cache: dict[int, tuple[str, float]] = {}
 PREMIUM_HOROSCOPE_TTL = 3600  # 1 hour
 
+# Natal interpretation cache (by user_id, 24 hour TTL)
+# Natal chart is static for a user, so longer cache is appropriate
+_natal_interpretation_cache: dict[int, tuple[str, float]] = {}
+NATAL_INTERPRETATION_TTL = 86400  # 24 hours
+
 
 def _is_expired(expires_date: date) -> bool:
     """Check if cache entry is expired (new day)."""
@@ -142,6 +147,33 @@ async def set_cached_premium_horoscope(user_id: int, text: str) -> None:
     _premium_horoscope_cache[user_id] = (text, time.time())
 
 
+async def get_cached_natal_interpretation(user_id: int) -> str | None:
+    """Get cached natal interpretation for user.
+
+    Args:
+        user_id: Telegram user ID
+
+    Returns:
+        Cached natal interpretation text or None if not cached/expired
+    """
+    if user_id in _natal_interpretation_cache:
+        text, timestamp = _natal_interpretation_cache[user_id]
+        if time.time() - timestamp < NATAL_INTERPRETATION_TTL:
+            return text
+        del _natal_interpretation_cache[user_id]
+    return None
+
+
+async def set_cached_natal_interpretation(user_id: int, text: str) -> None:
+    """Cache natal interpretation for user.
+
+    Args:
+        user_id: Telegram user ID
+        text: Generated natal interpretation text
+    """
+    _natal_interpretation_cache[user_id] = (text, time.time())
+
+
 def clear_expired_cache() -> None:
     """Clear expired entries from all caches.
 
@@ -172,6 +204,14 @@ def clear_expired_cache() -> None:
     for k in expired_premium_keys:
         del _premium_horoscope_cache[k]
 
+    # Clear expired natal interpretation entries (TTL-based)
+    expired_natal_keys = [
+        k for k, v in _natal_interpretation_cache.items()
+        if now - v[1] >= NATAL_INTERPRETATION_TTL
+    ]
+    for k in expired_natal_keys:
+        del _natal_interpretation_cache[k]
+
 
 def get_cache_stats() -> dict:
     """Get cache statistics (for debugging/monitoring).
@@ -194,5 +234,10 @@ def get_cache_stats() -> dict:
         "premium_horoscope_active": sum(
             1 for v in _premium_horoscope_cache.values()
             if now - v[1] < PREMIUM_HOROSCOPE_TTL
+        ),
+        "natal_interpretation_total": len(_natal_interpretation_cache),
+        "natal_interpretation_active": sum(
+            1 for v in _natal_interpretation_cache.values()
+            if now - v[1] < NATAL_INTERPRETATION_TTL
         ),
     }
