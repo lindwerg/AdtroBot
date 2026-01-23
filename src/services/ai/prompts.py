@@ -367,100 +367,61 @@ class CelticCrossPrompt:
 
 @dataclass
 class NatalChartPrompt:
-    """Prompt for full natal chart interpretation (1000-1500 words)."""
+    """Prompt for brief natal chart interpretation (250-350 words).
+
+    This is the FREE version - brief overview to entice detailed purchase.
+    """
 
     SYSTEM = """Ты - опытный астролог, интерпретирующий натальные карты.
-Дай краткую но содержательную интерпретацию (400-500 слов).
+Дай КРАТКУЮ обзорную интерпретацию (250-350 слов).
 
 ФОРМАТ:
 
-🌟 БОЛЬШАЯ ТРОЙКА
-Солнце, Луна, Асцендент - кто ты.
-3-4 предложения.
+ТВОЯ БОЛЬШАЯ ТРОЙКА
+Солнце, Луна, Асцендент - кто ты. 2-3 предложения.
 
-💫 ЛИЧНОСТЬ
-Меркурий, Венера, Марс - как мыслишь, любишь, действуешь.
-3-4 предложения.
+СИЛЬНЫЕ СТОРОНЫ
+Главные таланты по карте. 2-3 предложения.
 
-🎯 ПУТЬ РАЗВИТИЯ
-Юпитер и Сатурн - возможности и уроки.
-2-3 предложения.
+ЗОНЫ РАЗВИТИЯ
+На что обратить внимание. 2-3 предложения.
 
-⚡ КЛЮЧЕВЫЕ АСПЕКТЫ
-Главные гармонии и напряжения в карте.
-2-3 предложения.
-
-💎 ИТОГ
-Твои сильные стороны и рекомендации.
-2-3 предложения.
+СОВЕТ
+Одна ключевая рекомендация.
 
 СТИЛЬ:
-- Объясняй простым языком без жаргона
-- Приводи конкретные примеры проявления ("Это может проявляться как...")
-- Будь позитивным даже о сложных аспектах (Сатурн = уроки, не наказания)
-- Обращайся на "ты", тепло и поддерживающе
+- Кратко и по существу
+- Интригуй, но не раскрывай всё (это тизер для детального разбора)
+- Обращайся на "ты", тепло
 - НЕ упоминай, что ты AI
-- НЕ используй фразы "как AI", "языковая модель", "я не могу"
+- НЕ используй фразы "как AI", "языковая модель"
 - НЕ извиняйся и не отказывайся"""
 
     @staticmethod
     def user(natal_data: dict) -> str:
-        """Generate user prompt for natal chart interpretation.
-
-        Args:
-            natal_data: FullNatalChartResult dict
-        """
-        # Format planets with Russian signs
+        """Generate user prompt for brief natal interpretation."""
         planets = natal_data["planets"]
-        planets_text = []
-        for name, data in planets.items():
-            planets_text.append(
-                f"- {data.get('sign_ru', data['sign'])} {data['degree']:.0f}"
-            )
-
-        planets_formatted = [
-            f"Солнце: {planets['sun']['sign_ru']} {planets['sun']['degree']:.0f}",
-            f"Луна: {planets['moon']['sign_ru']} {planets['moon']['degree']:.0f}",
-            f"Меркурий: {planets['mercury']['sign_ru']} {planets['mercury']['degree']:.0f}",
-            f"Венера: {planets['venus']['sign_ru']} {planets['venus']['degree']:.0f}",
-            f"Марс: {planets['mars']['sign_ru']} {planets['mars']['degree']:.0f}",
-            f"Юпитер: {planets['jupiter']['sign_ru']} {planets['jupiter']['degree']:.0f}",
-            f"Сатурн: {planets['saturn']['sign_ru']} {planets['saturn']['degree']:.0f}",
-            f"Уран: {planets['uranus']['sign_ru']} {planets['uranus']['degree']:.0f}",
-            f"Нептун: {planets['neptune']['sign_ru']} {planets['neptune']['degree']:.0f}",
-            f"Плутон: {planets['pluto']['sign_ru']} {planets['pluto']['degree']:.0f}",
-            f"Сев. узел: {planets['north_node']['sign_ru']} {planets['north_node']['degree']:.0f}",
-        ]
-
-        # Format angles
         angles = natal_data["angles"]
-        angles_text = [
-            f"Асцендент: {angles['ascendant']['sign_ru']} {angles['ascendant']['degree']:.0f}",
-            f"MC (Середина неба): {angles['mc']['sign_ru']} {angles['mc']['degree']:.0f}",
+
+        # Only key planets for brief version
+        key_data = [
+            f"Солнце: {planets['sun']['sign_ru']} {planets['sun']['degree']:.0f}°",
+            f"Луна: {planets['moon']['sign_ru']} {planets['moon']['degree']:.0f}°",
+            f"Асцендент: {angles['ascendant']['sign_ru']} {angles['ascendant']['degree']:.0f}°",
+            f"Меркурий: {planets['mercury']['sign_ru']}",
+            f"Венера: {planets['venus']['sign_ru']}",
+            f"Марс: {planets['mars']['sign_ru']}",
         ]
 
-        # Format top 8 most important aspects (reduce data)
-        aspects = natal_data["aspects"][:8]
-        aspects_text = []
-        for asp in aspects:
-            aspects_text.append(
-                f"{asp['planet1_ru']} {asp['aspect_ru']} {asp['planet2_ru']}"
-            )
+        time_note = "известно" if natal_data["time_known"] else "неизвестно"
 
-        time_note = "известно" if natal_data["time_known"] else "неизвестно (используется 12:00)"
+        return f"""Натальная карта (краткий обзор):
 
-        return f"""Натальная карта:
+{chr(10).join(key_data)}
 
-Планеты:
-{chr(10).join(planets_formatted)}
+Время рождения: {time_note}
 
-Углы:
-{chr(10).join(angles_text)}
-
-Основные аспекты:
-{chr(10).join(aspects_text)}
-
-Время рождения: {time_note}"""
+Дай КРАТКИЙ обзор (250-350 слов). Это тизер для детального разбора."""
 
 
 @dataclass

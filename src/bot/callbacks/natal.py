@@ -11,6 +11,8 @@ class NatalAction(str, Enum):
     SHOW_CHART = "show"
     SETUP_BIRTH_DATA = "setup"
     BACK_TO_MENU = "back"
+    BUY_DETAILED = "buy"       # Buy detailed interpretation
+    SHOW_DETAILED = "detailed"  # Show purchased interpretation
 
 
 class NatalCallback(CallbackData, prefix="n"):
