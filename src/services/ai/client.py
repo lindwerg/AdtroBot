@@ -17,14 +17,25 @@ from src.services.ai.cache import (
 from src.services.ai.prompts import (
     CardOfDayPrompt,
     CelticCrossPrompt,
+    DetailedNatalPrompt,
     HoroscopePrompt,
     NatalChartPrompt,
     PremiumHoroscopePrompt,
     TarotSpreadPrompt,
 )
-from src.services.ai.validators import validate_card_of_day, validate_horoscope, validate_natal_chart, validate_tarot
+from src.services.ai.validators import (
+    validate_card_of_day,
+    validate_detailed_natal_section,
+    validate_horoscope,
+    validate_natal_chart,
+    validate_tarot,
+)
 
 logger = structlog.get_logger()
+
+# Cache for detailed natal interpretations (7 days)
+_detailed_natal_cache: dict[int, tuple[str, float]] = {}
+DETAILED_NATAL_CACHE_TTL = 604800  # 7 days
 
 
 class AIService:
@@ -405,6 +416,91 @@ class AIService:
 
         logger.error("natal_interpretation_validation_exhausted", user_id=user_id)
         return None
+
+    async def generate_detailed_natal_interpretation(
+        self,
+        user_id: int,
+        natal_data: dict,
+    ) -> str | None:
+        """Generate detailed natal chart interpretation (3000-5000 words).
+
+        Uses sectioned generation for reliable long-form output.
+        Caches result for 7 days.
+
+        Args:
+            user_id: User ID for caching
+            natal_data: FullNatalChartResult dict
+
+        Returns:
+            Full interpretation text or None on failure
+        """
+        import time
+
+        # Check cache
+        if user_id in _detailed_natal_cache:
+            cached_text, cached_time = _detailed_natal_cache[user_id]
+            if time.time() - cached_time < DETAILED_NATAL_CACHE_TTL:
+                logger.info("detailed_natal_cache_hit", user_id=user_id)
+                return cached_text
+
+        logger.info("generating_detailed_natal", user_id=user_id)
+
+        sections_text = []
+
+        for section in DetailedNatalPrompt.SECTIONS:
+            section_prompt = DetailedNatalPrompt.section_prompt(section, natal_data)
+
+            # Generate section with higher max_tokens
+            max_tokens = max(1500, section["min_words"] * 3)  # ~3 tokens per word
+
+            response = None
+            for attempt in range(3):  # Retry up to 3 times
+                try:
+                    response = await self._generate(
+                        system_prompt=DetailedNatalPrompt.SYSTEM,
+                        user_prompt=section_prompt,
+                        max_tokens=max_tokens,
+                    )
+
+                    if response and validate_detailed_natal_section(response, section["min_words"]):
+                        sections_text.append(f"## {section['title']}\n\n{response}")
+                        break
+                    else:
+                        logger.warning(
+                            "detailed_natal_section_short",
+                            section=section["id"],
+                            attempt=attempt + 1,
+                            length=len(response) if response else 0,
+                        )
+                except Exception as e:
+                    logger.error(
+                        "detailed_natal_section_error",
+                        section=section["id"],
+                        error=str(e),
+                    )
+
+                if attempt == 2:
+                    # Use whatever we got on last attempt
+                    if response:
+                        sections_text.append(f"## {section['title']}\n\n{response}")
+                    else:
+                        logger.error("detailed_natal_section_failed", section=section["id"])
+
+        if not sections_text:
+            return None
+
+        full_text = "\n\n".join(sections_text)
+
+        # Cache result
+        _detailed_natal_cache[user_id] = (full_text, time.time())
+        logger.info(
+            "detailed_natal_generated",
+            user_id=user_id,
+            total_chars=len(full_text),
+            sections=len(sections_text),
+        )
+
+        return full_text
 
 
 # Singleton instance
