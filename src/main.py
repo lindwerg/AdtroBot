@@ -3,7 +3,9 @@ from contextlib import asynccontextmanager
 import structlog
 from aiogram.types import Update
 from fastapi import BackgroundTasks, FastAPI, Request, Response
+from fastapi.middleware.cors import CORSMiddleware
 
+from src.admin.router import admin_router
 from src.bot.bot import dp, get_bot
 from src.bot.middlewares.db import DbSessionMiddleware
 from src.config import settings
@@ -61,6 +63,21 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+# CORS middleware for admin panel
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include admin router
+app.include_router(admin_router)
 
 
 @app.get("/health")
