@@ -30,6 +30,8 @@ dependencies = [
     "svgwrite (>=1.4.3,<2.0.0)",
     "cairosvg (>=2.8.2,<3.0.0)",
     "telegraph (>=2.2.0,<3.0.0)",
+    "python-jose[cryptography] (>=3.5.0,<4.0.0)",
+    "bcrypt (>=5.0.0,<6.0.0)",
 ]
 
 [tool.poetry]
