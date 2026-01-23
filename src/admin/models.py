@@ -1,6 +1,16 @@
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Integer, String, Text, func
+from sqlalchemy import (
+    Boolean,
+    DateTime,
+    ForeignKey,
+    Integer,
+    SmallInteger,
+    String,
+    Text,
+    UniqueConstraint,
+    func,
+)
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -85,3 +95,72 @@ class HoroscopeContent(Base):
         onupdate=func.now(),
     )
     updated_by: Mapped[int | None] = mapped_column(Integer, nullable=True)  # admin id
+
+
+class ABExperiment(Base):
+    """A/B test experiment."""
+
+    __tablename__ = "ab_experiments"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(100))
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # Metric to track: conversion, retention, revenue
+    metric: Mapped[str] = mapped_column(String(50))
+
+    # Traffic split percentage for variant B (0-100)
+    variant_b_percent: Mapped[int] = mapped_column(SmallInteger, default=50)
+
+    # Status: draft, running, paused, completed
+    status: Mapped[str] = mapped_column(String(20), default="draft")
+
+    started_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    ended_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+    )
+
+
+class ABAssignment(Base):
+    """User assignment to A/B experiment variant."""
+
+    __tablename__ = "ab_assignments"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    experiment_id: Mapped[int] = mapped_column(
+        ForeignKey("ab_experiments.id", ondelete="CASCADE"),
+        index=True,
+    )
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"),
+        index=True,
+    )
+    # Variant: "A" or "B"
+    variant: Mapped[str] = mapped_column(String(1))
+
+    # Conversion event recorded
+    converted: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default="false"
+    )
+    converted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+    assigned_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+    )
+
+    __table_args__ = (
+        # One assignment per user per experiment
+        UniqueConstraint(
+            "experiment_id", "user_id", name="uq_ab_assignment_user_experiment"
+        ),
+    )
