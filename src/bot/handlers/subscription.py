@@ -73,12 +73,12 @@ async def handle_plan_selection(
     }
 
     try:
-        # Create payment with method saving for recurring
+        # Create payment (recurring disabled until YooKassa enables it for this shop)
         payment = await create_payment(
             user_id=callback.from_user.id,
             amount=price,
             description=f"AdtroBot {plan_names[plan]}",
-            save_payment_method=True,
+            save_payment_method=False,  # TODO: Enable when YooKassa approves recurring
             metadata={
                 "plan_type": plan.value,
             },
