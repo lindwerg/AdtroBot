@@ -10,6 +10,7 @@ import SubscriptionsPage from '@/pages/Subscriptions'
 import TarotSpreadsPage from '@/pages/TarotSpreads'
 import MessagesPage from '@/pages/Messages'
 import ContentPage from '@/pages/Content'
+import PromoCodesPage from '@/pages/PromoCodes'
 
 // Auth check loader
 async function requireAuth() {
@@ -48,7 +49,7 @@ export const router = createBrowserRouter([
       { path: 'tarot-spreads', element: <TarotSpreadsPage /> },
       { path: 'messages', element: <MessagesPage /> },
       { path: 'content', element: <ContentPage /> },
-      { path: 'promo-codes', element: <div>Promo Codes (Coming soon)</div> },
+      { path: 'promo-codes', element: <PromoCodesPage /> },
       { path: 'ab-tests', element: <div>A/B Tests (Coming soon)</div> },
     ],
   },
