@@ -20,7 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 6: Payments** - ЮКасса интеграция, подписки, webhook обработка
 - [x] **Phase 7: Premium Horoscopes** - Детальные гороскопы по сферам, персональный прогноз
 - [x] **Phase 8: Premium Tarot + Natal** - Кельтский крест, натальная карта, история раскладов
-- [ ] **Phase 9: Admin Panel** - Статистика, управление подписками, аналитика
+- [x] **Phase 9: Admin Panel** - Статистика, управление подписками, аналитика
 - [x] **Phase 10: Улучшить натальную карту** - Профессиональный визуал, расширенная интерпретация, монетизация
 
 ## Phase Details
@@ -176,20 +176,20 @@ Plans:
 - Wave 7: 09-12 (integration checkpoint)
 
 Plans:
-- [ ] 09-01-PLAN.md — Backend foundation (Admin model, JWT auth, CORS)
-- [ ] 09-02-PLAN.md — Frontend scaffold (Vite, React, Ant Design, routing)
-- [ ] 09-03-PLAN.md — Dashboard API (metrics endpoints)
-- [ ] 09-04-PLAN.md — User management API (CRUD, filters, pagination)
-- [ ] 09-05-PLAN.md — Dashboard UI (KPI cards, charts, funnel)
-- [ ] 09-06-PLAN.md — Users page UI (ProTable, actions)
-- [ ] 09-07-PLAN.md — Messaging system (send, schedule, Telegram delivery)
-- [ ] 09-08-PLAN.md — Payments and subscriptions pages
-- [ ] 09-09-PLAN.md — Promo codes management
-- [ ] 09-10-PLAN.md — Export functionality (CSV/Excel)
-- [ ] 09-11-PLAN.md — A/B tests + UTM tracking
-- [ ] 09-12-PLAN.md — Integration checkpoint (human-verify)
-- [ ] 09-13-PLAN.md — Horoscope content management (ADMIN-08)
-- [ ] 09-14-PLAN.md — Tarot spreads viewing (ADMIN-09)
+- [x] 09-01-PLAN.md — Backend foundation (Admin model, JWT auth, CORS)
+- [x] 09-02-PLAN.md — Frontend scaffold (Vite, React, Ant Design, routing)
+- [x] 09-03-PLAN.md — Dashboard API (metrics endpoints)
+- [x] 09-04-PLAN.md — User management API (CRUD, filters, pagination)
+- [x] 09-05-PLAN.md — Dashboard UI (KPI cards, charts, funnel)
+- [x] 09-06-PLAN.md — Users page UI (ProTable, actions)
+- [x] 09-07-PLAN.md — Messaging system (send, schedule, Telegram delivery)
+- [x] 09-08-PLAN.md — Payments and subscriptions pages
+- [x] 09-09-PLAN.md — Promo codes management
+- [x] 09-10-PLAN.md — Export functionality (CSV/Excel)
+- [x] 09-11-PLAN.md — A/B tests + UTM tracking
+- [x] 09-12-PLAN.md — Integration checkpoint (human-verify)
+- [x] 09-13-PLAN.md — Horoscope content management (ADMIN-08)
+- [x] 09-14-PLAN.md — Tarot spreads viewing (ADMIN-09)
 
 ### Phase 10: Улучшить натальную карту
 **Goal**: Натальная карта выглядит профессионально, интерпретация максимально полная, добавлена монетизация детального разбора личности
