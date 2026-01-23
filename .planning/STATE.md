@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-22)
 ## Current Position
 
 Phase: 6 of 9 (Subscription System)
-Plan: 1 of 3 completed in Phase 6
+Plan: 2 of 3 completed in Phase 6
 Status: In progress
-Last activity: 2026-01-23 09:46 — Completed 06-01-PLAN.md (Payment Infrastructure)
+Last activity: 2026-01-23 09:52 — Completed 06-02-PLAN.md (Payment Service + Webhook)
 
-Progress: [███░░░░░░░] 33% (Phase 6)
+Progress: [██████░░░░] 67% (Phase 6)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 11
+- Total plans completed: 12
 - Average duration: 9 min
-- Total execution time: 105 min
+- Total execution time: 108 min
 
 **By Phase:**
 
@@ -32,10 +32,10 @@ Progress: [███░░░░░░░] 33% (Phase 6)
 | 3 | 2/2 | 10 min | 5 min |
 | 4 | 2/2 | 13 min | 7 min |
 | 5 | 2/2 | 13 min | 7 min |
-| 6 | 1/3 | 4 min | 4 min |
+| 6 | 2/3 | 7 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-02 (3 min), 05-01 (5 min), 05-02 (8 min), 06-01 (4 min)
+- Last 5 plans: 05-01 (5 min), 05-02 (8 min), 06-01 (4 min), 06-02 (3 min)
 - Trend: Consistent fast execution
 
 *Updated after each plan completion*
@@ -92,6 +92,9 @@ Recent decisions affecting current work:
 - PromoCode.partner_id as Integer (no FK yet, future partner program)
 - SubscriptionStatus state machine: trial -> active -> past_due -> canceled/expired
 - webhook_processed flag for idempotent webhook handling
+- asyncio.to_thread для YooKassa sync SDK
+- BackgroundTasks для webhook processing (return 200 immediately)
+- IP whitelist only in production
 
 ### Pending Todos
 
@@ -99,6 +102,7 @@ Recent decisions affecting current work:
 - Run subscription migration on Railway: `alembic upgrade head`
 - Add OPENROUTER_API_KEY to Railway environment
 - Add YOOKASSA_SHOP_ID and YOOKASSA_SECRET_KEY to Railway environment
+- Configure YooKassa webhook URL: https://adtrobot-production.up.railway.app/webhook/yookassa
 
 ### Blockers/Concerns
 
@@ -108,8 +112,8 @@ From research:
 
 ## Session Continuity
 
-Last session: 2026-01-23 09:46
-Stopped at: Completed 06-01-PLAN.md
+Last session: 2026-01-23 09:52
+Stopped at: Completed 06-02-PLAN.md
 Resume file: None
 
 **What's Ready:**
@@ -167,8 +171,14 @@ Resume file: None
   - PromoCode model with partner fields
   - User premium fields: is_premium, premium_until, daily_spread_limit
   - Migration for subscriptions, payments, promo_codes tables
+- **Payment Service complete (06-02):**
+  - YooKassa async client: create_payment, create_recurring_payment, cancel_recurring
+  - Subscription service: activate_subscription, cancel_subscription, get_user_subscription
+  - /webhook/yookassa endpoint with IP whitelist and BackgroundTasks
+  - Idempotent webhook processing via webhook_processed flag
 
 **Next Steps:**
 - Add YOOKASSA_SHOP_ID and YOOKASSA_SECRET_KEY to Railway
+- Configure YooKassa webhook URL in YooKassa dashboard
 - Run `alembic upgrade head` on Railway
-- Phase 6 Plan 02: Payment Service (create_payment, handle_webhook)
+- Phase 6 Plan 03: Subscription Bot Handlers
