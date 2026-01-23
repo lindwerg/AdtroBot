@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-22)
 
 **Core value:** Качественная AI интерпретация астрологии и таро, которая конвертирует бесплатных пользователей в платных
-**Current focus:** Phase 5 - AI Integration (IN PROGRESS)
+**Current focus:** Phase 5 - AI Integration (COMPLETE)
 
 ## Current Position
 
 Phase: 5 of 9 (AI Integration)
-Plan: 1 of 2 completed in Phase 5
-Status: In progress
-Last activity: 2026-01-23 08:24 — Completed 05-01-PLAN.md (AI Service Module)
+Plan: 2 of 2 completed in Phase 5 (PHASE COMPLETE)
+Status: Phase complete
+Last activity: 2026-01-23 08:38 — Completed 05-02-PLAN.md (Handler Integration)
 
-Progress: [█████████░] 50%
+Progress: [██████████] 100% (Phase 5)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9
+- Total plans completed: 10
 - Average duration: 10 min
-- Total execution time: 93 min
+- Total execution time: 101 min
 
 **By Phase:**
 
@@ -31,10 +31,10 @@ Progress: [█████████░] 50%
 | 2 | 2/2 | 16 min | 8 min |
 | 3 | 2/2 | 10 min | 5 min |
 | 4 | 2/2 | 13 min | 7 min |
-| 5 | 1/2 | 5 min | 5 min |
+| 5 | 2/2 | 13 min | 7 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-02 (7 min), 04-01 (10 min), 04-02 (3 min), 05-01 (5 min)
+- Last 5 plans: 04-01 (10 min), 04-02 (3 min), 05-01 (5 min), 05-02 (8 min)
 - Trend: Consistent fast execution
 
 *Updated after each plan completion*
@@ -81,6 +81,8 @@ Recent decisions affecting current work:
 - MAX_VALIDATION_RETRIES=2 for malformed outputs
 - 30s timeout (GPT-4o-mini is fast)
 - Zodiac-specific greeting based on grammatical gender
+- AI text displayed directly with minimal header formatting
+- Fallback to error message for horoscopes, static meanings for tarot
 
 ### Pending Todos
 
@@ -92,12 +94,12 @@ Recent decisions affecting current work:
 
 From research:
 - kerykeion AGPL лицензия — требует проверки перед Phase 8 (натальная карта)
-- AI costs unit economics — замерить в Phase 5
+- AI costs unit economics — замерить после деплоя с OPENROUTER_API_KEY
 
 ## Session Continuity
 
-Last session: 2026-01-23 08:24
-Stopped at: Completed 05-01-PLAN.md
+Last session: 2026-01-23 08:38
+Stopped at: Completed 05-02-PLAN.md (Phase 5 complete!)
 Resume file: None
 
 **What's Ready:**
@@ -139,13 +141,15 @@ Resume file: None
   - Card of day: ritual, cache, image, interpretation (no limits)
   - 3-card spread: FSM question, 1/day limit, ritual, cards, interpretation
   - Menu "Tarot" leads to tarot submenu
-- **AI Service module complete (05-01):**
+- **AI Integration complete (05-01, 05-02):**
   - AIService class with generate_horoscope, generate_tarot_interpretation, generate_card_of_day
   - Prompt templates: HoroscopePrompt, TarotSpreadPrompt, CardOfDayPrompt
   - Validators: length, structure, AI self-reference filter
   - Cache: in-memory TTL for horoscopes and card of day
-  - Singleton: get_ai_service()
+  - Horoscope handlers use AI with fallback to error message
+  - Card of day uses AI interpretation with fallback to static meaning
+  - 3-card spread uses AI interpretation with fallback to static meanings
 
 **Next Steps:**
-- Add OPENROUTER_API_KEY to Railway
-- Phase 5 Plan 2: Handler Integration (replace mock content with AI)
+- Add OPENROUTER_API_KEY to Railway environment
+- Phase 6: Subscription System
