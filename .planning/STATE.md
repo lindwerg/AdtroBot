@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-22)
 ## Current Position
 
 Phase: 9 of 10 (Admin Panel)
-Plan: 9 of 14 completed in Phase 9
+Plan: 10 of 14 completed in Phase 9
 Status: In progress
-Last activity: 2026-01-23 — Completed 09-07: Messaging system
+Last activity: 2026-01-23 — Completed 09-13: Horoscope content management
 
-Progress: [████████████████████████░░░] 94% (32/34 plans)
+Progress: [█████████████████████████░░] 97% (33/34 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 32
+- Total plans completed: 33
 - Average duration: 6 min
-- Total execution time: 207 min
+- Total execution time: 212 min
 
 **By Phase:**
 
@@ -36,10 +36,10 @@ Progress: [███████████████████████
 | 7 | 3/3 | 17 min | 6 min |
 | 8 | 3/3 | 18 min | 6 min |
 | 10 | 4/4 | 13 min | 3 min |
-| 9 | 9/14 | 33 min | 4 min |
+| 9 | 10/14 | 38 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 09-04 (3 min), 09-06 (5 min), 09-14 (5 min), 09-08 (5 min), 09-07 (5 min)
+- Last 5 plans: 09-06 (5 min), 09-14 (5 min), 09-08 (5 min), 09-07 (5 min), 09-13 (5 min)
 - Trend: Consistent fast execution
 
 *Updated after each plan completion*
@@ -377,6 +377,13 @@ Resume file: None
   - GET /admin/messages: paginated history with stats
   - DELETE /admin/messages/{id}: cancel pending
   - Frontend: send form (broadcast/single), filters, history table
+
+- **Horoscope Content Management complete (09-13):**
+  - HoroscopeContent model: zodiac_sign, base_text, notes, updated_at
+  - Migration seeds all 12 zodiac signs
+  - GET/PUT /admin/content/horoscopes endpoints
+  - Frontend: table with all 12 signs, edit modal with textarea
+  - Zodiac emoji and Russian labels support
 
 **Next Steps:**
 - Continue Phase 9: Promo codes (09-09), Analytics (09-10), etc.
