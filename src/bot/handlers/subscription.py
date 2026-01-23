@@ -93,10 +93,27 @@ async def handle_plan_selection(
         )
 
     except Exception as e:
+        # Log full exception details for debugging
+        error_details = {
+            "type": type(e).__name__,
+            "message": str(e),
+        }
+        # YooKassa exceptions have additional attributes
+        if hasattr(e, "code"):
+            error_details["code"] = e.code
+        if hasattr(e, "description"):
+            error_details["description"] = e.description
+        if hasattr(e, "parameter"):
+            error_details["parameter"] = e.parameter
+        if hasattr(e, "__dict__"):
+            error_details["attrs"] = str(e.__dict__)
+
         await logger.aerror(
             "Payment creation failed",
             user_id=callback.from_user.id,
-            error=str(e),
+            plan=plan.value,
+            amount=price,
+            **error_details,
         )
         await callback.message.edit_text(
             "Произошла ошибка при создании платежа. "

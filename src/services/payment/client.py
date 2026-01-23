@@ -85,10 +85,26 @@ async def create_payment(
         user_id=user_id,
         amount=amount,
         save_method=save_payment_method,
+        shop_id=settings.yookassa_shop_id,
+        return_url=settings.yookassa_return_url,
     )
 
-    result = await asyncio.to_thread(_create)
-    return result
+    try:
+        result = await asyncio.to_thread(_create)
+        await logger.ainfo(
+            "Payment created successfully",
+            payment_id=result.id,
+            status=result.status,
+        )
+        return result
+    except Exception as e:
+        await logger.aerror(
+            "YooKassa API error",
+            error_type=type(e).__name__,
+            error_str=str(e),
+            error_dict=str(getattr(e, "__dict__", {})),
+        )
+        raise
 
 
 async def create_recurring_payment(

@@ -1,0 +1,9 @@
+Команды для Railway CLI (запусти вручную):
+
+railway variables set TELEGRAM_BOT_TOKEN="8536561563:AAFRd_4h-4hWzMrxrd1SjP6a9IfsPJ67NBw"
+railway variables set WEBHOOK_BASE_URL="https://adtrobot-production.up.railway.app"
+
+Или через Railway UI:
+1. railway.app/dashboard
+2. Выбери проект AdtroBot
+3. Service → Variables → Add
