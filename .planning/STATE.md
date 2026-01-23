@@ -127,6 +127,11 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
+**Captured todos:** 1 (see `.planning/todos/pending/`)
+
+- **Fix natal chart interpretation validation failure** (ai) — AI generates text but validator rejects (0/4 sections found)
+
+**Environment setup:**
 - Add TELEGRAM_BOT_TOKEN and WEBHOOK_BASE_URL to Railway environment
 - Run subscription migration on Railway: `alembic upgrade head`
 - Add OPENROUTER_API_KEY to Railway environment
