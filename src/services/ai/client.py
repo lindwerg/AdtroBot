@@ -7,10 +7,17 @@ from src.config import settings
 from src.services.ai.cache import (
     get_cached_card_of_day,
     get_cached_horoscope,
+    get_cached_premium_horoscope,
     set_cached_card_of_day,
     set_cached_horoscope,
+    set_cached_premium_horoscope,
 )
-from src.services.ai.prompts import CardOfDayPrompt, HoroscopePrompt, TarotSpreadPrompt
+from src.services.ai.prompts import (
+    CardOfDayPrompt,
+    HoroscopePrompt,
+    PremiumHoroscopePrompt,
+    TarotSpreadPrompt,
+)
 from src.services.ai.validators import validate_card_of_day, validate_horoscope, validate_tarot
 
 logger = structlog.get_logger()
@@ -230,6 +237,69 @@ class AIService:
             )
 
         logger.error("card_of_day_validation_exhausted", user_id=user_id)
+        return None
+
+    async def generate_premium_horoscope(
+        self,
+        user_id: int,
+        zodiac_sign: str,
+        zodiac_sign_ru: str,
+        date_str: str,
+        natal_data: dict,
+    ) -> str | None:
+        """Generate premium personalized horoscope with natal chart.
+
+        Args:
+            user_id: Telegram user ID (for caching)
+            zodiac_sign: English zodiac sign (e.g., "aries")
+            zodiac_sign_ru: Russian zodiac sign (e.g., "Овен")
+            date_str: Date string (e.g., "23.01.2026")
+            natal_data: Dict from calculate_natal_chart()
+
+        Returns:
+            Premium horoscope text or None if all retries fail
+        """
+        # Check cache first
+        cached = await get_cached_premium_horoscope(user_id)
+        if cached:
+            logger.debug("premium_horoscope_cache_hit", user_id=user_id)
+            return cached
+
+        # Generate with validation retry
+        for attempt in range(self.MAX_VALIDATION_RETRIES + 1):
+            text = await self._generate(
+                system_prompt=PremiumHoroscopePrompt.SYSTEM,
+                user_prompt=PremiumHoroscopePrompt.user(
+                    zodiac_sign_ru=zodiac_sign_ru,
+                    date_str=date_str,
+                    natal_data=natal_data,
+                    zodiac_sign_en=zodiac_sign,
+                ),
+                max_tokens=2000,  # Longer for premium
+            )
+
+            if text is None:
+                return None  # API error, already logged
+
+            is_valid, error = validate_horoscope(text)
+            if is_valid:
+                await set_cached_premium_horoscope(user_id, text)
+                logger.info(
+                    "premium_horoscope_generated",
+                    user_id=user_id,
+                    zodiac=zodiac_sign,
+                    chars=len(text),
+                )
+                return text
+
+            logger.warning(
+                "premium_horoscope_validation_failed",
+                error=error,
+                attempt=attempt + 1,
+                user_id=user_id,
+            )
+
+        logger.error("premium_horoscope_validation_exhausted", user_id=user_id)
         return None
 
 

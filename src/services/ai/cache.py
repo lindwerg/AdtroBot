@@ -1,5 +1,6 @@
 """Simple TTL caching for AI-generated content."""
 
+import time
 from datetime import date, datetime
 from typing import TypedDict
 
@@ -28,6 +29,10 @@ _horoscope_cache: dict[str, CacheEntry] = {}
 
 # Key for card of day: str(user_id)
 _card_of_day_cache: dict[str, CardOfDayCacheEntry] = {}
+
+# Premium horoscope cache (by user_id, 1 hour TTL)
+_premium_horoscope_cache: dict[int, tuple[str, float]] = {}
+PREMIUM_HOROSCOPE_TTL = 3600  # 1 hour
 
 
 def _is_expired(expires_date: date) -> bool:
@@ -110,12 +115,40 @@ async def set_cached_card_of_day(
     }
 
 
+async def get_cached_premium_horoscope(user_id: int) -> str | None:
+    """Get cached premium horoscope for user.
+
+    Args:
+        user_id: Telegram user ID
+
+    Returns:
+        Cached premium horoscope text or None if not cached/expired
+    """
+    if user_id in _premium_horoscope_cache:
+        text, timestamp = _premium_horoscope_cache[user_id]
+        if time.time() - timestamp < PREMIUM_HOROSCOPE_TTL:
+            return text
+        del _premium_horoscope_cache[user_id]
+    return None
+
+
+async def set_cached_premium_horoscope(user_id: int, text: str) -> None:
+    """Cache premium horoscope for user.
+
+    Args:
+        user_id: Telegram user ID
+        text: Generated premium horoscope text
+    """
+    _premium_horoscope_cache[user_id] = (text, time.time())
+
+
 def clear_expired_cache() -> None:
     """Clear expired entries from all caches.
 
     Can be called by scheduler for cleanup (optional optimization).
     """
     today = date.today()
+    now = time.time()
 
     # Clear expired horoscope entries
     expired_horoscope_keys = [
@@ -131,6 +164,14 @@ def clear_expired_cache() -> None:
     for k in expired_card_keys:
         del _card_of_day_cache[k]
 
+    # Clear expired premium horoscope entries (TTL-based)
+    expired_premium_keys = [
+        k for k, v in _premium_horoscope_cache.items()
+        if now - v[1] >= PREMIUM_HOROSCOPE_TTL
+    ]
+    for k in expired_premium_keys:
+        del _premium_horoscope_cache[k]
+
 
 def get_cache_stats() -> dict:
     """Get cache statistics (for debugging/monitoring).
@@ -139,6 +180,7 @@ def get_cache_stats() -> dict:
         Dict with cache sizes and today's entries count
     """
     today = date.today()
+    now = time.time()
     return {
         "horoscope_total": len(_horoscope_cache),
         "horoscope_today": sum(
@@ -147,5 +189,10 @@ def get_cache_stats() -> dict:
         "card_of_day_total": len(_card_of_day_cache),
         "card_of_day_today": sum(
             1 for v in _card_of_day_cache.values() if v["expires_date"] == today
+        ),
+        "premium_horoscope_total": len(_premium_horoscope_cache),
+        "premium_horoscope_active": sum(
+            1 for v in _premium_horoscope_cache.values()
+            if now - v[1] < PREMIUM_HOROSCOPE_TTL
         ),
     }
