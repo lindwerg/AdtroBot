@@ -127,6 +127,10 @@ Recent decisions affecting current work:
 - Inline button "Посмотреть интерпретацию" для Telegraph статей
 
 **Phase 10 (Improve Natal Chart):**
+- Professional SVG: radial/linear gradients, cosmic background
+- Unicode glyphs: U+2609-U+2653 for planets and zodiac signs
+- Planet glow effects: gold for Sun/Jupiter, silver for others
+- Default PNG size 800px for better detail
 - DETAILED_NATAL one-time purchase (199 RUB, not subscription)
 - User.detailed_natal_purchased_at for purchase tracking
 - DetailedNatal model for caching 3000-5000 word interpretations
