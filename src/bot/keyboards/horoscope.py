@@ -1,6 +1,6 @@
 """Inline keyboards for horoscope navigation."""
 
-from aiogram.types import InlineKeyboardMarkup
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.bot.callbacks.horoscope import ZodiacCallback
@@ -23,15 +23,20 @@ ZODIAC_ORDER = [
 ]
 
 
-def build_zodiac_keyboard(current_sign: str | None = None) -> InlineKeyboardMarkup:
-    """
-    Build 4x3 grid of zodiac signs with optional checkmark for current sign.
+def build_zodiac_keyboard(
+    current_sign: str | None = None,
+    is_premium: bool = False,
+    has_natal_data: bool = False,
+) -> InlineKeyboardMarkup:
+    """Build 4x3 inline keyboard for zodiac sign selection.
 
     Args:
-        current_sign: English name of sign to highlight (e.g., "Aries")
+        current_sign: Currently selected sign (will be highlighted)
+        is_premium: Whether user has premium subscription
+        has_natal_data: Whether user has birth location data
 
     Returns:
-        InlineKeyboardMarkup with 12 zodiac emoji buttons in 3 rows of 4
+        InlineKeyboardMarkup with zodiac buttons + optional natal setup
     """
     builder = InlineKeyboardBuilder()
 
@@ -46,4 +51,23 @@ def build_zodiac_keyboard(current_sign: str | None = None) -> InlineKeyboardMark
 
     # 3 rows of 4 buttons
     builder.adjust(4, 4, 4)
+
+    # Add natal setup button for premium users without data
+    if is_premium and not has_natal_data:
+        builder.row(
+            InlineKeyboardButton(
+                text="Настроить натальную карту",
+                callback_data="setup_birth_data",
+            )
+        )
+
+    # Add premium button for free users
+    if not is_premium:
+        builder.row(
+            InlineKeyboardButton(
+                text="Получить премиум-гороскоп",
+                callback_data="menu_subscription",
+            )
+        )
+
     return builder.as_markup()
