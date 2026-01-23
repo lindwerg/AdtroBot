@@ -11,12 +11,15 @@ from src.admin.schemas import (
     AdminInfo,
     BulkActionRequest,
     BulkActionResponse,
+    DashboardMetrics,
+    FunnelData,
     GiftRequest,
     Token,
     UpdateSubscriptionRequest,
     UserDetail,
     UserListResponse,
 )
+from src.admin.services.analytics import get_dashboard_metrics, get_funnel_data
 from src.admin.services.users import (
     bulk_action,
     get_user_detail,
@@ -66,6 +69,28 @@ async def login(
 async def get_me(current_admin: Admin = Depends(get_current_admin)) -> AdminInfo:
     """Get current admin info."""
     return AdminInfo.model_validate(current_admin)
+
+
+# Dashboard endpoints
+
+
+@admin_router.get("/dashboard", response_model=DashboardMetrics)
+async def dashboard(
+    session: AsyncSession = Depends(get_session),
+    current_admin: Admin = Depends(get_current_admin),
+) -> DashboardMetrics:
+    """Get dashboard KPI metrics."""
+    return await get_dashboard_metrics(session)
+
+
+@admin_router.get("/funnel", response_model=FunnelData)
+async def funnel(
+    days: int = Query(30, ge=1, le=365),
+    session: AsyncSession = Depends(get_session),
+    current_admin: Admin = Depends(get_current_admin),
+) -> FunnelData:
+    """Get conversion funnel data."""
+    return await get_funnel_data(session, days)
 
 
 # User management endpoints
