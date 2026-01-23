@@ -41,26 +41,35 @@ PLANET_COLORS = {
     "north_node": "#32CD32",  # Green
 }
 
-# Planet abbreviations
-PLANET_ABBR = {
-    "sun": "Su",
-    "moon": "Mo",
-    "mercury": "Me",
-    "venus": "Ve",
-    "mars": "Ma",
-    "jupiter": "Ju",
-    "saturn": "Sa",
-    "uranus": "Ur",
-    "neptune": "Ne",
-    "pluto": "Pl",
-    "north_node": "NN",
+# Planet Unicode glyphs (professional astrological symbols)
+PLANET_GLYPHS = {
+    "sun": "\u2609",       # Sun symbol
+    "moon": "\u263D",      # First quarter moon
+    "mercury": "\u263F",   # Mercury
+    "venus": "\u2640",     # Venus
+    "mars": "\u2642",      # Mars
+    "jupiter": "\u2643",   # Jupiter
+    "saturn": "\u2644",    # Saturn
+    "uranus": "\u2645",    # Uranus
+    "neptune": "\u2646",   # Neptune
+    "pluto": "\u2647",     # Pluto
+    "north_node": "\u260A",  # Ascending Node
 }
 
-# Zodiac sign abbreviations
-SIGN_ABBR = [
-    "Ari", "Tau", "Gem", "Can",
-    "Leo", "Vir", "Lib", "Sco",
-    "Sag", "Cap", "Aqu", "Pis",
+# Zodiac sign Unicode glyphs
+ZODIAC_GLYPHS = [
+    "\u2648",  # Aries
+    "\u2649",  # Taurus
+    "\u264A",  # Gemini
+    "\u264B",  # Cancer
+    "\u264C",  # Leo
+    "\u264D",  # Virgo
+    "\u264E",  # Libra
+    "\u264F",  # Scorpio
+    "\u2650",  # Sagittarius
+    "\u2651",  # Capricorn
+    "\u2652",  # Aquarius
+    "\u2653",  # Pisces
 ]
 
 # Aspect colors
@@ -199,17 +208,17 @@ def _generate_svg(chart_data: FullNatalChartResult, size: int = 800) -> str:
         x2, y2 = _polar_to_cart(center, center, outer_r, angle)
         dwg.add(dwg.line((x1, y1), (x2, y2), stroke=WHEEL_COLOR, stroke_width=1))
 
-        # Sign abbreviation at midpoint
+        # Zodiac sign glyph at midpoint
         mid_angle = _lon_to_angle(i * 30 + 15)
         sx, sy = _polar_to_cart(center, center, sign_r, mid_angle)
         dwg.add(dwg.text(
-            SIGN_ABBR[i],
+            ZODIAC_GLYPHS[i],
             insert=(sx, sy),
             text_anchor="middle",
             dominant_baseline="middle",
             fill=SIGN_COLOR,
-            font_size=10,
-            font_family="Arial, sans-serif"
+            font_size=14,
+            font_family="DejaVu Sans, Symbola, Arial, sans-serif"
         ))
 
     # Draw house cusps (if time known, all 12 houses)
@@ -251,34 +260,43 @@ def _generate_svg(chart_data: FullNatalChartResult, size: int = 800) -> str:
             stroke_opacity=opacity
         ))
 
-    # Draw planets
+    # Draw planets with glow effect
     for planet_name, planet_data in chart_data["planets"].items():
         lon = planet_data["longitude"]
         angle = _lon_to_angle(lon)
         px, py = _polar_to_cart(center, center, planet_r, angle)
 
         color = PLANET_COLORS.get(planet_name, "#FFFFFF")
-        abbr = PLANET_ABBR.get(planet_name, planet_name[:2])
+        glyph = PLANET_GLYPHS.get(planet_name, "?")
 
-        # Planet circle
+        # Determine glow color based on planet
+        glow_type = "gold" if planet_name in ("sun", "jupiter") else "silver"
+
+        # Draw glow (larger, behind main circle)
+        dwg.add(dwg.circle(
+            center=(px, py),
+            r=20,
+            fill=f"url(#glow_{glow_type})"
+        ))
+
+        # Main planet circle (smaller, on top)
         dwg.add(dwg.circle(
             center=(px, py),
             r=12,
             fill=color,
-            stroke="#000000",
-            stroke_width=1
+            fill_opacity=0.9
         ))
 
-        # Planet label
+        # Planet glyph
         dwg.add(dwg.text(
-            abbr,
+            glyph,
             insert=(px, py),
             text_anchor="middle",
             dominant_baseline="middle",
             fill="#000000",
-            font_size=9,
+            font_size=14,
             font_weight="bold",
-            font_family="Arial, sans-serif"
+            font_family="DejaVu Sans, Symbola, Arial, sans-serif"
         ))
 
     # Ascendant marker (arrow on left side)
