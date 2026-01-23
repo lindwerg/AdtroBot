@@ -26,6 +26,9 @@ router = Router(name="natal")
 # Telegram message character limit
 MAX_MESSAGE_LENGTH = 4096
 
+# Track users currently generating natal chart (prevent duplicate requests)
+_generating_natal: set[int] = set()
+
 
 async def show_natal_chart(
     message: Message,
@@ -152,12 +155,22 @@ def _split_text(text: str, max_length: int) -> list[str]:
 @router.message(F.text == "Натальная карта")
 async def menu_natal_chart(message: Message, session: AsyncSession) -> None:
     """Handle 'Натальная карта' button press from main menu."""
+    # Check if already processing for this user
+    user_id = message.from_user.id
+    if user_id in _generating_natal:
+        await message.answer("Уже создаю твою натальную карту, подожди...")
+        return
+
+    # Show immediate response to prevent multiple clicks
+    loading_msg = await message.answer("Проверяю доступ...")
+
     # Get user
     stmt = select(User).where(User.telegram_id == message.from_user.id)
     result = await session.execute(stmt)
     user = result.scalar_one_or_none()
 
     if not user:
+        await loading_msg.delete()
         await message.answer(
             "Профиль не найден. Нажми /start для регистрации.",
             reply_markup=get_main_menu_keyboard(),
@@ -166,6 +179,7 @@ async def menu_natal_chart(message: Message, session: AsyncSession) -> None:
 
     # Check premium status
     if not user.is_premium:
+        await loading_msg.delete()
         await message.answer(
             "Натальная карта доступна только премиум-пользователям.\n\n"
             "Натальная карта — это уникальный астрологический портрет, "
@@ -182,6 +196,7 @@ async def menu_natal_chart(message: Message, session: AsyncSession) -> None:
 
     # Check if birth data is set
     if not user.birth_lat or not user.birth_lon:
+        await loading_msg.delete()
         await message.answer(
             "Для построения натальной карты нужно указать место и время рождения.\n\n"
             "Без этих данных невозможно рассчитать точные позиции планет и домов.",
@@ -191,6 +206,7 @@ async def menu_natal_chart(message: Message, session: AsyncSession) -> None:
 
     # Check if birth_date is set
     if not user.birth_date:
+        await loading_msg.delete()
         await message.answer(
             "Для построения натальной карты нужна дата рождения.\n\n"
             "Пройдите регистрацию заново через /start.",
@@ -198,8 +214,16 @@ async def menu_natal_chart(message: Message, session: AsyncSession) -> None:
         )
         return
 
-    # Show natal chart
-    await show_natal_chart(message, user, session)
+    # Delete check message and show natal chart
+    await loading_msg.delete()
+
+    # Mark as processing
+    _generating_natal.add(user_id)
+    try:
+        await show_natal_chart(message, user, session)
+    finally:
+        # Always remove from set when done
+        _generating_natal.discard(user_id)
 
 
 @router.callback_query(NatalCallback.filter(F.action == NatalAction.SHOW_CHART))
