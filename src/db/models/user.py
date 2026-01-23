@@ -1,6 +1,6 @@
-from datetime import date, datetime
+from datetime import date, datetime, time
 
-from sqlalchemy import BigInteger, Boolean, Date, DateTime, SmallInteger, String, func
+from sqlalchemy import BigInteger, Boolean, Date, DateTime, Float, SmallInteger, String, Time, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.db.models.base import Base
@@ -25,6 +25,20 @@ class User(Base):
     # Birth data for astrology
     birth_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     zodiac_sign: Mapped[str | None] = mapped_column(String(20), nullable=True)
+
+    # Birth location for natal chart (premium feature)
+    birth_time: Mapped[time | None] = mapped_column(
+        Time, nullable=True
+    )  # Time of birth (None = unknown, use noon)
+    birth_city: Mapped[str | None] = mapped_column(
+        String(255), nullable=True
+    )  # City name for display
+    birth_lat: Mapped[float | None] = mapped_column(
+        Float, nullable=True
+    )  # Latitude
+    birth_lon: Mapped[float | None] = mapped_column(
+        Float, nullable=True
+    )  # Longitude
 
     # Notification settings
     timezone: Mapped[str | None] = mapped_column(
