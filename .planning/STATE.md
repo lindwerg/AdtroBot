@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-22)
 ## Current Position
 
 Phase: 9 of 10 (Admin Panel)
-Plan: 4 of 14 completed in Phase 9
+Plan: 6 of 14 completed in Phase 9
 Status: In progress
-Last activity: 2026-01-23 — Completed 09-04: User management API
+Last activity: 2026-01-23 — Completed 09-06: Users page UI
 
-Progress: [█████████████████████░░░░░░] 81% (27/32 plans)
+Progress: [██████████████████████░░░░░] 84% (29/32 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 27
+- Total plans completed: 29
 - Average duration: 7 min
-- Total execution time: 179 min
+- Total execution time: 192 min
 
 **By Phase:**
 
@@ -36,10 +36,10 @@ Progress: [█████████████████████░░
 | 7 | 3/3 | 17 min | 6 min |
 | 8 | 3/3 | 18 min | 6 min |
 | 10 | 4/4 | 13 min | 3 min |
-| 9 | 4/14 | 10 min | 3 min |
+| 9 | 6/14 | 18 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 10-03 (3 min), 10-04 (4 min), 09-02 (4 min), 09-03 (3 min), 09-04 (3 min)
+- Last 5 plans: 10-04 (4 min), 09-02 (4 min), 09-03 (3 min), 09-04 (3 min), 09-06 (5 min)
 - Trend: Consistent fast execution
 
 *Updated after each plan completion*
@@ -154,6 +154,9 @@ Recent decisions affecting current work:
 - User search by telegram_id (exact) or username (ILIKE)
 - Pagination 20 per page default, max 100
 - Bulk actions process users in loop with individual error tracking
+- QueryClientProvider for React Query support
+- ProTable with server-side request for pagination/filters
+- React Query mutations with cache invalidation
 
 ### Roadmap Evolution
 
@@ -191,7 +194,7 @@ From research:
 ## Session Continuity
 
 Last session: 2026-01-23
-Stopped at: Completed 09-04 (User management API)
+Stopped at: Completed 09-06 (Users page UI)
 Resume file: None
 
 **What's Ready:**
@@ -346,5 +349,13 @@ Resume file: None
   - POST /admin/users/bulk: bulk actions for multiple users
   - Service layer: list_users, get_user_detail, update_user_subscription, gift_to_user, bulk_action
 
+- **Users Page UI complete (09-06):**
+  - Users list page with ProTable, server-side pagination, filters, search
+  - User detail page with subscription management (activate/cancel/extend)
+  - Gift actions: premium days, tarot spreads, detailed natal
+  - Bulk actions: activate/cancel premium, gift spreads
+  - Payment and spread history tables
+  - QueryClientProvider added for React Query support
+
 **Next Steps:**
-- Continue Phase 9: User management frontend (09-05), Messaging system (09-06), etc.
+- Continue Phase 9: Messaging system (09-07), Promo codes (09-08), etc.
