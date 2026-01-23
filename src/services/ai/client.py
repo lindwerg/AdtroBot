@@ -380,7 +380,6 @@ class AIService:
                 system_prompt=NatalChartPrompt.SYSTEM,
                 user_prompt=NatalChartPrompt.user(natal_data),
                 max_tokens=1500,  # 400-500 words - reduced
-                timeout=45,  # Shorter timeout
             )
 
             if text is None:
