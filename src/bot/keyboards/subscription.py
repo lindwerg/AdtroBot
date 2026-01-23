@@ -38,3 +38,19 @@ def get_cancel_confirmation_keyboard() -> InlineKeyboardMarkup:
     builder.adjust(1)
 
     return builder.as_markup()
+
+
+def get_subscription_keyboard() -> InlineKeyboardMarkup:
+    """Build keyboard to navigate to subscription page.
+
+    Uses menu_subscription callback which is handled in subscription.py.
+    """
+    builder = InlineKeyboardBuilder()
+
+    # Use raw callback_data that matches the existing handler
+    builder.button(
+        text="Оформить Premium",
+        callback_data="menu_subscription",
+    )
+
+    return builder.as_markup()

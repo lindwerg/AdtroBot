@@ -53,6 +53,17 @@ def get_three_cards() -> list[tuple[dict, bool]]:
     return [(card, random.choice([True, False])) for card in cards]
 
 
+def get_ten_cards() -> list[tuple[dict, bool]]:
+    """
+    Return 10 unique cards with reversed flags for Celtic Cross spread.
+
+    Uses random.sample() to guarantee uniqueness.
+    """
+    deck = get_deck()
+    cards = random.sample(deck, 10)
+    return [(card, random.choice([True, False])) for card in cards]
+
+
 def get_card_by_id(name_short: str) -> dict | None:
     """Get card by name_short (e.g., 'ar00')."""
     deck = get_deck()
