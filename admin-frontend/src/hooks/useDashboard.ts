@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import { getDashboardMetrics, getFunnelData, DashboardMetrics, FunnelData } from '@/api/endpoints/dashboard'
+import { getDashboardMetrics, getFunnelData } from '@/api/endpoints/dashboard'
+import type { DashboardMetrics, FunnelData } from '@/api/endpoints/dashboard'
 
 export function useDashboardMetrics() {
   return useQuery<DashboardMetrics>({
