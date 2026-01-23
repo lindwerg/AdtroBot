@@ -311,3 +311,76 @@ async def callback_back_to_menu(callback: CallbackQuery) -> None:
         "Главное меню:",
         reply_markup=get_main_menu_keyboard(),
     )
+
+
+@router.callback_query(NatalCallback.filter(F.action == NatalAction.BUY_DETAILED))
+async def buy_detailed_natal(
+    callback: CallbackQuery,
+    session: AsyncSession,
+) -> None:
+    """Handle buy detailed natal interpretation button."""
+    await callback.answer()
+
+    # Get user
+    stmt = select(User).where(User.telegram_id == callback.from_user.id)
+    result = await session.execute(stmt)
+    user = result.scalar_one_or_none()
+
+    if not user:
+        await callback.message.answer("Ошибка. Попробуй /start")
+        return
+
+    # Check if already purchased (double-buy protection)
+    if user.detailed_natal_purchased_at:
+        await callback.message.answer(
+            "Ты уже приобрел детальный разбор!",
+            reply_markup=get_natal_with_open_keyboard(),
+        )
+        return
+
+    # Check premium (required for purchase)
+    if not user.is_premium:
+        await callback.message.answer(
+            "Детальный разбор доступен только премиум-пользователям.",
+            reply_markup=get_natal_teaser_keyboard(),
+        )
+        return
+
+    # Create payment
+    try:
+        payment = await create_payment(
+            user_id=user.telegram_id,
+            amount=PLAN_PRICES_STR[PaymentPlan.DETAILED_NATAL],
+            description="Детальный разбор натальной карты",
+            save_payment_method=False,
+            metadata={
+                "plan_type": PaymentPlan.DETAILED_NATAL.value,
+                "type": "one_time",
+            },
+        )
+
+        await callback.message.answer(
+            "Детальный разбор личности (3000-5000 слов):\n\n"
+            "- Ядро личности: Солнце, Луна, Асцендент\n"
+            "- Мышление и коммуникация\n"
+            "- Любовь и отношения\n"
+            "- Энергия и действие\n"
+            "- Рост и возможности\n"
+            "- Уроки и ответственность\n"
+            "- Трансформация и духовность\n"
+            "- Персональные рекомендации\n\n"
+            f"Цена: {PLAN_PRICES_STR[PaymentPlan.DETAILED_NATAL]} руб.",
+            reply_markup=InlineKeyboardMarkup(
+                inline_keyboard=[
+                    [InlineKeyboardButton(
+                        text="Оплатить",
+                        url=payment.confirmation.confirmation_url,
+                    )]
+                ]
+            ),
+        )
+    except Exception as e:
+        logger.error("buy_detailed_natal_error", error=str(e))
+        await callback.message.answer(
+            "Ошибка при создании платежа. Попробуй позже."
+        )
