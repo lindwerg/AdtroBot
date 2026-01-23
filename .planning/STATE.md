@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-22)
 
 **Core value:** Качественная AI интерпретация астрологии и таро, которая конвертирует бесплатных пользователей в платных
-**Current focus:** Phase 5 - AI Integration (COMPLETE)
+**Current focus:** Phase 6 - Subscription System
 
 ## Current Position
 
-Phase: 5 of 9 (AI Integration)
-Plan: 2 of 2 completed in Phase 5 (PHASE COMPLETE)
-Status: Phase complete
-Last activity: 2026-01-23 08:38 — Completed 05-02-PLAN.md (Handler Integration)
+Phase: 6 of 9 (Subscription System)
+Plan: 1 of 3 completed in Phase 6
+Status: In progress
+Last activity: 2026-01-23 09:46 — Completed 06-01-PLAN.md (Payment Infrastructure)
 
-Progress: [██████████] 100% (Phase 5)
+Progress: [███░░░░░░░] 33% (Phase 6)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 10
-- Average duration: 10 min
-- Total execution time: 101 min
+- Total plans completed: 11
+- Average duration: 9 min
+- Total execution time: 105 min
 
 **By Phase:**
 
@@ -32,9 +32,10 @@ Progress: [██████████] 100% (Phase 5)
 | 3 | 2/2 | 10 min | 5 min |
 | 4 | 2/2 | 13 min | 7 min |
 | 5 | 2/2 | 13 min | 7 min |
+| 6 | 1/3 | 4 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-01 (10 min), 04-02 (3 min), 05-01 (5 min), 05-02 (8 min)
+- Last 5 plans: 04-02 (3 min), 05-01 (5 min), 05-02 (8 min), 06-01 (4 min)
 - Trend: Consistent fast execution
 
 *Updated after each plan completion*
@@ -84,11 +85,20 @@ Recent decisions affecting current work:
 - AI text displayed directly with minimal header formatting
 - Fallback to error message for horoscopes, static meanings for tarot
 
+**Phase 6 (Subscription System):**
+- YooKassa payment ID as primary key (natural key from provider)
+- Amount in kopeks (29900 = 299.00 RUB) - avoids floating point
+- Denormalized is_premium on User for quick access
+- PromoCode.partner_id as Integer (no FK yet, future partner program)
+- SubscriptionStatus state machine: trial -> active -> past_due -> canceled/expired
+- webhook_processed flag for idempotent webhook handling
+
 ### Pending Todos
 
 - Add TELEGRAM_BOT_TOKEN and WEBHOOK_BASE_URL to Railway environment
-- Run tarot migration on Railway: `alembic upgrade head`
+- Run subscription migration on Railway: `alembic upgrade head`
 - Add OPENROUTER_API_KEY to Railway environment
+- Add YOOKASSA_SHOP_ID and YOOKASSA_SECRET_KEY to Railway environment
 
 ### Blockers/Concerns
 
@@ -98,8 +108,8 @@ From research:
 
 ## Session Continuity
 
-Last session: 2026-01-23 08:38
-Stopped at: Completed 05-02-PLAN.md (Phase 5 complete!)
+Last session: 2026-01-23 09:46
+Stopped at: Completed 06-01-PLAN.md
 Resume file: None
 
 **What's Ready:**
@@ -149,7 +159,16 @@ Resume file: None
   - Horoscope handlers use AI with fallback to error message
   - Card of day uses AI interpretation with fallback to static meaning
   - 3-card spread uses AI interpretation with fallback to static meanings
+- **Payment Infrastructure complete (06-01):**
+  - yookassa 3.9.0 SDK installed
+  - Config: yookassa_shop_id, yookassa_secret_key, yookassa_return_url
+  - Subscription model with status state machine
+  - Payment model with YooKassa ID as PK
+  - PromoCode model with partner fields
+  - User premium fields: is_premium, premium_until, daily_spread_limit
+  - Migration for subscriptions, payments, promo_codes tables
 
 **Next Steps:**
-- Add OPENROUTER_API_KEY to Railway environment
-- Phase 6: Subscription System
+- Add YOOKASSA_SHOP_ID and YOOKASSA_SECRET_KEY to Railway
+- Run `alembic upgrade head` on Railway
+- Phase 6 Plan 02: Payment Service (create_payment, handle_webhook)
