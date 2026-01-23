@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-23)
 ## Current Position
 
 Phase: 12 of 16 (Caching & Background Jobs)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-01-23 — Completed 12-01-PLAN.md (horoscope cache schema)
+Last activity: 2026-01-23 — Completed 12-02-PLAN.md (horoscope cache service)
 
-Progress: [██░░░░░░░░] 20% (v2.0: 1/6 phases + 1 plan)
+Progress: [███░░░░░░░] 30% (v2.0: 1/6 phases + 2 plans)
 
 ## Performance Metrics
 
@@ -44,6 +44,7 @@ Recent decisions affecting current work:
 - [v2.0 Research]: Together.ai + FLUX.1 для изображений (бесплатно 3 месяца unlimited)
 - [v2.0 Research]: Telethon для Telegram API тестов (активная разработка, StringSession для CI)
 - [v2.0 Research]: Prometheus metrics + custom counters (не Sentry - свой стек)
+- [12-02]: Fixed dict of 12 asyncio.Lock (no defaultdict) для per-key locking
 
 ### Pending Todos
 
@@ -60,7 +61,7 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-23
-Stopped at: Completed 12-01-PLAN.md
+Stopped at: Completed 12-02-PLAN.md
 Resume file: None
 
 ## v1.0 Reference
