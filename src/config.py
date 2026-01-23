@@ -47,6 +47,20 @@ class Settings(BaseSettings):
         validation_alias="OPENROUTER_API_KEY",
     )
 
+    # YooKassa
+    yookassa_shop_id: str = Field(
+        default="",
+        validation_alias="YOOKASSA_SHOP_ID",
+    )
+    yookassa_secret_key: str = Field(
+        default="",
+        validation_alias="YOOKASSA_SECRET_KEY",
+    )
+    yookassa_return_url: str = Field(
+        default="https://t.me/AdtroBot",  # Return to bot after payment
+        validation_alias="YOOKASSA_RETURN_URL",
+    )
+
     @property
     def async_database_url(self) -> str:
         """Convert postgresql:// to postgresql+asyncpg:// if needed."""

@@ -55,3 +55,15 @@ class User(Base):
     spread_reset_date: Mapped[date | None] = mapped_column(
         Date, nullable=True
     )  # Date of last reset (user timezone)
+
+    # Subscription status (denormalized for quick access)
+    is_premium: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default="false"
+    )
+    premium_until: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    # Daily spread limit (1 for free, 20 for premium)
+    daily_spread_limit: Mapped[int] = mapped_column(
+        SmallInteger, default=1, server_default="1"
+    )
