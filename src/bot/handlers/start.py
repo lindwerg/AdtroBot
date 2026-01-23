@@ -11,14 +11,12 @@ from src.bot.keyboards.main_menu import get_main_menu_keyboard, get_start_keyboa
 from src.bot.keyboards.profile import (
     build_notification_time_keyboard,
     build_onboarding_notifications_keyboard,
-    build_timezone_keyboard,
 )
 from src.bot.states.onboarding import OnboardingStates
 from src.bot.utils.date_parser import parse_russian_date
 from src.bot.utils.horoscope import get_mock_horoscope
 from src.bot.utils.zodiac import get_zodiac_sign
 from src.db.models.user import User
-from src.services.scheduler import schedule_user_notification
 
 router = Router(name="start")
 

@@ -11,12 +11,25 @@ from src.services.payment.schemas import (
     PaymentPlan,
     TRIAL_DAYS,
 )
+from src.services.payment.service import (
+    activate_subscription,
+    cancel_subscription,
+    get_user_subscription,
+    is_yookassa_ip,
+    process_webhook_event,
+)
 
 __all__ = [
     # Client
     "create_payment",
     "create_recurring_payment",
     "cancel_recurring",
+    # Service
+    "activate_subscription",
+    "cancel_subscription",
+    "process_webhook_event",
+    "get_user_subscription",
+    "is_yookassa_ip",
     # Schemas
     "PaymentPlan",
     "PLAN_PRICES",

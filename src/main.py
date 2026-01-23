@@ -2,13 +2,14 @@ from contextlib import asynccontextmanager
 
 import structlog
 from aiogram.types import Update
-from fastapi import FastAPI, Request, Response
+from fastapi import BackgroundTasks, FastAPI, Request, Response
 
 from src.bot.bot import dp, get_bot
 from src.bot.middlewares.db import DbSessionMiddleware
 from src.config import settings
 from src.core.logging import configure_logging
-from src.db.engine import engine
+from src.db.engine import AsyncSessionLocal, engine
+from src.services.payment.service import is_yookassa_ip, process_webhook_event
 from src.services.scheduler import get_scheduler
 
 logger = structlog.get_logger()
@@ -78,4 +79,39 @@ async def webhook(request: Request) -> Response:
     bot = get_bot()
     update = Update.model_validate(await request.json(), context={"bot": bot})
     await dp.feed_update(bot, update)
+    return Response(status_code=200)
+
+
+@app.post("/webhook/yookassa")
+async def yookassa_webhook(
+    request: Request,
+    background_tasks: BackgroundTasks,
+) -> Response:
+    """
+    Handle YooKassa webhook notifications.
+
+    Returns 200 immediately, processes in background.
+    """
+    # IP verification
+    client_ip = request.client.host if request.client else ""
+
+    # In production, verify IP (skip in dev)
+    if settings.railway_environment and not is_yookassa_ip(client_ip):
+        await logger.awarning("YooKassa webhook from unknown IP", ip=client_ip)
+        # Still return 200 to not reveal we're rejecting
+        return Response(status_code=200)
+
+    try:
+        event = await request.json()
+    except Exception:
+        return Response(status_code=200)
+
+    # Process in background
+    async def process_event():
+        async with AsyncSessionLocal() as session:
+            await process_webhook_event(session, event)
+
+    background_tasks.add_task(process_event)
+
+    # Return 200 immediately
     return Response(status_code=200)
