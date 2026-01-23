@@ -384,3 +384,134 @@ async def buy_detailed_natal(
         await callback.message.answer(
             "Ошибка при создании платежа. Попробуй позже."
         )
+
+
+@router.callback_query(NatalCallback.filter(F.action == NatalAction.SHOW_DETAILED))
+async def show_detailed_natal(
+    callback: CallbackQuery,
+    session: AsyncSession,
+) -> None:
+    """Show purchased detailed natal interpretation."""
+    await callback.answer()
+
+    # Get user
+    stmt = select(User).where(User.telegram_id == callback.from_user.id)
+    result = await session.execute(stmt)
+    user = result.scalar_one_or_none()
+
+    if not user or not user.detailed_natal_purchased_at:
+        await callback.message.answer(
+            "Детальный разбор не куплен.",
+            reply_markup=get_natal_with_buy_keyboard() if user and user.is_premium else get_natal_teaser_keyboard(),
+        )
+        return
+
+    # Check for cached interpretation
+    stmt = select(DetailedNatal).where(
+        DetailedNatal.user_id == user.id
+    ).order_by(DetailedNatal.created_at.desc())
+    result = await session.execute(stmt)
+    cached = result.scalar_one_or_none()
+
+    loading_msg = await callback.message.answer("Загружаю детальный разбор...")
+
+    if cached and cached.telegraph_url:
+        # Use cached Telegraph URL
+        await loading_msg.delete()
+        await callback.message.answer(
+            "Твой детальный разбор личности готов!",
+            reply_markup=InlineKeyboardMarkup(
+                inline_keyboard=[
+                    [InlineKeyboardButton(
+                        text="Открыть разбор",
+                        url=cached.telegraph_url,
+                    )],
+                    [InlineKeyboardButton(
+                        text="Назад в меню",
+                        callback_data=NatalCallback(action=NatalAction.BACK_TO_MENU).pack(),
+                    )],
+                ]
+            ),
+        )
+        return
+
+    # Generate or regenerate
+    try:
+        # Check birth data
+        if not user.birth_lat or not user.birth_lon or not user.birth_date:
+            await loading_msg.edit_text(
+                "Для детального разбора нужны данные рождения.",
+                reply_markup=get_natal_setup_keyboard(),
+            )
+            return
+
+        # Calculate natal chart
+        natal_data = calculate_full_natal_chart(
+            birth_date=user.birth_date,
+            birth_time=user.birth_time,
+            latitude=user.birth_lat,
+            longitude=user.birth_lon,
+            timezone_str=user.timezone or "Europe/Moscow",
+        )
+
+        # Generate detailed interpretation
+        ai_service = get_ai_service()
+        interpretation = await ai_service.generate_detailed_natal_interpretation(
+            user_id=user.telegram_id,
+            natal_data=natal_data,
+        )
+
+        if not interpretation:
+            await loading_msg.edit_text(
+                "Ошибка генерации. Попробуй позже."
+            )
+            return
+
+        # Publish to Telegraph
+        telegraph_url = None
+        try:
+            telegraph_service = get_telegraph_service()
+            title = f"Детальный разбор - {user.birth_date.strftime('%d.%m.%Y')}"
+            if user.birth_city:
+                title += f", {user.birth_city}"
+
+            telegraph_url = await asyncio.wait_for(
+                telegraph_service.publish_article(title, interpretation),
+                timeout=15.0,  # Longer timeout for long content
+            )
+        except Exception as e:
+            logger.error("detailed_telegraph_error", error=str(e))
+
+        # Save to cache
+        detailed = DetailedNatal(
+            user_id=user.id,
+            interpretation=interpretation,
+            telegraph_url=telegraph_url,
+        )
+        session.add(detailed)
+        await session.commit()
+
+        await loading_msg.delete()
+
+        if telegraph_url:
+            await callback.message.answer(
+                "Твой детальный разбор личности готов!",
+                reply_markup=InlineKeyboardMarkup(
+                    inline_keyboard=[
+                        [InlineKeyboardButton(text="Открыть разбор", url=telegraph_url)],
+                        [InlineKeyboardButton(
+                            text="Назад в меню",
+                            callback_data=NatalCallback(action=NatalAction.BACK_TO_MENU).pack(),
+                        )],
+                    ]
+                ),
+            )
+        else:
+            # Fallback: send as text chunks
+            chunks = _split_text(interpretation, MAX_MESSAGE_LENGTH)
+            for chunk in chunks:
+                await callback.message.answer(chunk)
+
+    except Exception as e:
+        logger.error("show_detailed_natal_error", error=str(e))
+        await loading_msg.edit_text("Ошибка. Попробуй позже.")
