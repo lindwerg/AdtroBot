@@ -1,7 +1,42 @@
-"""Mock horoscope generation for Phase 2."""
+"""Horoscope generation utilities.
 
-# Mock horoscopes for each zodiac sign
-# These are placeholder texts until AI generation is implemented in Phase 3
+Phase 2: Mock horoscopes
+Phase 5: AI-powered generation with fallback
+"""
+
+from datetime import date
+
+from src.services.ai import get_ai_service
+
+FALLBACK_MESSAGE = (
+    "Сервис временно недоступен. Пожалуйста, попробуй через несколько минут.\n\n"
+    "Иногда звезды молчат, чтобы мы прислушались к себе."
+)
+
+
+async def get_horoscope_text(zodiac_name: str, zodiac_name_ru: str) -> str:
+    """Get horoscope text from AI (with caching) or return fallback.
+
+    Args:
+        zodiac_name: English name (e.g., "Aries")
+        zodiac_name_ru: Russian name (e.g., "Овен")
+
+    Returns:
+        Horoscope text ready for display
+    """
+    ai = get_ai_service()
+    date_str = date.today().strftime("%d.%m.%Y")
+
+    text = await ai.generate_horoscope(zodiac_name, zodiac_name_ru, date_str)
+
+    if text:
+        return text
+
+    return FALLBACK_MESSAGE
+
+
+# ============== Legacy Mock Horoscopes (deprecated) ==============
+# Kept for backwards compatibility. Use get_horoscope_text() instead.
 MOCK_HOROSCOPES: dict[str, str] = {
     "Aries": (
         "\u2648 Сегодня звёзды благоволят новым начинаниям. Ваша энергия на пике, "
@@ -68,8 +103,9 @@ MOCK_HOROSCOPES: dict[str, str] = {
 
 
 def get_mock_horoscope(zodiac_name: str) -> str:
-    """
-    Get mock horoscope text for a zodiac sign.
+    """Get mock horoscope text for a zodiac sign.
+
+    DEPRECATED: Use get_horoscope_text() instead for AI-powered horoscopes.
 
     Args:
         zodiac_name: English name of zodiac sign (e.g., "Pisces")
