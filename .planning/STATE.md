@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-22)
 ## Current Position
 
 Phase: 7 of 9 (Premium Horoscopes)
-Plan: 1 of 3 completed in Phase 7
-Status: In progress
-Last activity: 2026-01-23 12:15 — Completed 07-01-PLAN.md (Premium Infrastructure)
+Plan: 3 of 3 completed in Phase 7
+Status: Phase 7 complete
+Last activity: 2026-01-23 15:00 — Completed 07-03-PLAN.md (Premium Horoscopes)
 
-Progress: [██████████████░░] 88% (14/16 plans)
+Progress: [████████████████] 100% (16/16 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 14
+- Total plans completed: 16
 - Average duration: 8 min
-- Total execution time: 118 min
+- Total execution time: 129 min
 
 **By Phase:**
 
@@ -33,10 +33,10 @@ Progress: [██████████████░░] 88% (14/16 plans)
 | 4 | 2/2 | 13 min | 7 min |
 | 5 | 2/2 | 13 min | 7 min |
 | 6 | 3/3 | 11 min | 4 min |
-| 7 | 1/3 | 6 min | 6 min |
+| 7 | 3/3 | 17 min | 6 min |
 
 **Recent Trend:**
-- Last 5 plans: 06-01 (4 min), 06-02 (3 min), 06-03 (4 min), 07-01 (6 min)
+- Last 5 plans: 06-02 (3 min), 06-03 (4 min), 07-01 (6 min), 07-02 (6 min), 07-03 (5 min)
 - Trend: Consistent fast execution
 
 *Updated after each plan completion*
@@ -103,6 +103,9 @@ Recent decisions affecting current work:
 **Phase 7 (Premium Horoscopes):**
 - pyswisseph вместо flatlib (flatlib requires outdated pyswisseph 2.08)
 - GeoNames для geocoding с graceful degradation
+- 1-hour TTL for premium horoscope cache (personalized per user)
+- Premium без natal data = basic horoscope + setup prompt
+- Free users = basic horoscope + premium teaser
 
 ### Pending Todos
 
@@ -121,8 +124,8 @@ From research:
 
 ## Session Continuity
 
-Last session: 2026-01-23 12:15
-Stopped at: Completed 07-01-PLAN.md (Premium Infrastructure)
+Last session: 2026-01-23 15:00
+Stopped at: Completed 07-03-PLAN.md (Premium Horoscopes)
 Resume file: None
 
 **What's Ready:**
@@ -197,7 +200,18 @@ Resume file: None
   - Natal chart service: calculate_natal_chart() with Swiss Ephemeris
   - Geocoding service: search_city() with GeoNames
   - Migration for birth location fields ready
+- **Birth Data Collection complete (07-02):**
+  - BirthDataStates FSM for time/city collection
+  - BirthDataCallback with actions (time, city, skip, confirm)
+  - Russian time parsing (09:30, 9.30, 9 30)
+  - City search via GeoNames with inline results
+  - Profile integration: "Настроить натальную карту" button
+- **Premium Horoscopes complete (07-03):**
+  - PremiumHoroscopePrompt with 6 sections (500-700 words)
+  - generate_premium_horoscope with 1-hour cache
+  - Premium/free logic in handlers
+  - Keyboard buttons for natal setup and subscription
 
 **Next Steps:**
-- 07-02: Birth data collection UI (FSM for time/city input)
-- 07-03: Premium horoscope handlers with natal chart integration
+- Phase 8: Testing and QA
+- Phase 9: Launch preparation
