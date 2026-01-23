@@ -11,13 +11,36 @@ from fastapi.staticfiles import StaticFiles
 from src.admin.router import admin_router
 from src.bot.bot import dp, get_bot
 from src.bot.middlewares.db import DbSessionMiddleware
+from src.bot.utils.zodiac import ZODIAC_SIGNS
 from src.config import settings
 from src.core.logging import configure_logging
 from src.db.engine import AsyncSessionLocal, engine
+from src.services.horoscope_cache import get_horoscope_cache_service
 from src.services.payment.service import is_yookassa_ip, process_webhook_event
 from src.services.scheduler import get_scheduler
 
 logger = structlog.get_logger()
+
+
+async def warm_horoscope_cache() -> None:
+    """Preload horoscope cache from PostgreSQL on startup (PERF-07).
+
+    Loads existing cached horoscopes for all 12 zodiac signs.
+    If no cached horoscope exists for a sign, it will be generated on-demand
+    (graceful degradation).
+    """
+    cache_service = get_horoscope_cache_service()
+
+    logger.info("Warming horoscope cache...")
+    async with AsyncSessionLocal() as session:
+        for sign_en, zodiac in ZODIAC_SIGNS.items():
+            try:
+                await cache_service.get_horoscope(sign_en, session)
+                logger.debug("Cache warmed", sign=sign_en)
+            except Exception as e:
+                logger.warning("Failed to warm cache", sign=sign_en, error=str(e))
+
+    logger.info("Horoscope cache warming complete")
 
 
 @asynccontextmanager
@@ -36,6 +59,9 @@ async def lifespan(app: FastAPI):
     scheduler = get_scheduler()
     scheduler.start()
     await logger.ainfo("Scheduler started")
+
+    # Warm horoscope cache (PERF-07)
+    await warm_horoscope_cache()
 
     # Set webhook (only if token configured)
     bot = None
