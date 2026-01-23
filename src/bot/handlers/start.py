@@ -14,9 +14,9 @@ from src.bot.keyboards.profile import (
 )
 from src.bot.states.onboarding import OnboardingStates
 from src.bot.utils.date_parser import parse_russian_date
-from src.bot.utils.horoscope import get_mock_horoscope
 from src.bot.utils.zodiac import get_zodiac_sign
 from src.db.models.user import User
+from src.bot.handlers.horoscope import show_horoscope_message
 
 router = Router(name="start")
 
@@ -107,11 +107,18 @@ async def process_birthdate(
     await state.clear()
 
     # Show zodiac
-    await message.answer(f"Твой знак: {zodiac.emoji} {zodiac.name_ru}")
+    await message.answer(f"✨ Твой знак: {zodiac.emoji} {zodiac.name_ru}")
 
-    # Show mock horoscope (immediate value)
-    horoscope = get_mock_horoscope(zodiac.name)
-    await message.answer(horoscope)
+    # Explain general vs personal horoscope
+    await message.answer(
+        "Вот твой первый гороскоп!\n\n"
+        "💡 Сейчас ты видишь общий гороскоп для всех представителей твоего знака.\n"
+        "С Premium подпиской ты получишь персональный прогноз, "
+        "составленный по твоей натальной карте."
+    )
+
+    # Show real horoscope
+    await show_horoscope_message(message, zodiac.name, zodiac.name, session)
 
     # Offer to enable notifications (onboarding step)
     await message.answer(
@@ -147,7 +154,7 @@ async def onboarding_skip_notifications(callback: CallbackQuery) -> None:
         "Хорошо! Вы всегда можете включить уведомления в меню Профиль."
     )
     await callback.message.answer(
-        "Хочешь карту дня? Нажми 'Таро'",
+        "Главное меню:",
         reply_markup=get_main_menu_keyboard(),
     )
     await callback.answer()
