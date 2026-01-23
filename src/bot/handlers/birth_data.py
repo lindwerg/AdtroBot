@@ -205,6 +205,9 @@ async def select_city(
     user.birth_city = city["name"]
     user.birth_lat = city["latitude"]
     user.birth_lon = city["longitude"]
+    # Also update timezone for accurate natal chart calculations
+    if city.get("timezone"):
+        user.timezone = city["timezone"]
     await session.commit()
 
     await logger.ainfo(
