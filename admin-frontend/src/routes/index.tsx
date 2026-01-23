@@ -31,27 +31,32 @@ async function redirectIfAuth() {
   return null
 }
 
-export const router = createBrowserRouter([
+export const router = createBrowserRouter(
+  [
+    {
+      path: '/login',
+      element: <LoginPage />,
+      loader: redirectIfAuth,
+    },
+    {
+      path: '/',
+      element: <Layout />,
+      loader: requireAuth,
+      children: [
+        { index: true, element: <Dashboard /> },
+        { path: 'users', element: <UsersPage /> },
+        { path: 'users/:id', element: <UserDetailPage /> },
+        { path: 'subscriptions', element: <SubscriptionsPage /> },
+        { path: 'payments', element: <PaymentsPage /> },
+        { path: 'tarot-spreads', element: <TarotSpreadsPage /> },
+        { path: 'messages', element: <MessagesPage /> },
+        { path: 'content', element: <ContentPage /> },
+        { path: 'promo-codes', element: <PromoCodesPage /> },
+        { path: 'ab-tests', element: <ABTestsPage /> },
+      ],
+    },
+  ],
   {
-    path: '/login',
-    element: <LoginPage />,
-    loader: redirectIfAuth,
+    basename: '/admin',
   },
-  {
-    path: '/',
-    element: <Layout />,
-    loader: requireAuth,
-    children: [
-      { index: true, element: <Dashboard /> },
-      { path: 'users', element: <UsersPage /> },
-      { path: 'users/:id', element: <UserDetailPage /> },
-      { path: 'subscriptions', element: <SubscriptionsPage /> },
-      { path: 'payments', element: <PaymentsPage /> },
-      { path: 'tarot-spreads', element: <TarotSpreadsPage /> },
-      { path: 'messages', element: <MessagesPage /> },
-      { path: 'content', element: <ContentPage /> },
-      { path: 'promo-codes', element: <PromoCodesPage /> },
-      { path: 'ab-tests', element: <ABTestsPage /> },
-    ],
-  },
-])
+)
