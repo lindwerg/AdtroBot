@@ -18,6 +18,9 @@ AsyncSessionLocal = async_sessionmaker(
     autoflush=False,
 )
 
+# Alias for scheduler.py compatibility (lines 147, 204)
+async_session_maker = AsyncSessionLocal
+
 
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
     """Dependency for FastAPI / middleware for aiogram."""
