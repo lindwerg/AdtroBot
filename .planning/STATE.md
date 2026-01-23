@@ -127,9 +127,9 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-**Captured todos:** 1 (see `.planning/todos/pending/`)
+**Captured todos:** 0 (see `.planning/todos/pending/`)
 
-- **Fix natal chart interpretation validation failure** (ai) — AI generates text but validator rejects (0/4 sections found)
+- ~~**Fix natal chart interpretation validation failure** (ai)~~ — FIXED in quick-001
 
 **Environment setup:**
 - Add TELEGRAM_BOT_TOKEN and WEBHOOK_BASE_URL to Railway environment
@@ -148,8 +148,8 @@ From research:
 
 ## Session Continuity
 
-Last session: 2026-01-23 17:31
-Stopped at: Completed 08-03-PLAN.md (Telegraph Integration)
+Last session: 2026-01-23
+Stopped at: Completed quick-001 (NatalChartOutput validator)
 Resume file: None
 
 **What's Ready:**
@@ -257,6 +257,10 @@ Resume file: None
   - Celtic Cross: button -> Telegraph article
   - Graceful fallback to direct text on Telegraph failure
   - 10 second timeout prevents hanging
+- **Natal Chart Validation fixed (quick-001):**
+  - NatalChartOutput validator with correct section keywords
+  - validate_natal_chart() function for natal interpretations
+  - generate_natal_interpretation() now uses correct validator
 
 **Next Steps:**
 - Phase 9: Admin Panel
