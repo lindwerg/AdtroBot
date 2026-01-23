@@ -1,12 +1,13 @@
-"""APScheduler setup for daily horoscope notifications."""
+"""APScheduler setup for daily horoscope notifications and subscription management."""
 
-from datetime import date
+from datetime import date, datetime, timedelta, timezone as tz
 
 import structlog
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from pytz import utc
+from sqlalchemy import and_, select
 
 from src.config import settings
 
@@ -27,6 +28,24 @@ def get_scheduler() -> AsyncIOScheduler:
             jobstores=jobstores,
             timezone=utc,
         )
+
+        # Add subscription management jobs
+        _scheduler.add_job(
+            auto_renew_subscriptions,
+            CronTrigger(hour=9, minute=0, timezone="Europe/Moscow"),
+            id="auto_renew_subscriptions",
+            replace_existing=True,
+            misfire_grace_time=3600,
+        )
+
+        _scheduler.add_job(
+            check_expiring_subscriptions,
+            CronTrigger(hour=10, minute=0, timezone="Europe/Moscow"),
+            id="check_expiring_subscriptions",
+            replace_existing=True,
+            misfire_grace_time=3600,
+        )
+
     return _scheduler
 
 
@@ -114,3 +133,158 @@ def remove_user_notification(user_id: int) -> None:
     except Exception:
         # Job might not exist
         pass
+
+
+# ============== Subscription Management Jobs ==============
+
+
+async def check_expiring_subscriptions() -> None:
+    """
+    Check for subscriptions expiring in 3 days and send notifications.
+    Runs daily at 10:00 Moscow time.
+    """
+    from src.bot.bot import get_bot
+    from src.db.engine import async_session_maker
+    from src.db.models.subscription import Subscription
+    from src.db.models.user import User
+
+    async with async_session_maker() as session:
+        # Find subscriptions expiring in 3 days
+        now = datetime.now(tz.utc)
+        three_days = now + timedelta(days=3)
+        four_days = now + timedelta(days=4)
+
+        stmt = (
+            select(Subscription, User)
+            .join(User, User.id == Subscription.user_id)
+            .where(
+                and_(
+                    Subscription.status.in_(["active", "trial"]),
+                    Subscription.current_period_end >= three_days,
+                    Subscription.current_period_end < four_days,
+                )
+            )
+        )
+
+        result = await session.execute(stmt)
+        expiring = result.all()
+
+        if not expiring:
+            return
+
+        bot = get_bot()
+
+        for subscription, user in expiring:
+            try:
+                end_date = subscription.current_period_end.strftime("%d.%m.%Y")
+                await bot.send_message(
+                    user.telegram_id,
+                    f"Напоминаем: ваша подписка истекает {end_date}.\n\n"
+                    "Продлите сейчас, чтобы не потерять премиум-функции!",
+                )
+                await logger.ainfo(
+                    "Sent expiry notification",
+                    user_id=user.telegram_id,
+                    expires=end_date,
+                )
+            except Exception as e:
+                await logger.aerror(
+                    "Failed to send expiry notification",
+                    user_id=user.telegram_id,
+                    error=str(e),
+                )
+
+
+async def auto_renew_subscriptions() -> None:
+    """
+    Auto-renew subscriptions expiring in 1 day using saved payment method.
+    Runs daily at 09:00 Moscow time (before expiry notification).
+    """
+    from src.bot.bot import get_bot
+    from src.db.engine import async_session_maker
+    from src.db.models.subscription import Subscription, SubscriptionStatus
+    from src.db.models.user import User
+    from src.services.payment import create_recurring_payment
+    from src.services.payment.schemas import PLAN_DURATION_DAYS, PLAN_PRICES_STR, PaymentPlan
+
+    async with async_session_maker() as session:
+        # Find active subscriptions expiring in 1-2 days with payment_method_id
+        now = datetime.now(tz.utc)
+        one_day = now + timedelta(days=1)
+        two_days = now + timedelta(days=2)
+
+        stmt = (
+            select(Subscription, User)
+            .join(User, User.id == Subscription.user_id)
+            .where(
+                and_(
+                    Subscription.status == SubscriptionStatus.ACTIVE.value,
+                    Subscription.payment_method_id.isnot(None),
+                    Subscription.current_period_end >= one_day,
+                    Subscription.current_period_end < two_days,
+                )
+            )
+        )
+
+        result = await session.execute(stmt)
+        to_renew = result.all()
+
+        if not to_renew:
+            return
+
+        bot = get_bot()
+
+        for subscription, user in to_renew:
+            try:
+                plan = PaymentPlan(subscription.plan)
+                amount = PLAN_PRICES_STR[plan]
+
+                # Create recurring payment
+                payment = await create_recurring_payment(
+                    payment_method_id=subscription.payment_method_id,
+                    user_id=user.telegram_id,
+                    subscription_id=subscription.id,
+                    amount=amount,
+                    description="Продление подписки AdtroBot",
+                )
+
+                # If payment succeeded immediately (some cards do this)
+                if payment.status == "succeeded":
+                    # Extend subscription period
+                    subscription.current_period_start = subscription.current_period_end
+                    subscription.current_period_end = (
+                        subscription.current_period_end + timedelta(days=PLAN_DURATION_DAYS[plan])
+                    )
+                    user.premium_until = subscription.current_period_end
+                    await session.commit()
+
+                    await bot.send_message(
+                        user.telegram_id,
+                        f"Подписка продлена до {subscription.current_period_end.strftime('%d.%m.%Y')}!",
+                    )
+                    await logger.ainfo(
+                        "Auto-renewed subscription",
+                        user_id=user.telegram_id,
+                        until=subscription.current_period_end.isoformat(),
+                    )
+                # Otherwise webhook will handle the result
+
+            except Exception as e:
+                # Payment failed - mark as past_due
+                subscription.status = SubscriptionStatus.PAST_DUE.value
+                await session.commit()
+
+                await logger.aerror(
+                    "Auto-renewal failed",
+                    user_id=user.telegram_id,
+                    error=str(e),
+                )
+
+                try:
+                    await bot.send_message(
+                        user.telegram_id,
+                        "Не удалось продлить подписку автоматически.\n"
+                        "Проверьте карту и оплатите вручную, чтобы сохранить премиум-доступ.",
+                    )
+                except Exception:
+                    pass  # User might have blocked bot

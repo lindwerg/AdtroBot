@@ -7,7 +7,7 @@ import pytz
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bot.callbacks.tarot import TarotAction, TarotCallback
@@ -56,32 +56,47 @@ async def check_and_use_tarot_limit(
     user: User, session: AsyncSession
 ) -> tuple[bool, int]:
     """
-    Check if user can do tarot spread today.
+    Check if user can do tarot spread today (atomic increment).
 
     NOTE: Лимиты применяются ТОЛЬКО к 3-card spread.
     Карта дня бесплатная и неограниченная.
+
+    Uses user.daily_spread_limit (1 for free, 20 for premium).
+    Atomic update prevents race conditions.
 
     Returns:
         (allowed, remaining_count)
     """
     today = get_user_today(user)
 
-    # Reset if new day
+    # Reset if new day (separate update to avoid race)
     if user.spread_reset_date != today:
         user.tarot_spread_count = 0
         user.spread_reset_date = today
-
-    # Limits: free=1, premium=20 (premium check placeholder)
-    is_premium = False  # TODO: add is_premium field in Phase 6
-    limit = 20 if is_premium else 1
-    remaining = limit - user.tarot_spread_count
-
-    if remaining > 0:
-        user.tarot_spread_count += 1
         await session.commit()
-        return True, remaining - 1
+        await session.refresh(user)
 
-    return False, 0
+    # Atomic increment with limit check
+    # Uses user.daily_spread_limit (1 for free, 20 for premium)
+    stmt = (
+        update(User)
+        .where(
+            User.id == user.id,
+            User.tarot_spread_count < User.daily_spread_limit,
+        )
+        .values(tarot_spread_count=User.tarot_spread_count + 1)
+        .returning(User.tarot_spread_count)
+    )
+    result = await session.execute(stmt)
+    new_count = result.scalar_one_or_none()
+
+    if new_count is None:
+        # Limit exceeded (race condition protection)
+        return False, 0
+
+    await session.commit()
+    remaining = user.daily_spread_limit - new_count
+    return True, remaining
 
 
 # ============== Tarot Menu ==============
@@ -223,12 +238,11 @@ async def tarot_three_card_start(
     # Check limit (preview, don't consume yet)
     today = get_user_today(user)
     if user.spread_reset_date != today:
-        # Will be reset, so remaining = 1
-        remaining = 1
+        # Will be reset, so remaining = full limit
+        remaining = user.daily_spread_limit
     else:
-        is_premium = False  # TODO: Phase 6
-        limit = 20 if is_premium else 1
-        remaining = limit - user.tarot_spread_count
+        # Use user.daily_spread_limit (1 for free, 20 for premium)
+        remaining = user.daily_spread_limit - user.tarot_spread_count
 
     if remaining <= 0:
         content = format_limit_exceeded()

@@ -6,11 +6,13 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.bot.callbacks.subscription import SubscriptionCallback
 from src.bot.handlers.horoscope import show_horoscope_message
 from src.bot.handlers.subscription import show_plans
 from src.bot.keyboards.main_menu import get_main_menu_keyboard
 from src.bot.keyboards.tarot import get_tarot_menu_keyboard
 from src.db.models.user import User
+from src.services.payment import get_user_subscription
 
 router = Router(name="menu")
 
@@ -78,5 +80,28 @@ async def menu_profile(message: Message, session: AsyncSession) -> None:
     # Build inline keyboard with notifications settings button
     builder = InlineKeyboardBuilder()
     builder.button(text="Настройки уведомлений", callback_data="profile_notifications")
+
+    # Subscription status
+    subscription = await get_user_subscription(session, message.from_user.id)
+    if subscription and user.is_premium:
+        until_str = user.premium_until.strftime("%d.%m.%Y") if user.premium_until else "N/A"
+        if subscription.status == "active":
+            lines.append(f"\nПодписка: Премиум до {until_str}")
+        elif subscription.status == "canceled":
+            lines.append(f"\nПодписка: Отменена (доступ до {until_str})")
+        elif subscription.status == "trial":
+            lines.append(f"\nПодписка: Пробный период до {until_str}")
+
+        # Add cancel button if active (not already canceled)
+        if subscription.status in ("active", "trial"):
+            builder.button(
+                text="Отменить подписку",
+                callback_data=SubscriptionCallback(action="cancel"),
+            )
+    else:
+        lines.append("\nПодписка: Бесплатный тариф")
+        lines.append(f"Раскладов сегодня: {user.tarot_spread_count}/{user.daily_spread_limit}")
+
+    builder.adjust(1)
 
     await message.answer("\n".join(lines), reply_markup=builder.as_markup())
