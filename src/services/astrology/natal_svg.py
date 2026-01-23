@@ -253,12 +253,14 @@ def _generate_svg(chart_data: FullNatalChartResult, size: int = 800) -> str:
         # Opacity based on orb (tighter = more visible)
         opacity = max(0.3, 1 - aspect["orb"] / 8)
 
-        dwg.add(dwg.line(
+        line = dwg.line(
             (x1, y1), (x2, y2),
             stroke=color,
-            stroke_width=1,
+            stroke_width=1.5,
             stroke_opacity=opacity
-        ))
+        )
+        line["stroke-linecap"] = "round"
+        dwg.add(line)
 
     # Draw planets with glow effect
     for planet_name, planet_data in chart_data["planets"].items():
@@ -299,45 +301,63 @@ def _generate_svg(chart_data: FullNatalChartResult, size: int = 800) -> str:
             font_family="DejaVu Sans, Symbola, Arial, sans-serif"
         ))
 
-    # Ascendant marker (arrow on left side)
+    # Ascendant marker with glow effect
     if chart_data["time_known"]:
         asc_lon = chart_data["angles"]["ascendant"]["longitude"]
         asc_angle = _lon_to_angle(asc_lon)
         ax1, ay1 = _polar_to_cart(center, center, outer_r + 5, asc_angle)
-        ax2, ay2 = _polar_to_cart(center, center, outer_r + 15, asc_angle)
-        dwg.add(dwg.line(
+        ax2, ay2 = _polar_to_cart(center, center, outer_r + 20, asc_angle)
+
+        # Glow effect for ASC marker
+        dwg.add(dwg.circle(
+            center=(ax2, ay2),
+            r=12,
+            fill="url(#glow_gold)"
+        ))
+        asc_line = dwg.line(
             (ax1, ay1), (ax2, ay2),
             stroke="#FF6B6B",
             stroke_width=3
-        ))
+        )
+        asc_line["stroke-linecap"] = "round"
+        dwg.add(asc_line)
         dwg.add(dwg.text(
             "ASC",
-            insert=(ax2, ay2 - 5),
+            insert=(ax2, ay2 - 8),
             text_anchor="middle",
             fill="#FF6B6B",
-            font_size=8,
+            font_size=10,
             font_weight="bold",
-            font_family="Arial, sans-serif"
+            font_family="DejaVu Sans, Arial, sans-serif"
         ))
 
-        # MC marker (top)
+        # MC marker with glow effect
         mc_lon = chart_data["angles"]["mc"]["longitude"]
         mc_angle = _lon_to_angle(mc_lon)
         mx1, my1 = _polar_to_cart(center, center, outer_r + 5, mc_angle)
-        mx2, my2 = _polar_to_cart(center, center, outer_r + 15, mc_angle)
-        dwg.add(dwg.line(
+        mx2, my2 = _polar_to_cart(center, center, outer_r + 20, mc_angle)
+
+        # Glow effect for MC marker
+        dwg.add(dwg.circle(
+            center=(mx2, my2),
+            r=12,
+            fill="url(#glow_silver)"
+        ))
+        mc_line = dwg.line(
             (mx1, my1), (mx2, my2),
             stroke="#4ECDC4",
             stroke_width=3
-        ))
+        )
+        mc_line["stroke-linecap"] = "round"
+        dwg.add(mc_line)
         dwg.add(dwg.text(
             "MC",
-            insert=(mx2, my2 - 5),
+            insert=(mx2, my2 - 8),
             text_anchor="middle",
             fill="#4ECDC4",
-            font_size=8,
+            font_size=10,
             font_weight="bold",
-            font_family="Arial, sans-serif"
+            font_family="DejaVu Sans, Arial, sans-serif"
         ))
 
     return dwg.tostring()
