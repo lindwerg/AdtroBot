@@ -21,7 +21,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 7: Premium Horoscopes** - Детальные гороскопы по сферам, персональный прогноз
 - [x] **Phase 8: Premium Tarot + Natal** - Кельтский крест, натальная карта, история раскладов
 - [ ] **Phase 9: Admin Panel** - Статистика, управление подписками, аналитика
-- [ ] **Phase 10: Улучшить натальную карту** - Профессиональный визуал, расширенная интерпретация, монетизация
+- [x] **Phase 10: Улучшить натальную карту** - Профессиональный визуал, расширенная интерпретация, монетизация
 
 ## Phase Details
 
@@ -182,10 +182,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 10-01-PLAN.md — Профессиональный SVG визуал (градиенты, Unicode глифы, свечения)
-- [ ] 10-02-PLAN.md — Платежная инфраструктура (PaymentPlan.DETAILED_NATAL, User.detailed_natal_purchased_at, миграция)
-- [ ] 10-03-PLAN.md — DetailedNatalPrompt и AI генерация (8 секций, 3000-5000 слов, кэш 7 дней)
-- [ ] 10-04-PLAN.md — Handlers для free/premium/purchased flow (покупка, показ детального разбора)
+- [x] 10-01-PLAN.md — Профессиональный SVG визуал (градиенты, Unicode глифы, свечения)
+- [x] 10-02-PLAN.md — Платежная инфраструктура (PaymentPlan.DETAILED_NATAL, User.detailed_natal_purchased_at, миграция)
+- [x] 10-03-PLAN.md — DetailedNatalPrompt и AI генерация (8 секций, 3000-5000 слов, кэш 7 дней)
+- [x] 10-04-PLAN.md — Handlers для free/premium/purchased flow (покупка, показ детального разбора)
 
 ## Progress
 
@@ -203,7 +203,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 7. Premium Horoscopes | 3/3 | Complete | 2026-01-23 |
 | 8. Premium Tarot + Natal | 3/3 | Complete | 2026-01-23 |
 | 9. Admin Panel | 0/2 | Not started | - |
-| 10. Улучшить натальную карту | 0/4 | Planned | - |
+| 10. Улучшить натальную карту | 4/4 | Complete | 2026-01-23 |
 
 ---
 *Roadmap created: 2026-01-22*

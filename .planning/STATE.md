@@ -162,6 +162,7 @@ Recent decisions affecting current work:
 - Add GEONAMES_USERNAME to Railway environment
 - Run 07-01 migration on Railway: `alembic upgrade head`
 - Run 08-01 migration on Railway: `alembic upgrade head`
+- Run 10-02 migration on Railway: `alembic upgrade head` (detailed_natal tables)
 - Run 10-02 migration on Railway: `alembic upgrade head`
 
 ### Quick Tasks Completed
