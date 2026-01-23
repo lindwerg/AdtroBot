@@ -17,12 +17,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.bot.callbacks.natal import NatalAction, NatalCallback
 from src.bot.keyboards.main_menu import get_main_menu_keyboard
 from src.bot.keyboards.natal import (
+    get_free_natal_keyboard,
     get_natal_menu_keyboard,
     get_natal_setup_keyboard,
     get_natal_teaser_keyboard,
+    get_natal_with_buy_keyboard,
+    get_natal_with_open_keyboard,
 )
+from src.db.models.detailed_natal import DetailedNatal
 from src.db.models.user import User
 from src.services.ai import get_ai_service
+from src.services.payment.client import create_payment
+from src.services.payment.schemas import PLAN_PRICES_STR, PaymentPlan
 from src.services.astrology.natal_chart import calculate_full_natal_chart
 from src.services.astrology.natal_svg import generate_natal_png
 from src.services.telegraph import get_telegraph_service
@@ -102,48 +108,34 @@ async def show_natal_chart(
         # Delete loading message
         await loading_msg.delete()
 
-        # Send chart image with Telegraph button or fallback to text
-        photo = BufferedInputFile(png_bytes, filename="natal_chart.png")
-
-        if telegraph_url:
-            # Success: send PNG with button to Telegraph article
-            keyboard = InlineKeyboardMarkup(
-                inline_keyboard=[
-                    [
-                        InlineKeyboardButton(
-                            text="Посмотреть интерпретацию",
-                            url=telegraph_url,
-                        )
-                    ]
-                ]
-            )
-            await message.answer_photo(
-                photo=photo,
-                caption="Твоя натальная карта",
-                reply_markup=keyboard,
-            )
+        # Determine keyboard based on user status
+        if user.detailed_natal_purchased_at:
+            # Already purchased - show "Open detailed" button
+            keyboard = get_natal_with_open_keyboard()
+        elif user.is_premium:
+            # Premium but not purchased - show "Buy detailed" button
+            keyboard = get_natal_with_buy_keyboard()
         else:
-            # Fallback: send PNG + text directly
-            await message.answer_photo(
-                photo=photo,
-                caption="Твоя натальная карта",
-            )
+            # Free user - show subscription teaser
+            keyboard = get_free_natal_keyboard()
 
-            if interpretation:
-                # Split long text if needed
-                chunks = _split_text(interpretation, MAX_MESSAGE_LENGTH)
-                for chunk in chunks:
-                    await message.answer(chunk)
-            else:
-                await message.answer(
-                    "Не удалось создать интерпретацию. Попробуй позже."
-                )
-
-        # Show navigation keyboard
-        await message.answer(
-            "Это твоя полная натальная карта.",
-            reply_markup=get_natal_menu_keyboard(),
+        # Send chart image WITH KEYBOARD (button under photo)
+        photo = BufferedInputFile(png_bytes, filename="natal_chart.png")
+        await message.answer_photo(
+            photo=photo,
+            caption="Твоя натальная карта",
+            reply_markup=keyboard,
         )
+
+        # Send brief interpretation as separate message (no buttons)
+        if interpretation:
+            chunks = _split_text(interpretation, MAX_MESSAGE_LENGTH)
+            for chunk in chunks:
+                await message.answer(chunk)
+        else:
+            await message.answer(
+                "Не удалось создать интерпретацию. Попробуй позже."
+            )
 
         logger.info(
             "natal_chart_shown",
