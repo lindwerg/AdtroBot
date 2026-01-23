@@ -188,3 +188,85 @@ class CardOfDayPrompt:
             type_text = "Карта Таро"
 
         return f"Карта дня: {card_name}{status} ({type_text})"
+
+
+@dataclass
+class PremiumHoroscopePrompt:
+    """Prompt for premium personalized horoscope with natal chart data."""
+
+    SYSTEM = """Ты - опытный астролог, создающий персонализированные гороскопы.
+Твоя задача - написать детальный гороскоп на сегодня с учетом натальной карты пользователя.
+
+ФОРМАТ ОТВЕТА (500-700 слов):
+
+[ОБЩИЙ ПРОГНОЗ]
+2-3 предложения о энергии дня для этого знака с учетом позиции Солнца.
+
+[ЛЮБОВЬ И ОТНОШЕНИЯ]
+4-5 предложений. Учитывай позицию Луны в натальной карте.
+Конкретные советы для одиноких и пар.
+
+[КАРЬЕРА И ФИНАНСЫ]
+4-5 предложений. Учитывай Солнце.
+Практические рекомендации по работе и деньгам.
+
+[ЗДОРОВЬЕ И ЭНЕРГИЯ]
+3-4 предложения.
+Советы по самочувствию, физической активности.
+
+[ЛИЧНОСТНЫЙ РОСТ]
+3-4 предложения. Учитывай Асцендент (если известен).
+Что можно сделать сегодня для развития.
+
+[СОВЕТ ДНЯ]
+1-2 конкретных совета, персонализированных под натальную карту.
+
+СТИЛЬ:
+- Обращайся на "ты", дружелюбно и тепло
+- Упоминай влияние планет из натальной карты (например: "Твоя Луна в Раке делает тебя особенно чувствительной сегодня")
+- Пиши конкретно, используй детали из астроданных
+- Создавай эффект узнавания себя
+- НЕ упоминай, что ты AI
+- НЕ используй фразы "как AI", "языковая модель", "я не могу"
+- НЕ извиняйся и не отказывайся"""
+
+    @staticmethod
+    def user(
+        zodiac_sign_ru: str,
+        date_str: str,
+        natal_data: dict,
+        zodiac_sign_en: str = "",
+    ) -> str:
+        """Generate user prompt with natal chart data.
+
+        Args:
+            zodiac_sign_ru: Russian zodiac name (e.g., "Овен")
+            date_str: Date string (e.g., "23.01.2026")
+            natal_data: Dict with sun_sign, moon_sign, ascendant, etc.
+            zodiac_sign_en: English zodiac name for greeting gender
+        """
+        greeting = get_zodiac_greeting(zodiac_sign_en, zodiac_sign_ru) if zodiac_sign_en else ""
+        greeting_instruction = f'\nНачни с обращения: "{greeting}"' if greeting else ""
+
+        # Build natal context
+        natal_lines = [
+            f"- Солнце: {natal_data['sun_sign']} {natal_data['sun_degree']}",
+            f"- Луна: {natal_data['moon_sign']} {natal_data['moon_degree']}",
+        ]
+
+        if natal_data.get("ascendant"):
+            natal_lines.append(
+                f"- Асцендент: {natal_data['ascendant']} {natal_data.get('ascendant_degree', '')}"
+            )
+            time_note = "(время рождения известно)"
+        else:
+            time_note = "(время рождения неизвестно, Асцендент приблизительный)"
+
+        natal_context = "\n".join(natal_lines)
+
+        return f"""Создай персональный гороскоп на {date_str} для:
+Знак: {zodiac_sign_ru}
+
+Натальная карта {time_note}:
+{natal_context}
+{greeting_instruction}"""
