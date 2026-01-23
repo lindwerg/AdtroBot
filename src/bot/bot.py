@@ -4,6 +4,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 
 from src.bot.handlers import (
+    birth_data_router,
     common_router,
     horoscope_router,
     menu_router,
@@ -19,13 +20,14 @@ from src.config import settings
 bot: Bot | None = None
 dp = Dispatcher(storage=MemoryStorage())
 
-# Register routers (order matters: start -> menu -> subscription -> horoscope -> tarot -> profile_settings -> common)
+# Register routers (order matters: start -> menu -> subscription -> horoscope -> tarot -> birth_data -> profile_settings -> common)
 dp.include_routers(
     start_router,
     menu_router,
     subscription_router,
     horoscope_router,
     tarot_router,
+    birth_data_router,
     profile_settings_router,
     common_router,
 )

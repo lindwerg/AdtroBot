@@ -65,3 +65,51 @@ def build_onboarding_notifications_keyboard() -> InlineKeyboardMarkup:
     builder.button(text="Нет, спасибо", callback_data="onboarding_notif_no")
     builder.adjust(2)
     return builder.as_markup()
+
+
+def build_profile_actions_keyboard(
+    is_premium: bool,
+    has_birth_data: bool,
+    has_subscription: bool = False,
+    subscription_status: str | None = None,
+) -> InlineKeyboardMarkup:
+    """Build keyboard with profile action buttons.
+
+    Args:
+        is_premium: Whether user has premium subscription
+        has_birth_data: Whether user has set birth time/city
+        has_subscription: Whether user has active subscription
+        subscription_status: Subscription status (active, trial, canceled)
+
+    Returns:
+        Keyboard with notification settings + premium-only birth data button
+    """
+    builder = InlineKeyboardBuilder()
+
+    # Notification settings always available
+    builder.button(text="Настройки уведомлений", callback_data="profile_notifications")
+
+    # Birth data setup for premium users
+    if is_premium:
+        if has_birth_data:
+            builder.button(
+                text="Изменить данные рождения",
+                callback_data="setup_birth_data",
+            )
+        else:
+            builder.button(
+                text="Настроить натальную карту",
+                callback_data="setup_birth_data",
+            )
+
+    # Cancel subscription button if active
+    if has_subscription and subscription_status in ("active", "trial"):
+        from src.bot.callbacks.subscription import SubscriptionCallback
+
+        builder.button(
+            text="Отменить подписку",
+            callback_data=SubscriptionCallback(action="cancel").pack(),
+        )
+
+    builder.adjust(1)
+    return builder.as_markup()

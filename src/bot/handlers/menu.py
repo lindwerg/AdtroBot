@@ -2,14 +2,13 @@
 
 from aiogram import F, Router
 from aiogram.types import Message
-from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.bot.callbacks.subscription import SubscriptionCallback
 from src.bot.handlers.horoscope import show_horoscope_message
 from src.bot.handlers.subscription import show_plans
 from src.bot.keyboards.main_menu import get_main_menu_keyboard
+from src.bot.keyboards.profile import build_profile_actions_keyboard
 from src.bot.keyboards.tarot import get_tarot_menu_keyboard
 from src.db.models.user import User
 from src.services.payment import get_user_subscription
@@ -77,9 +76,13 @@ async def menu_profile(message: Message, session: AsyncSession) -> None:
     else:
         lines.append("Дата рождения: не указана")
 
-    # Build inline keyboard with notifications settings button
-    builder = InlineKeyboardBuilder()
-    builder.button(text="Настройки уведомлений", callback_data="profile_notifications")
+    # Show birth data for premium users
+    if user.is_premium and user.birth_city:
+        lines.append(f"Город рождения: {user.birth_city}")
+        if user.birth_time:
+            lines.append(f"Время рождения: {user.birth_time.strftime('%H:%M')}")
+        else:
+            lines.append("Время рождения: не указано (12:00)")
 
     # Subscription status
     subscription = await get_user_subscription(session, message.from_user.id)
@@ -91,17 +94,17 @@ async def menu_profile(message: Message, session: AsyncSession) -> None:
             lines.append(f"\nПодписка: Отменена (доступ до {until_str})")
         elif subscription.status == "trial":
             lines.append(f"\nПодписка: Пробный период до {until_str}")
-
-        # Add cancel button if active (not already canceled)
-        if subscription.status in ("active", "trial"):
-            builder.button(
-                text="Отменить подписку",
-                callback_data=SubscriptionCallback(action="cancel"),
-            )
     else:
         lines.append("\nПодписка: Бесплатный тариф")
         lines.append(f"Раскладов сегодня: {user.tarot_spread_count}/{user.daily_spread_limit}")
 
-    builder.adjust(1)
+    # Build keyboard with profile actions
+    has_birth_data = user.birth_city is not None
+    keyboard = build_profile_actions_keyboard(
+        is_premium=user.is_premium,
+        has_birth_data=has_birth_data,
+        has_subscription=subscription is not None,
+        subscription_status=subscription.status if subscription else None,
+    )
 
-    await message.answer("\n".join(lines), reply_markup=builder.as_markup())
+    await message.answer("\n".join(lines), reply_markup=keyboard)
