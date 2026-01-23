@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-22)
 
 **Core value:** Качественная AI интерпретация астрологии и таро, которая конвертирует бесплатных пользователей в платных
-**Current focus:** Phase 7 Complete - Ready for Phase 8
+**Current focus:** Phase 8 - Premium Tarot + Natal
 
 ## Current Position
 
-Phase: 7 of 9 (Premium Horoscopes)
-Plan: 3 of 3 completed in Phase 7
-Status: Phase 7 complete
-Last activity: 2026-01-23 15:00 — Completed 07-03-PLAN.md (Premium Horoscopes)
+Phase: 8 of 9 (Premium Tarot + Natal)
+Plan: 1 of 2 completed in Phase 8
+Status: In progress
+Last activity: 2026-01-23 16:35 — Completed 08-01-PLAN.md (Celtic Cross + History)
 
-Progress: [████████████████] 100% (16/16 plans)
+Progress: [█████████████████░░] 85% (17/20 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 16
+- Total plans completed: 17
 - Average duration: 8 min
-- Total execution time: 129 min
+- Total execution time: 136 min
 
 **By Phase:**
 
@@ -34,9 +34,10 @@ Progress: [████████████████] 100% (16/16 plans)
 | 5 | 2/2 | 13 min | 7 min |
 | 6 | 3/3 | 11 min | 4 min |
 | 7 | 3/3 | 17 min | 6 min |
+| 8 | 1/2 | 7 min | 7 min |
 
 **Recent Trend:**
-- Last 5 plans: 06-02 (3 min), 06-03 (4 min), 07-01 (6 min), 07-02 (6 min), 07-03 (5 min)
+- Last 5 plans: 06-03 (4 min), 07-01 (6 min), 07-02 (6 min), 07-03 (5 min), 08-01 (7 min)
 - Trend: Consistent fast execution
 
 *Updated after each plan completion*
@@ -107,6 +108,12 @@ Recent decisions affecting current work:
 - Premium без natal data = basic horoscope + setup prompt
 - Free users = basic horoscope + premium teaser
 
+**Phase 8 (Premium Tarot + Natal):**
+- TarotSpread model с JSON для cards (card_id, reversed, position)
+- Celtic Cross как media group album (10 фото)
+- History pagination: 5/page, max 100 spreads
+- Premium 20 spreads/day, free 1 spread/day
+
 ### Pending Todos
 
 - Add TELEGRAM_BOT_TOKEN and WEBHOOK_BASE_URL to Railway environment
@@ -116,6 +123,7 @@ Recent decisions affecting current work:
 - Configure YooKassa webhook URL: https://adtrobot-production.up.railway.app/webhook/yookassa
 - Add GEONAMES_USERNAME to Railway environment
 - Run 07-01 migration on Railway: `alembic upgrade head`
+- Run 08-01 migration on Railway: `alembic upgrade head`
 
 ### Blockers/Concerns
 
@@ -124,8 +132,8 @@ From research:
 
 ## Session Continuity
 
-Last session: 2026-01-23 15:00
-Stopped at: Completed 07-03-PLAN.md (Premium Horoscopes)
+Last session: 2026-01-23 16:35
+Stopped at: Completed 08-01-PLAN.md (Celtic Cross + History)
 Resume file: None
 
 **What's Ready:**
@@ -211,7 +219,15 @@ Resume file: None
   - generate_premium_horoscope with 1-hour cache
   - Premium/free logic in handlers
   - Keyboard buttons for natal setup and subscription
+- **Celtic Cross + History complete (08-01):**
+  - TarotSpread model for history storage
+  - CelticCrossPrompt for 800-1200 word AI interpretations
+  - Celtic Cross 10-card spread as media group album
+  - Premium teaser for free users
+  - Spread history with pagination (5/page, 100 max)
+  - History detail view with cards and interpretation
+  - Premium 20/day limit, free 1/day limit
 
 **Next Steps:**
-- Phase 8: Premium Tarot + Natal (Celtic cross, reading history, natal chart display)
+- Phase 8-02: Natal chart display in profile
 - Phase 9: Admin Panel
