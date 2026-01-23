@@ -81,3 +81,8 @@ class User(Base):
     daily_spread_limit: Mapped[int] = mapped_column(
         SmallInteger, default=1, server_default="1"
     )
+
+    # Detailed natal purchase (one-time)
+    detailed_natal_purchased_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
