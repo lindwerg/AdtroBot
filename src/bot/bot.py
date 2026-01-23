@@ -9,6 +9,7 @@ from src.bot.handlers import (
     menu_router,
     profile_settings_router,
     start_router,
+    subscription_router,
     tarot_router,
 )
 from src.config import settings
@@ -18,9 +19,15 @@ from src.config import settings
 bot: Bot | None = None
 dp = Dispatcher(storage=MemoryStorage())
 
-# Register routers (order matters: start -> menu -> horoscope -> tarot -> profile_settings -> common)
+# Register routers (order matters: start -> menu -> subscription -> horoscope -> tarot -> profile_settings -> common)
 dp.include_routers(
-    start_router, menu_router, horoscope_router, tarot_router, profile_settings_router, common_router
+    start_router,
+    menu_router,
+    subscription_router,
+    horoscope_router,
+    tarot_router,
+    profile_settings_router,
+    common_router,
 )
 
 

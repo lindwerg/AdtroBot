@@ -7,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bot.handlers.horoscope import show_horoscope_message
+from src.bot.handlers.subscription import show_plans
 from src.bot.keyboards.main_menu import get_main_menu_keyboard
 from src.bot.keyboards.tarot import get_tarot_menu_keyboard
 from src.db.models.user import User
@@ -41,11 +42,9 @@ async def menu_tarot(message: Message) -> None:
 
 
 @router.message(F.text == "Подписка")
-async def menu_subscription(message: Message) -> None:
+async def menu_subscription(message: Message, session: AsyncSession) -> None:
     """Handle 'Подписка' button press."""
-    await message.answer(
-        "Подписка откроет доступ к детальным гороскопам и расширенным раскладам. Скоро!"
-    )
+    await show_plans(message, session)
 
 
 @router.message(F.text == "Профиль")
