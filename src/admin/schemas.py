@@ -208,3 +208,73 @@ class FunnelData(BaseModel):
 
     stages: list[FunnelStage]
     period_days: int
+
+
+# === Payments & Subscriptions Management Schemas ===
+
+
+class PaymentListItem(BaseModel):
+    """Payment item in list response."""
+
+    id: str
+    user_id: int
+    subscription_id: int | None
+    amount: int  # kopeks
+    currency: str
+    status: str
+    is_recurring: bool
+    description: str | None
+    created_at: datetime
+    paid_at: datetime | None
+
+    # Joined user info
+    user_telegram_id: int | None = None
+    user_username: str | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PaymentListResponse(BaseModel):
+    """Paginated payment list response."""
+
+    items: list[PaymentListItem]
+    total: int
+    page: int
+    page_size: int
+    total_amount: int  # Sum of succeeded payments (kopeks)
+
+
+class SubscriptionListItem(BaseModel):
+    """Subscription item in list response."""
+
+    id: int
+    user_id: int
+    plan: str
+    status: str
+    payment_method_id: str | None
+    started_at: datetime
+    current_period_start: datetime
+    current_period_end: datetime
+    canceled_at: datetime | None
+    created_at: datetime
+
+    # Joined user info
+    user_telegram_id: int | None = None
+    user_username: str | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class SubscriptionListResponse(BaseModel):
+    """Paginated subscription list response."""
+
+    items: list[SubscriptionListItem]
+    total: int
+    page: int
+    page_size: int
+
+
+class UpdateSubscriptionStatusRequest(BaseModel):
+    """Request to update subscription status."""
+
+    status: str  # active, canceled, expired
