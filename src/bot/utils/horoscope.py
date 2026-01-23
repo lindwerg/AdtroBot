@@ -2,11 +2,11 @@
 
 Phase 2: Mock horoscopes
 Phase 5: AI-powered generation with fallback
+Phase 12: PostgreSQL cache via HoroscopeCacheService
 """
 
-from datetime import date
-
-from src.services.ai import get_ai_service
+from src.db.engine import async_session_maker
+from src.services.horoscope_cache import get_horoscope_cache_service
 
 FALLBACK_MESSAGE = (
     "Сервис временно недоступен. Пожалуйста, попробуй через несколько минут.\n\n"
@@ -15,7 +15,7 @@ FALLBACK_MESSAGE = (
 
 
 async def get_horoscope_text(zodiac_name: str, zodiac_name_ru: str) -> str:
-    """Get horoscope text from AI (with caching) or return fallback.
+    """Get horoscope text from PostgreSQL cache or generate on-demand.
 
     Args:
         zodiac_name: English name (e.g., "Aries")
@@ -24,10 +24,10 @@ async def get_horoscope_text(zodiac_name: str, zodiac_name_ru: str) -> str:
     Returns:
         Horoscope text ready for display
     """
-    ai = get_ai_service()
-    date_str = date.today().strftime("%d.%m.%Y")
+    cache_service = get_horoscope_cache_service()
 
-    text = await ai.generate_horoscope(zodiac_name, zodiac_name_ru, date_str)
+    async with async_session_maker() as session:
+        text = await cache_service.get_horoscope(zodiac_name, session)
 
     if text:
         return text
