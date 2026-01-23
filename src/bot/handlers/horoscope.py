@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.bot.callbacks.horoscope import ZodiacCallback
 from src.bot.keyboards.horoscope import build_zodiac_keyboard
 from src.bot.utils.horoscope import get_horoscope_text
+from src.bot.utils.progress import generate_with_feedback
 from src.bot.utils.zodiac import ZODIAC_SIGNS
 from src.db.models.user import User
 from src.services.ai.client import get_ai_service
@@ -72,12 +73,16 @@ async def show_zodiac_horoscope(
                 longitude=user.birth_lon,
             )
             ai_service = get_ai_service()
-            text = await ai_service.generate_premium_horoscope(
-                user_id=callback.from_user.id,
-                zodiac_sign=sign_name,
-                zodiac_sign_ru=zodiac.name_ru,
-                date_str=date_str,
-                natal_data=natal_data,
+            text = await generate_with_feedback(
+                message=callback.message,
+                operation_type="horoscope",
+                ai_coro=ai_service.generate_premium_horoscope(
+                    user_id=callback.from_user.id,
+                    zodiac_sign=sign_name,
+                    zodiac_sign_ru=zodiac.name_ru,
+                    date_str=date_str,
+                    natal_data=natal_data,
+                ),
             )
             if text is None:
                 # Fallback to basic horoscope on error
@@ -165,12 +170,16 @@ async def show_horoscope_message(
                 longitude=user.birth_lon,
             )
             ai_service = get_ai_service()
-            text = await ai_service.generate_premium_horoscope(
-                user_id=message.from_user.id,
-                zodiac_sign=sign_name,
-                zodiac_sign_ru=zodiac.name_ru,
-                date_str=date_str,
-                natal_data=natal_data,
+            text = await generate_with_feedback(
+                message=message,
+                operation_type="horoscope",
+                ai_coro=ai_service.generate_premium_horoscope(
+                    user_id=message.from_user.id,
+                    zodiac_sign=sign_name,
+                    zodiac_sign_ru=zodiac.name_ru,
+                    date_str=date_str,
+                    natal_data=natal_data,
+                ),
             )
             if text is None:
                 # Fallback to basic horoscope on error
