@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 from fastapi.security import OAuth2PasswordRequestForm
@@ -14,8 +14,13 @@ from src.admin.schemas import (
     DashboardMetrics,
     FunnelData,
     GiftRequest,
+    MessageHistoryResponse,
     PaymentListResponse,
+    SendMessageRequest,
+    SendMessageResponse,
     SubscriptionListResponse,
+    TarotSpreadDetail,
+    TarotSpreadListResponse,
     Token,
     UpdateSubscriptionRequest,
     UpdateSubscriptionStatusRequest,
@@ -28,6 +33,12 @@ from src.admin.services.payments import (
     list_subscriptions,
     update_subscription_status,
 )
+from src.admin.services.messaging import (
+    cancel_scheduled_message,
+    get_message_history,
+    send_or_schedule_message,
+)
+from src.admin.services.spreads import get_spread_detail, get_spreads
 from src.admin.services.users import (
     bulk_action,
     get_user_detail,
@@ -237,3 +248,44 @@ async def update_sub_status(
     if not success:
         raise HTTPException(status_code=404, detail="Subscription not found")
     return {"status": "ok"}
+
+
+# Tarot spreads endpoints
+
+
+@admin_router.get("/tarot-spreads", response_model=TarotSpreadListResponse)
+async def list_tarot_spreads(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    user_id: int | None = Query(None),
+    search: str | None = Query(None, description="Search in question text"),
+    spread_type: str | None = Query(None),
+    date_from: datetime | None = Query(None),
+    date_to: datetime | None = Query(None),
+    session: AsyncSession = Depends(get_session),
+    current_admin: Admin = Depends(get_current_admin),
+) -> TarotSpreadListResponse:
+    """Get tarot spreads with filters."""
+    return await get_spreads(
+        session,
+        page=page,
+        page_size=page_size,
+        user_id=user_id,
+        search=search,
+        spread_type=spread_type,
+        date_from=date_from,
+        date_to=date_to,
+    )
+
+
+@admin_router.get("/tarot-spreads/{spread_id}", response_model=TarotSpreadDetail)
+async def get_tarot_spread(
+    spread_id: int = Path(...),
+    session: AsyncSession = Depends(get_session),
+    current_admin: Admin = Depends(get_current_admin),
+) -> TarotSpreadDetail:
+    """Get detailed spread info with cards and interpretation."""
+    spread = await get_spread_detail(session, spread_id)
+    if not spread:
+        raise HTTPException(status_code=404, detail="Spread not found")
+    return spread
