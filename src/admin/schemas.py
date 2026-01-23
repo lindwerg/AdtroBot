@@ -143,3 +143,68 @@ class BulkActionResponse(BaseModel):
     success_count: int
     failed_count: int
     errors: list[str]
+
+
+# === Dashboard Schemas ===
+
+
+class SparklinePoint(BaseModel):
+    """Single data point for sparkline chart."""
+
+    date: str  # YYYY-MM-DD
+    value: float
+
+
+class KPIMetric(BaseModel):
+    """KPI metric with trend and sparkline."""
+
+    value: float | int | str
+    trend: float  # percentage change vs previous period
+    sparkline: list[SparklinePoint]
+
+
+class DashboardMetrics(BaseModel):
+    """Dashboard KPI metrics response."""
+
+    # Growth & Activity
+    active_users_dau: KPIMetric
+    active_users_mau: KPIMetric
+    new_users_today: KPIMetric
+    retention_d7: KPIMetric
+
+    # Product Metrics
+    horoscopes_today: KPIMetric
+    tarot_spreads_today: KPIMetric
+    most_active_zodiac: str
+
+    # Revenue
+    revenue_today: KPIMetric
+    revenue_month: KPIMetric
+    conversion_rate: KPIMetric
+    arpu: KPIMetric
+
+    # Bot Health (placeholder - requires logging)
+    error_rate: KPIMetric | None
+    avg_response_time: KPIMetric | None
+
+    # API Costs (placeholder - requires OpenRouter tracking)
+    api_costs_today: KPIMetric | None
+    api_costs_month: KPIMetric | None
+
+
+class FunnelStage(BaseModel):
+    """Single stage in conversion funnel."""
+
+    name: str
+    name_ru: str
+    value: int
+    conversion_from_prev: float | None  # None for first stage
+    dropoff_count: int | None  # None for first stage
+    dropoff_percent: float | None  # None for first stage
+
+
+class FunnelData(BaseModel):
+    """Conversion funnel data."""
+
+    stages: list[FunnelStage]
+    period_days: int
