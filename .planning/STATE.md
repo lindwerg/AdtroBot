@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-22)
 ## Current Position
 
 Phase: 10 of 10 (Improve Natal Chart)
-Plan: 2 of 4 completed in Phase 10
-Status: Phase 10 in progress
-Last activity: 2026-01-23 — Completed 10-03: AI prompt & generator for detailed natal
+Plan: 4 of 4 completed in Phase 10
+Status: Phase 10 COMPLETE
+Last activity: 2026-01-23 — Completed 10-04: UI handler for detailed natal purchase
 
-Progress: [████████████████████] 100% (21/21 plans)
+Progress: [████████████████████] 100% (23/23 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 21
+- Total plans completed: 23
 - Average duration: 7 min
-- Total execution time: 156 min
+- Total execution time: 169 min
 
 **By Phase:**
 
@@ -35,10 +35,10 @@ Progress: [████████████████████] 100% (2
 | 6 | 3/3 | 11 min | 4 min |
 | 7 | 3/3 | 17 min | 6 min |
 | 8 | 3/3 | 18 min | 6 min |
-| 10 | 2/4 | 9 min | 5 min |
+| 10 | 4/4 | 13 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 08-01 (7 min), 08-02 (8 min), 08-03 (3 min), 10-02 (6 min), 10-03 (3 min)
+- Last 5 plans: 08-03 (3 min), 10-02 (6 min), 10-03 (3 min), 10-04 (4 min)
 - Trend: Consistent fast execution
 
 *Updated after each plan completion*
@@ -138,6 +138,10 @@ Recent decisions affecting current work:
 - DetailedNatalPrompt: 8 sections, 3600+ min words for detailed interpretation
 - Sectioned generation: generate each section independently with validation
 - 7-day cache for detailed natal interpretations (604800s TTL)
+- NatalChartPrompt shortened to 250-350 words (teaser for detailed)
+- User-state-based keyboards (free/premium/purchased)
+- Button under photo via reply_markup on answer_photo
+- 15s Telegraph timeout for detailed natal publishing
 
 ### Roadmap Evolution
 
@@ -174,7 +178,7 @@ From research:
 ## Session Continuity
 
 Last session: 2026-01-23
-Stopped at: Completed 10-03 (AI prompt & generator for detailed natal)
+Stopped at: Completed 10-04 (UI handler for detailed natal purchase)
 Resume file: None
 
 **What's Ready:**
@@ -297,6 +301,13 @@ Resume file: None
   - validate_detailed_natal() and validate_detailed_natal_section() validators
   - generate_detailed_natal_interpretation() with sectioned generation
   - 7-day cache for detailed interpretations (604800s TTL)
+- **Detailed Natal Purchase UI complete (10-04):**
+  - NatalChartPrompt shortened to 250-350 words (teaser)
+  - NatalAction.BUY_DETAILED and SHOW_DETAILED enum values
+  - Keyboards: get_natal_with_buy_keyboard, get_natal_with_open_keyboard, get_free_natal_keyboard
+  - show_natal_chart sends photo with reply_markup based on user status
+  - buy_detailed_natal handler creates YooKassa payment (199 RUB)
+  - show_detailed_natal handler generates/caches and displays via Telegraph
 
 **Next Steps:**
-- 10-04: UI handler for detailed natal purchase and display
+- Phase 10 complete! All natal chart improvements implemented.
