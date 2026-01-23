@@ -26,6 +26,7 @@ from src.bot.keyboards.natal import (
 )
 from src.db.models.detailed_natal import DetailedNatal
 from src.db.models.user import User
+from src.bot.utils.progress import generate_with_feedback
 from src.services.ai import get_ai_service
 from src.services.payment.client import create_payment
 from src.services.payment.schemas import PLAN_PRICES_STR, PaymentPlan
@@ -59,13 +60,11 @@ async def show_natal_chart(
         user: User with birth data
         session: Database session
     """
-    # Show loading message
-    loading_msg = await message.answer("Составляю натальную карту...")
+    # Get timezone (use saved or default to Europe/Moscow)
+    timezone_str = user.timezone or "Europe/Moscow"
 
-    try:
-        # Get timezone (use saved or default to Europe/Moscow)
-        timezone_str = user.timezone or "Europe/Moscow"
-
+    async def _generate_natal() -> tuple[dict, bytes, str | None]:
+        """Inner function to generate all natal data with typing indicator."""
         # Calculate full natal chart
         natal_data = calculate_full_natal_chart(
             birth_date=user.birth_date,
@@ -83,6 +82,16 @@ async def show_natal_chart(
         interpretation = await ai_service.generate_natal_interpretation(
             user_id=user.telegram_id,
             natal_data=natal_data,
+        )
+
+        return natal_data, png_bytes, interpretation
+
+    try:
+        # Generate natal data with typing indicator and progress message
+        natal_data, png_bytes, interpretation = await generate_with_feedback(
+            message=message,
+            operation_type="natal",
+            ai_coro=_generate_natal(),
         )
 
         # Try to publish to Telegraph if interpretation exists
@@ -104,9 +113,6 @@ async def show_natal_chart(
                 logger.error(
                     "telegraph_error", user_id=user.telegram_id, error=str(e)
                 )
-
-        # Delete loading message
-        await loading_msg.delete()
 
         # Determine keyboard based on user status
         if user.detailed_natal_purchased_at:
@@ -149,7 +155,7 @@ async def show_natal_chart(
             user_id=user.telegram_id,
             error=str(e),
         )
-        await loading_msg.edit_text(
+        await message.answer(
             "Произошла ошибка при построении натальной карты. "
             "Попробуйте позже."
         )
@@ -413,11 +419,8 @@ async def show_detailed_natal(
     result = await session.execute(stmt)
     cached = result.scalar_one_or_none()
 
-    loading_msg = await callback.message.answer("Загружаю детальный разбор...")
-
     if cached and cached.telegraph_url:
-        # Use cached Telegraph URL
-        await loading_msg.delete()
+        # Use cached Telegraph URL (no loading needed)
         await callback.message.answer(
             "Твой детальный разбор личности готов!",
             reply_markup=InlineKeyboardMarkup(
@@ -435,16 +438,17 @@ async def show_detailed_natal(
         )
         return
 
-    # Generate or regenerate
-    try:
-        # Check birth data
-        if not user.birth_lat or not user.birth_lon or not user.birth_date:
-            await loading_msg.edit_text(
-                "Для детального разбора нужны данные рождения.",
-                reply_markup=get_natal_setup_keyboard(),
-            )
-            return
+    # Check birth data before generation
+    if not user.birth_lat or not user.birth_lon or not user.birth_date:
+        await callback.message.answer(
+            "Для детального разбора нужны данные рождения.",
+            reply_markup=get_natal_setup_keyboard(),
+        )
+        return
 
+    # Generate or regenerate with typing indicator
+    async def _generate_detailed() -> str | None:
+        """Inner function to generate detailed natal interpretation."""
         # Calculate natal chart
         natal_data = calculate_full_natal_chart(
             birth_date=user.birth_date,
@@ -456,15 +460,20 @@ async def show_detailed_natal(
 
         # Generate detailed interpretation
         ai_service = get_ai_service()
-        interpretation = await ai_service.generate_detailed_natal_interpretation(
+        return await ai_service.generate_detailed_natal_interpretation(
             user_id=user.telegram_id,
             natal_data=natal_data,
         )
 
+    try:
+        interpretation = await generate_with_feedback(
+            message=callback.message,
+            operation_type="natal",
+            ai_coro=_generate_detailed(),
+        )
+
         if not interpretation:
-            await loading_msg.edit_text(
-                "Ошибка генерации. Попробуй позже."
-            )
+            await callback.message.answer("Ошибка генерации. Попробуй позже.")
             return
 
         # Publish to Telegraph
@@ -491,8 +500,6 @@ async def show_detailed_natal(
         session.add(detailed)
         await session.commit()
 
-        await loading_msg.delete()
-
         if telegraph_url:
             await callback.message.answer(
                 "Твой детальный разбор личности готов!",
@@ -514,4 +521,4 @@ async def show_detailed_natal(
 
     except Exception as e:
         logger.error("show_detailed_natal_error", error=str(e))
-        await loading_msg.edit_text("Ошибка. Попробуй позже.")
+        await callback.message.answer("Ошибка. Попробуй позже.")

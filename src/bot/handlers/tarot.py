@@ -44,6 +44,7 @@ from src.bot.utils.tarot_cards import (
     get_ten_cards,
     get_three_cards,
 )
+from src.bot.utils.progress import generate_with_feedback
 from src.bot.utils.tarot_formatting import (
     format_card_of_day_with_ai,
     format_celtic_cross_with_ai,
@@ -428,12 +429,14 @@ async def tarot_draw_three_cards(
         if i < 2:  # Don't sleep after last card
             await asyncio.sleep(1)
 
-    # Get AI interpretation
+    # Get AI interpretation with typing indicator
     ai = get_ai_service()
     cards_data = [card for card, _ in cards]
     is_reversed_list = [reversed_flag for _, reversed_flag in cards]
-    interpretation = await ai.generate_tarot_interpretation(
-        question, cards_data, is_reversed_list
+    interpretation = await generate_with_feedback(
+        message=callback.message,
+        operation_type="tarot",
+        ai_coro=ai.generate_tarot_interpretation(question, cards_data, is_reversed_list),
     )
 
     # Save to history
@@ -611,19 +614,15 @@ async def tarot_draw_celtic_cards(
 
     await callback.message.answer_media_group(media_group)
 
-    # Show "thinking" message while AI processes
-    thinking_msg = await callback.message.answer("Читаю расклад...")
-
-    # Get AI interpretation (longer response)
+    # Get AI interpretation with typing indicator
     ai = get_ai_service()
     cards_data = [card for card, _ in cards]
     is_reversed_list = [reversed_flag for _, reversed_flag in cards]
-    interpretation = await ai.generate_celtic_cross(
-        question, cards_data, is_reversed_list
+    interpretation = await generate_with_feedback(
+        message=callback.message,
+        operation_type="tarot",
+        ai_coro=ai.generate_celtic_cross(question, cards_data, is_reversed_list),
     )
-
-    # Delete thinking message
-    await thinking_msg.delete()
 
     # Save to history
     if user_db_id:
