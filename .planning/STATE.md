@@ -332,6 +332,12 @@ Resume file: None
   - Dashboard placeholder
   - ProLayout with 7 menu items
 
+- **Dashboard Metrics API complete (09-03):**
+  - GET /admin/dashboard - returns KPI metrics (DAU, MAU, revenue, conversion, ARPU)
+  - GET /admin/funnel?days=30 - returns 6-stage conversion funnel with drop-off
+  - Sparkline data for 7-day trends
+  - Analytics service: get_dashboard_metrics, get_funnel_data, get_sparkline_data
+
 - **User Management API complete (09-04):**
   - GET /admin/users: paginated list with search/filters
   - GET /admin/users/{id}: full user detail with history
