@@ -1,9 +1,12 @@
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 import structlog
 from aiogram.types import Update
 from fastapi import BackgroundTasks, FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from src.admin.router import admin_router
 from src.bot.bot import dp, get_bot
@@ -78,6 +81,21 @@ app.add_middleware(
 
 # Include admin router
 app.include_router(admin_router)
+
+# Serve admin frontend static files
+admin_frontend_path = Path(__file__).parent.parent / "admin-frontend" / "dist"
+if admin_frontend_path.exists():
+    app.mount(
+        "/admin/assets",
+        StaticFiles(directory=admin_frontend_path / "assets"),
+        name="admin-assets",
+    )
+
+    @app.get("/admin/")
+    @app.get("/admin/{full_path:path}")
+    async def serve_admin_spa(full_path: str = ""):
+        """Serve admin SPA for all /admin/* routes."""
+        return FileResponse(admin_frontend_path / "index.html")
 
 
 @app.get("/health")
