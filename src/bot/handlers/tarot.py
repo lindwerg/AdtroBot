@@ -4,11 +4,20 @@ import asyncio
 from datetime import datetime
 
 import pytz
+import structlog
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, InputMediaPhoto, Message
+from aiogram.types import (
+    CallbackQuery,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    InputMediaPhoto,
+    Message,
+)
 from sqlalchemy import desc, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
+
+logger = structlog.get_logger()
 
 from src.bot.callbacks.tarot import (
     HistoryAction,
@@ -57,6 +66,9 @@ DAILY_SPREAD_LIMIT_PREMIUM = 20
 # History settings
 HISTORY_PAGE_SIZE = 5
 MAX_HISTORY_SPREADS = 100
+
+# Telegraph timeout (seconds)
+TELEGRAPH_TIMEOUT = 10.0
 
 # Celtic Cross positions
 CELTIC_CROSS_POSITIONS = [
@@ -624,9 +636,45 @@ async def tarot_draw_celtic_cards(
             interpretation=interpretation,
         )
 
-    # Send interpretation directly
-    content = format_celtic_cross_with_ai(cards, question, interpretation)
-    await callback.message.answer(**content.as_kwargs())
+    # Try to publish to Telegraph if interpretation exists
+    telegraph_url = None
+    if interpretation:
+        try:
+            telegraph_service = get_telegraph_service()
+            # Truncate question for title if too long
+            question_short = question[:50] + "..." if len(question) > 50 else question
+            title = f"Кельтский крест — {question_short}"
+
+            telegraph_url = await asyncio.wait_for(
+                telegraph_service.publish_article(title, interpretation),
+                timeout=TELEGRAPH_TIMEOUT,
+            )
+        except asyncio.TimeoutError:
+            logger.warning("telegraph_celtic_timeout")
+        except Exception as e:
+            logger.error("telegraph_celtic_error", error=str(e))
+
+    # Send result based on Telegraph success/failure
+    if telegraph_url:
+        # Success: send message with button to Telegraph article
+        keyboard = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text="Посмотреть интерпретацию",
+                        url=telegraph_url,
+                    )
+                ]
+            ]
+        )
+        await callback.message.answer(
+            "Твой расклад готов!",
+            reply_markup=keyboard,
+        )
+    else:
+        # Fallback: send interpretation directly using existing formatter
+        content = format_celtic_cross_with_ai(cards, question, interpretation)
+        await callback.message.answer(**content.as_kwargs())
 
     # Show limit
     limit_text = format_limit_message(remaining, is_premium)
