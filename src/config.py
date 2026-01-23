@@ -41,6 +41,12 @@ class Settings(BaseSettings):
         default_factory=lambda: secrets.token_urlsafe(32),
     )
 
+    # OpenRouter
+    openrouter_api_key: str = Field(
+        default="",
+        validation_alias="OPENROUTER_API_KEY",
+    )
+
     @property
     def async_database_url(self) -> str:
         """Convert postgresql:// to postgresql+asyncpg:// if needed."""
