@@ -121,7 +121,7 @@ Plans:
 - [x] 06-03-PLAN.md — Subscription handlers (plan selection, payment flow, profile integration, limit checks, notifications)
 
 ### Phase 7: Premium Horoscopes
-**Goal**: Платный пользователь получает детальные гороскопы по сферам жизни
+**Goal**: Платный пользователь получает детальные гороскопы по сферам жизни с персонализацией на основе натальной карты
 **Depends on**: Phase 6
 **Requirements**: HORO-04, HORO-05, AUTH-04
 **Success Criteria** (what must be TRUE):
@@ -129,10 +129,12 @@ Plans:
   2. Платный пользователь может ввести время и место рождения для персонализации
   3. Платный пользователь получает персональный прогноз на основе своих данных
   4. Бесплатный пользователь видит teaser premium контента
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 07-01: Premium horoscope features
+- [ ] 07-01-PLAN.md — Astrology infrastructure (User birth fields, flatlib natal chart, GeoNames geocoding)
+- [ ] 07-02-PLAN.md — Birth data FSM (time/city input, city selection, profile integration)
+- [ ] 07-03-PLAN.md — Premium horoscope handlers (PremiumHoroscopePrompt, premium/free logic, teaser)
 
 ### Phase 8: Premium Tarot + Natal
 **Goal**: Платный пользователь получает расширенные расклады таро и натальную карту
@@ -179,7 +181,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 4. Free Tarot | 2/2 | Complete | 2026-01-22 |
 | 5. AI Integration | 2/2 | Complete | 2026-01-23 |
 | 6. Payments | 3/3 | Complete | 2026-01-23 |
-| 7. Premium Horoscopes | 0/1 | Not started | - |
+| 7. Premium Horoscopes | 0/3 | Not started | - |
 | 8. Premium Tarot + Natal | 0/2 | Not started | - |
 | 9. Admin Panel | 0/2 | Not started | - |
 
