@@ -53,11 +53,12 @@ Plans:
   3. После restart приложения кэш восстанавливается из PostgreSQL
   4. horoscopes_today показывает реальное количество просмотров в админке
   5. Race condition при одновременных запросах не создает дубликатов генерации
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 12-01: TBD
-- [ ] 12-02: TBD
+- [ ] 12-01-PLAN.md — PostgreSQL schema: HoroscopeCache + HoroscopeView tables
+- [ ] 12-02-PLAN.md — HoroscopeCacheService с per-key locking + background job
+- [ ] 12-03-PLAN.md — Интеграция в handlers + admin dashboard
 
 ### Phase 13: Image Generation
 **Goal**: Все изображения сгенерированы в едином стиле и готовы к интеграции
@@ -133,7 +134,7 @@ Phases execute in numeric order: 11 -> 11.1 -> 11.2 -> 12 -> ... -> 16
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 11. Performance & UX Quick Wins | v2.0 | 3/3 | Complete | 2026-01-23 |
-| 12. Caching & Background Jobs | v2.0 | 0/TBD | Not started | - |
+| 12. Caching & Background Jobs | v2.0 | 0/3 | Planned | - |
 | 13. Image Generation | v2.0 | 0/TBD | Not started | - |
 | 14. Visual Integration | v2.0 | 0/TBD | Not started | - |
 | 15. Monitoring & Observability | v2.0 | 0/TBD | Not started | - |
@@ -141,4 +142,4 @@ Phases execute in numeric order: 11 -> 11.1 -> 11.2 -> 12 -> ... -> 16
 
 ---
 *Roadmap created: 2026-01-23*
-*Last updated: 2026-01-23 (Phase 11 complete)*
+*Last updated: 2026-01-23 (Phase 12 planned)*
