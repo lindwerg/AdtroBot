@@ -2,7 +2,7 @@
 
 import structlog
 from aiogram import F, Router
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -86,10 +86,17 @@ async def handle_plan_selection(
 
         confirmation_url = payment.confirmation.confirmation_url
 
+        # Create inline button with payment URL
+        keyboard = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [InlineKeyboardButton(text="💳 Оплатить", url=confirmation_url)]
+            ]
+        )
+
         await callback.message.edit_text(
-            f"Отлично! Перейдите по ссылке для оплаты:\n\n"
-            f"{confirmation_url}\n\n"
-            f"После оплаты подписка активируется автоматически."
+            "Отлично! Нажмите кнопку для перехода к оплате.\n\n"
+            "После оплаты подписка активируется автоматически.",
+            reply_markup=keyboard,
         )
 
     except Exception as e:
