@@ -36,11 +36,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Markdown разметка не видна в сообщениях (корректный parse_mode)
   4. Пользователь понимает разницу между общим и персональным гороскопом
   5. BotFather description настроен для поиска бота
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 11-01: TBD
-- [ ] 11-02: TBD
+- [ ] 11-01-PLAN.md — Typing indicators + progress messages для AI операций
+- [ ] 11-02-PLAN.md — Welcome flow: engaging текст, /help, /about, BotFather setup
+- [ ] 11-03-PLAN.md — UX гороскопов: разделение общий/персональный, улучшенный onboarding
 
 ### Phase 12: Caching & Background Jobs
 **Goal**: Гороскопы загружаются мгновенно из кэша, AI генерация происходит в фоне
@@ -131,7 +132,7 @@ Phases execute in numeric order: 11 -> 11.1 -> 11.2 -> 12 -> ... -> 16
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 11. Performance & UX Quick Wins | v2.0 | 0/TBD | Not started | - |
+| 11. Performance & UX Quick Wins | v2.0 | 0/3 | Planned | - |
 | 12. Caching & Background Jobs | v2.0 | 0/TBD | Not started | - |
 | 13. Image Generation | v2.0 | 0/TBD | Not started | - |
 | 14. Visual Integration | v2.0 | 0/TBD | Not started | - |
