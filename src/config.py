@@ -47,6 +47,12 @@ class Settings(BaseSettings):
         validation_alias="OPENROUTER_API_KEY",
     )
 
+    # GeoNames
+    geonames_username: str = Field(
+        default="demo",  # Create account at geonames.org for production
+        validation_alias="GEONAMES_USERNAME",
+    )
+
     # YooKassa
     yookassa_shop_id: str = Field(
         default="",
