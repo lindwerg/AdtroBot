@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-22)
 
 **Core value:** Качественная AI интерпретация астрологии и таро, которая конвертирует бесплатных пользователей в платных
-**Current focus:** Phase 6 - Subscription System
+**Current focus:** Phase 6 Complete - Ready for Phase 7
 
 ## Current Position
 
 Phase: 6 of 9 (Subscription System)
-Plan: 2 of 3 completed in Phase 6
-Status: In progress
-Last activity: 2026-01-23 09:52 — Completed 06-02-PLAN.md (Payment Service + Webhook)
+Plan: 3 of 3 completed in Phase 6
+Status: Phase 6 COMPLETE
+Last activity: 2026-01-23 10:00 — Completed 06-03-PLAN.md (Subscription Handlers)
 
-Progress: [██████░░░░] 67% (Phase 6)
+Progress: [██████████] 100% (Phase 6)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 12
+- Total plans completed: 13
 - Average duration: 9 min
-- Total execution time: 108 min
+- Total execution time: 112 min
 
 **By Phase:**
 
@@ -32,10 +32,10 @@ Progress: [██████░░░░] 67% (Phase 6)
 | 3 | 2/2 | 10 min | 5 min |
 | 4 | 2/2 | 13 min | 7 min |
 | 5 | 2/2 | 13 min | 7 min |
-| 6 | 2/3 | 7 min | 4 min |
+| 6 | 3/3 | 11 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 05-01 (5 min), 05-02 (8 min), 06-01 (4 min), 06-02 (3 min)
+- Last 5 plans: 05-02 (8 min), 06-01 (4 min), 06-02 (3 min), 06-03 (4 min)
 - Trend: Consistent fast execution
 
 *Updated after each plan completion*
@@ -95,6 +95,9 @@ Recent decisions affecting current work:
 - asyncio.to_thread для YooKassa sync SDK
 - BackgroundTasks для webhook processing (return 200 immediately)
 - IP whitelist only in production
+- Retention offer: "20% скидка" при попытке отмены
+- Atomic limit check: UPDATE...RETURNING предотвращает race conditions
+- Auto-renewal: 09:00 MSK, за 1 день до истечения
 
 ### Pending Todos
 
@@ -112,8 +115,8 @@ From research:
 
 ## Session Continuity
 
-Last session: 2026-01-23 09:52
-Stopped at: Completed 06-02-PLAN.md
+Last session: 2026-01-23 10:00
+Stopped at: Completed 06-03-PLAN.md (Phase 6 Complete)
 Resume file: None
 
 **What's Ready:**
@@ -176,9 +179,16 @@ Resume file: None
   - Subscription service: activate_subscription, cancel_subscription, get_user_subscription
   - /webhook/yookassa endpoint with IP whitelist and BackgroundTasks
   - Idempotent webhook processing via webhook_processed flag
+- **Subscription Handlers complete (06-03):**
+  - show_plans: premium features + plan selection
+  - handle_plan_selection: creates YooKassa payment, returns URL
+  - Cancel flow with retention offer ("скидка 20%")
+  - Profile shows subscription status, expiry, cancel button
+  - Atomic limit check in tarot (UPDATE...RETURNING)
+  - Scheduler: auto_renew_subscriptions (09:00), check_expiring_subscriptions (10:00)
 
 **Next Steps:**
 - Add YOOKASSA_SHOP_ID and YOOKASSA_SECRET_KEY to Railway
 - Configure YooKassa webhook URL in YooKassa dashboard
 - Run `alembic upgrade head` on Railway
-- Phase 6 Plan 03: Subscription Bot Handlers
+- Phase 7: Premium Features (detailed horoscopes, Celtic Cross)
