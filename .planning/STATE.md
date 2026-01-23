@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-22)
 ## Current Position
 
 Phase: 8 of 9 (Premium Tarot + Natal)
-Plan: 3 of 3 completed in Phase 8 (including gap plan)
-Status: Phase 8 complete
-Last activity: 2026-01-23 17:31 — Completed 08-03-PLAN.md (Telegraph Integration)
+Plan: 3 of 3 completed in Phase 8
+Status: Phase 8 complete with gap closure
+Last activity: 2026-01-23 17:30 — Completed 08-03-PLAN.md (Telegraph Integration)
 
-Progress: [███████████████████] 95% (19/20 plans)
+Progress: [███████████████████░] 95% (19/20 plans)
 
 ## Performance Metrics
 
@@ -117,6 +117,10 @@ Recent decisions affecting current work:
 - UTC timezone conversion для точных расчётов натальной карты
 - 24-hour cache для natal interpretation (карта не меняется)
 - Main menu 2x3 grid с кнопкой "Натальная карта"
+- Telegraph для длинных интерпретаций (asyncio.to_thread для sync API)
+- Emoji header detection для Telegraph форматирования
+- 10-секунд timeout для Telegraph publish
+- Graceful fallback на _split_text() при Telegraph failure
 - asyncio.to_thread() для синхронного Telegraph SDK
 - 10s timeout для Telegraph публикации, fallback на текст при неудаче
 - Inline button "Посмотреть интерпретацию" для Telegraph статей
