@@ -3,6 +3,7 @@ import { useAuthStore } from '@/store/auth'
 import Layout from '@/components/Layout'
 import LoginPage from '@/pages/Login'
 import Dashboard from '@/pages/Dashboard'
+import UsersPage from '@/pages/Users'
 
 // Auth check loader
 async function requireAuth() {
@@ -34,7 +35,7 @@ export const router = createBrowserRouter([
     loader: requireAuth,
     children: [
       { index: true, element: <Dashboard /> },
-      { path: 'users', element: <div>Users Page (Coming soon)</div> },
+      { path: 'users', element: <UsersPage /> },
       { path: 'users/:id', element: <div>User Detail (Coming soon)</div> },
       { path: 'subscriptions', element: <div>Subscriptions (Coming soon)</div> },
       { path: 'payments', element: <div>Payments (Coming soon)</div> },
