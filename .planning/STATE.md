@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-01-22)
 
 **Core value:** Качественная AI интерпретация астрологии и таро, которая конвертирует бесплатных пользователей в платных
-**Current focus:** Phase 7 - Premium Horoscopes
+**Current focus:** Phase 7 Complete - Ready for Phase 8
 
 ## Current Position
 
@@ -213,5 +213,5 @@ Resume file: None
   - Keyboard buttons for natal setup and subscription
 
 **Next Steps:**
-- Phase 8: Testing and QA
-- Phase 9: Launch preparation
+- Phase 8: Premium Tarot + Natal (Celtic cross, reading history, natal chart display)
+- Phase 9: Admin Panel
