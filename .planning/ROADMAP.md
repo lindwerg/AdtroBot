@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Bot Core + Onboarding** - Telegram webhook, /start, регистрация, дата рождения
 - [x] **Phase 3: Free Horoscopes** - Ежедневный гороскоп для всех знаков, уведомления
 - [x] **Phase 4: Free Tarot** - Карта дня, расклад 3 карты, колода Райдер-Уэйт
-- [ ] **Phase 5: AI Integration** - OpenRouter, Claude 3.5 Sonnet, AI интерпретации
+- [ ] **Phase 5: AI Integration** - OpenRouter, GPT-4o-mini, AI интерпретации
 - [ ] **Phase 6: Payments** - ЮКасса интеграция, подписки, webhook обработка
 - [ ] **Phase 7: Premium Horoscopes** - Детальные гороскопы по сферам, персональный прогноз
 - [ ] **Phase 8: Premium Tarot + Natal** - Кельтский крест, натальная карта, история раскладов
@@ -97,11 +97,11 @@ Plans:
   3. AI персонализирует ответы (упоминает знак зодиака, конкретные карты)
   4. При timeout AI система использует fallback (cached ответ или альтернативная модель)
   5. Output от AI валидируется перед отправкой пользователю
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 05-01: OpenRouter integration + prompts
-- [ ] 05-02: AI service + fallbacks
+- [ ] 05-01-PLAN.md — AI service layer (OpenRouter client, prompts, validators, cache)
+- [ ] 05-02-PLAN.md — Handler integration (horoscope + tarot AI, fallbacks)
 
 ### Phase 6: Payments
 **Goal**: Пользователь может оформить и управлять платной подпиской
