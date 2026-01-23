@@ -118,12 +118,12 @@ Which phases cover which requirements.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | PERF-01 | Phase 11 | Complete |
-| PERF-02 | Phase 12 | Pending |
-| PERF-03 | Phase 12 | Pending |
+| PERF-02 | Phase 12 | Complete |
+| PERF-03 | Phase 12 | Complete |
 | PERF-04 | Phase 11 | Complete |
 | PERF-05 | Phase 14 | Pending |
-| PERF-06 | Phase 12 | Pending |
-| PERF-07 | Phase 12 | Pending |
+| PERF-06 | Phase 12 | Complete |
+| PERF-07 | Phase 12 | Complete |
 | VIS-01 | Phase 14 | Pending |
 | VIS-02 | Phase 14 | Pending |
 | VIS-03 | Phase 14 | Pending |
@@ -139,7 +139,7 @@ Which phases cover which requirements.
 | WEL-02 | Phase 11 | Complete |
 | WEL-03 | Phase 14 | Pending |
 | WEL-04 | Phase 11 | Complete |
-| MON-01 | Phase 12 | Pending |
+| MON-01 | Phase 12 | Complete |
 | MON-02 | Phase 15 | Pending |
 | MON-03 | Phase 15 | Pending |
 | MON-04 | Phase 15 | Pending |

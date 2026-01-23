@@ -18,7 +18,7 @@ v2.0 доводит MVP до production-ready состояния: критиче
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 11: Performance & UX Quick Wins** - Критические UX-фиксы без новых зависимостей
-- [ ] **Phase 12: Caching & Background Jobs** - PostgreSQL cache + фоновая генерация гороскопов
+- [x] **Phase 12: Caching & Background Jobs** - PostgreSQL cache + фоновая генерация гороскопов
 - [ ] **Phase 13: Image Generation** - AI генерация всех изображений (Together.ai)
 - [ ] **Phase 14: Visual Integration** - Интеграция изображений в бот + onboarding
 - [ ] **Phase 15: Monitoring & Observability** - Prometheus metrics + health checks + dashboard
@@ -56,9 +56,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 12-01-PLAN.md — PostgreSQL schema: HoroscopeCache + HoroscopeView tables
-- [ ] 12-02-PLAN.md — HoroscopeCacheService с per-key locking + background job
-- [ ] 12-03-PLAN.md — Интеграция в handlers + admin dashboard
+- [x] 12-01-PLAN.md — PostgreSQL schema: HoroscopeCache + HoroscopeView tables
+- [x] 12-02-PLAN.md — HoroscopeCacheService с per-key locking + background job
+- [x] 12-03-PLAN.md — Интеграция в handlers + admin dashboard
 
 ### Phase 13: Image Generation
 **Goal**: Все изображения сгенерированы в едином стиле и готовы к интеграции
@@ -134,7 +134,7 @@ Phases execute in numeric order: 11 -> 11.1 -> 11.2 -> 12 -> ... -> 16
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 11. Performance & UX Quick Wins | v2.0 | 3/3 | Complete | 2026-01-23 |
-| 12. Caching & Background Jobs | v2.0 | 0/3 | Planned | - |
+| 12. Caching & Background Jobs | v2.0 | 3/3 | Complete | 2026-01-23 |
 | 13. Image Generation | v2.0 | 0/TBD | Not started | - |
 | 14. Visual Integration | v2.0 | 0/TBD | Not started | - |
 | 15. Monitoring & Observability | v2.0 | 0/TBD | Not started | - |
@@ -142,4 +142,4 @@ Phases execute in numeric order: 11 -> 11.1 -> 11.2 -> 12 -> ... -> 16
 
 ---
 *Roadmap created: 2026-01-23*
-*Last updated: 2026-01-23 (Phase 12 planned)*
+*Last updated: 2026-01-23 (Phase 12 complete)*
