@@ -62,6 +62,19 @@ async def create_payment(
             "user_id": str(user_id),
             **(metadata or {}),
         },
+        "receipt": {
+            "customer": {"email": "customer@adtrobot.ru"},
+            "items": [
+                {
+                    "description": description,
+                    "quantity": "1",
+                    "amount": {"value": amount, "currency": "RUB"},
+                    "vat_code": 1,  # НДС не облагается
+                    "payment_subject": "service",
+                    "payment_mode": "full_payment",
+                }
+            ],
+        },
     }
 
     def _create():
@@ -110,6 +123,19 @@ async def create_recurring_payment(
             "user_id": str(user_id),
             "subscription_id": str(subscription_id),
             "type": "recurring",
+        },
+        "receipt": {
+            "customer": {"email": "customer@adtrobot.ru"},
+            "items": [
+                {
+                    "description": description,
+                    "quantity": "1",
+                    "amount": {"value": amount, "currency": "RUB"},
+                    "vat_code": 1,
+                    "payment_subject": "service",
+                    "payment_mode": "full_payment",
+                }
+            ],
         },
     }
 
