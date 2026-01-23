@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-22)
 
 **Core value:** Качественная AI интерпретация астрологии и таро, которая конвертирует бесплатных пользователей в платных
-**Current focus:** Phase 8 Complete (with Telegraph gap plan) - Ready for Phase 9
+**Current focus:** Phase 10 In Progress - Natal Chart Improvements
 
 ## Current Position
 
-Phase: 8 of 9 (Premium Tarot + Natal)
-Plan: 3 of 3 completed in Phase 8
-Status: Phase 8 complete with gap closure
-Last activity: 2026-01-23 17:50 — Completed quick-001: NatalChartOutput validator fix
+Phase: 10 of 10 (Improve Natal Chart)
+Plan: 1 of 4 completed in Phase 10
+Status: Phase 10 in progress
+Last activity: 2026-01-23 — Completed 10-02: Payment infrastructure for detailed natal
 
-Progress: [███████████████████░] 95% (19/20 plans)
+Progress: [████████████████████] 100% (20/20 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 19
+- Total plans completed: 20
 - Average duration: 8 min
-- Total execution time: 147 min
+- Total execution time: 153 min
 
 **By Phase:**
 
@@ -35,9 +35,10 @@ Progress: [███████████████████░] 95% (19
 | 6 | 3/3 | 11 min | 4 min |
 | 7 | 3/3 | 17 min | 6 min |
 | 8 | 3/3 | 18 min | 6 min |
+| 10 | 1/4 | 6 min | 6 min |
 
 **Recent Trend:**
-- Last 5 plans: 07-02 (6 min), 07-03 (5 min), 08-01 (7 min), 08-02 (8 min), 08-03 (3 min)
+- Last 5 plans: 07-03 (5 min), 08-01 (7 min), 08-02 (8 min), 08-03 (3 min), 10-02 (6 min)
 - Trend: Consistent fast execution
 
 *Updated after each plan completion*
@@ -125,6 +126,16 @@ Recent decisions affecting current work:
 - 10s timeout для Telegraph публикации, fallback на текст при неудаче
 - Inline button "Посмотреть интерпретацию" для Telegraph статей
 
+**Phase 10 (Improve Natal Chart):**
+- DETAILED_NATAL one-time purchase (199 RUB, not subscription)
+- User.detailed_natal_purchased_at for purchase tracking
+- DetailedNatal model for caching 3000-5000 word interpretations
+- Webhook handles DETAILED_NATAL before activate_subscription
+
+### Roadmap Evolution
+
+- Phase 10 added (2026-01-23): Улучшить натальную карту - визуал, интерпретация, монетизация
+
 ### Pending Todos
 
 **Captured todos:** 2 (see `.planning/todos/pending/`)
@@ -140,6 +151,7 @@ Recent decisions affecting current work:
 - Add GEONAMES_USERNAME to Railway environment
 - Run 07-01 migration on Railway: `alembic upgrade head`
 - Run 08-01 migration on Railway: `alembic upgrade head`
+- Run 10-02 migration on Railway: `alembic upgrade head`
 
 ### Quick Tasks Completed
 
@@ -155,7 +167,7 @@ From research:
 ## Session Continuity
 
 Last session: 2026-01-23
-Stopped at: Completed quick-001 (NatalChartOutput validator)
+Stopped at: Completed 10-02 (Payment infrastructure for detailed natal)
 Resume file: None
 
 **What's Ready:**
@@ -267,6 +279,13 @@ Resume file: None
   - NatalChartOutput validator with correct section keywords
   - validate_natal_chart() function for natal interpretations
   - generate_natal_interpretation() now uses correct validator
+- **Detailed Natal Payment Infrastructure complete (10-02):**
+  - PaymentPlan.DETAILED_NATAL (199 RUB one-time)
+  - User.detailed_natal_purchased_at field
+  - DetailedNatal model (user_id, interpretation, telegraph_url, created_at)
+  - Migration for users column + detailed_natals table
+  - Webhook handles DETAILED_NATAL before activate_subscription
 
 **Next Steps:**
-- Phase 9: Admin Panel
+- 10-03: UI for detailed natal purchase
+- 10-04: AI generation (3000-5000 words)
