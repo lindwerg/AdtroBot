@@ -1,3 +1,6 @@
+from datetime import date, datetime
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict
 
 
@@ -16,3 +19,127 @@ class AdminInfo(BaseModel):
     is_active: bool
 
     model_config = ConfigDict(from_attributes=True)
+
+
+# User management schemas
+
+
+class UserListItem(BaseModel):
+    """User item in list response."""
+
+    id: int
+    telegram_id: int
+    username: str | None
+    zodiac_sign: str | None
+    is_premium: bool
+    premium_until: datetime | None
+    created_at: datetime
+    tarot_spread_count: int
+    daily_spread_limit: int
+    detailed_natal_purchased_at: datetime | None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UserListResponse(BaseModel):
+    """Paginated user list response."""
+
+    items: list[UserListItem]
+    total: int
+    page: int
+    page_size: int
+    pages: int
+
+
+class PaymentHistoryItem(BaseModel):
+    """Payment item in user detail."""
+
+    id: str
+    amount: int  # kopeks
+    status: str
+    description: str | None
+    created_at: datetime
+    paid_at: datetime | None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class SubscriptionInfo(BaseModel):
+    """Subscription info in user detail."""
+
+    id: int
+    plan: str
+    status: str
+    started_at: datetime
+    current_period_end: datetime
+    canceled_at: datetime | None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TarotSpreadHistoryItem(BaseModel):
+    """Tarot spread item in user detail."""
+
+    id: int
+    spread_type: str
+    question: str
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UserDetail(BaseModel):
+    """Full user detail with history."""
+
+    id: int
+    telegram_id: int
+    username: str | None
+    birth_date: date | None
+    zodiac_sign: str | None
+    birth_time: str | None  # HH:MM format
+    birth_city: str | None
+    timezone: str | None
+    notifications_enabled: bool
+    notification_hour: int | None
+    is_premium: bool
+    premium_until: datetime | None
+    daily_spread_limit: int
+    tarot_spread_count: int
+    detailed_natal_purchased_at: datetime | None
+    created_at: datetime
+
+    subscription: SubscriptionInfo | None
+    payments: list[PaymentHistoryItem]
+    recent_spreads: list[TarotSpreadHistoryItem]
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UpdateSubscriptionRequest(BaseModel):
+    """Request to update user subscription."""
+
+    action: Literal["activate", "cancel", "extend"]
+    days: int | None = None  # For extend action
+
+
+class GiftRequest(BaseModel):
+    """Request to give gift to user."""
+
+    gift_type: Literal["premium_days", "detailed_natal", "tarot_spreads"]
+    value: int  # days for premium, count for spreads
+
+
+class BulkActionRequest(BaseModel):
+    """Request for bulk action on users."""
+
+    user_ids: list[int]
+    action: Literal["activate_premium", "cancel_premium", "gift_spreads"]
+    value: int | None = None  # For gift_spreads
+
+
+class BulkActionResponse(BaseModel):
+    """Response for bulk action."""
+
+    success_count: int
+    failed_count: int
+    errors: list[str]
