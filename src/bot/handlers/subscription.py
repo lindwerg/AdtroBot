@@ -55,6 +55,34 @@ async def show_plans(message: Message, session: AsyncSession) -> None:
     )
 
 
+@router.callback_query(F.data == "menu_subscription")
+async def menu_subscription_callback(
+    callback: CallbackQuery,
+    session: AsyncSession,
+) -> None:
+    """Handle 'Получить премиум-гороскоп' button from horoscope keyboard."""
+    await callback.answer()
+
+    # Check if already premium
+    stmt = select(User).where(User.telegram_id == callback.from_user.id)
+    result = await session.execute(stmt)
+    user = result.scalar_one_or_none()
+
+    if user and user.is_premium and user.premium_until:
+        until_str = user.premium_until.strftime("%d.%m.%Y")
+        await callback.message.edit_text(
+            f"У вас уже есть премиум-подписка до {until_str}\n\n"
+            "Хотите продлить?",
+            reply_markup=get_plans_keyboard(),
+        )
+        return
+
+    await callback.message.edit_text(
+        PREMIUM_FEATURES + "\n\nВыберите тариф:",
+        reply_markup=get_plans_keyboard(),
+    )
+
+
 @router.callback_query(SubscriptionCallback.filter(F.action == "plan"))
 async def handle_plan_selection(
     callback: CallbackQuery,
