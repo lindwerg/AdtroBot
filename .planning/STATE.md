@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-22)
 
 **Core value:** Качественная AI интерпретация астрологии и таро, которая конвертирует бесплатных пользователей в платных
-**Current focus:** Phase 6 Complete - Ready for Phase 7
+**Current focus:** Phase 7 - Premium Horoscopes
 
 ## Current Position
 
-Phase: 6 of 9 (Subscription System)
-Plan: 3 of 3 completed in Phase 6
-Status: Phase 6 COMPLETE
-Last activity: 2026-01-23 10:00 — Completed 06-03-PLAN.md (Subscription Handlers)
+Phase: 7 of 9 (Premium Horoscopes)
+Plan: 1 of 3 completed in Phase 7
+Status: In progress
+Last activity: 2026-01-23 12:15 — Completed 07-01-PLAN.md (Premium Infrastructure)
 
-Progress: [██████████] 100% (Phase 6)
+Progress: [██████████████░░] 88% (14/16 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 13
-- Average duration: 9 min
-- Total execution time: 112 min
+- Total plans completed: 14
+- Average duration: 8 min
+- Total execution time: 118 min
 
 **By Phase:**
 
@@ -33,9 +33,10 @@ Progress: [██████████] 100% (Phase 6)
 | 4 | 2/2 | 13 min | 7 min |
 | 5 | 2/2 | 13 min | 7 min |
 | 6 | 3/3 | 11 min | 4 min |
+| 7 | 1/3 | 6 min | 6 min |
 
 **Recent Trend:**
-- Last 5 plans: 05-02 (8 min), 06-01 (4 min), 06-02 (3 min), 06-03 (4 min)
+- Last 5 plans: 06-01 (4 min), 06-02 (3 min), 06-03 (4 min), 07-01 (6 min)
 - Trend: Consistent fast execution
 
 *Updated after each plan completion*
@@ -99,6 +100,10 @@ Recent decisions affecting current work:
 - Atomic limit check: UPDATE...RETURNING предотвращает race conditions
 - Auto-renewal: 09:00 MSK, за 1 день до истечения
 
+**Phase 7 (Premium Horoscopes):**
+- pyswisseph вместо flatlib (flatlib requires outdated pyswisseph 2.08)
+- GeoNames для geocoding с graceful degradation
+
 ### Pending Todos
 
 - Add TELEGRAM_BOT_TOKEN and WEBHOOK_BASE_URL to Railway environment
@@ -106,17 +111,18 @@ Recent decisions affecting current work:
 - Add OPENROUTER_API_KEY to Railway environment
 - Add YOOKASSA_SHOP_ID and YOOKASSA_SECRET_KEY to Railway environment
 - Configure YooKassa webhook URL: https://adtrobot-production.up.railway.app/webhook/yookassa
+- Add GEONAMES_USERNAME to Railway environment
+- Run 07-01 migration on Railway: `alembic upgrade head`
 
 ### Blockers/Concerns
 
 From research:
-- kerykeion AGPL лицензия — требует проверки перед Phase 8 (натальная карта)
 - AI costs unit economics — замерить после деплоя с OPENROUTER_API_KEY
 
 ## Session Continuity
 
-Last session: 2026-01-23 10:00
-Stopped at: Completed 06-03-PLAN.md (Phase 6 Complete)
+Last session: 2026-01-23 12:15
+Stopped at: Completed 07-01-PLAN.md (Premium Infrastructure)
 Resume file: None
 
 **What's Ready:**
@@ -186,9 +192,12 @@ Resume file: None
   - Profile shows subscription status, expiry, cancel button
   - Atomic limit check in tarot (UPDATE...RETURNING)
   - Scheduler: auto_renew_subscriptions (09:00), check_expiring_subscriptions (10:00)
+- **Premium Infrastructure complete (07-01):**
+  - User model: birth_time, birth_city, birth_lat, birth_lon fields
+  - Natal chart service: calculate_natal_chart() with Swiss Ephemeris
+  - Geocoding service: search_city() with GeoNames
+  - Migration for birth location fields ready
 
 **Next Steps:**
-- Add YOOKASSA_SHOP_ID and YOOKASSA_SECRET_KEY to Railway
-- Configure YooKassa webhook URL in YooKassa dashboard
-- Run `alembic upgrade head` on Railway
-- Phase 7: Premium Features (detailed horoscopes, Celtic Cross)
+- 07-02: Birth data collection UI (FSM for time/city input)
+- 07-03: Premium horoscope handlers with natal chart integration
