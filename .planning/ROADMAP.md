@@ -149,8 +149,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 08-01-PLAN.md — Celtic Cross + spread history (TarotSpread model, CelticCrossPrompt, history UI)
-- [ ] 08-02-PLAN.md — Full natal chart + SVG visualization (all planets, houses, aspects, NatalChartPrompt, chart image)
+- [x] 08-01-PLAN.md — Celtic Cross + spread history (TarotSpread model, CelticCrossPrompt, history UI)
+- [x] 08-02-PLAN.md — Full natal chart + SVG visualization (all planets, houses, aspects, NatalChartPrompt, chart image)
 
 ### Phase 9: Admin Panel
 **Goal**: Админ может управлять ботом и видеть аналитику
@@ -182,7 +182,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 5. AI Integration | 2/2 | Complete | 2026-01-23 |
 | 6. Payments | 3/3 | Complete | 2026-01-23 |
 | 7. Premium Horoscopes | 3/3 | Complete | 2026-01-23 |
-| 8. Premium Tarot + Natal | 0/2 | In Progress | - |
+| 8. Premium Tarot + Natal | 2/2 | Complete | 2026-01-23 |
 | 9. Admin Panel | 0/2 | Not started | - |
 
 ---
