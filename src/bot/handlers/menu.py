@@ -25,7 +25,7 @@ async def menu_horoscope(message: Message, session: AsyncSession) -> None:
     user = result.scalar_one_or_none()
 
     if user and user.zodiac_sign:
-        await show_horoscope_message(message, user.zodiac_sign, user.zodiac_sign)
+        await show_horoscope_message(message, user.zodiac_sign, user.zodiac_sign, session)
     else:
         await message.answer(
             "Для получения гороскопа нужно указать дату рождения. "
