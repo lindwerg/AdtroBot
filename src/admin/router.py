@@ -14,12 +14,20 @@ from src.admin.schemas import (
     DashboardMetrics,
     FunnelData,
     GiftRequest,
+    PaymentListResponse,
+    SubscriptionListResponse,
     Token,
     UpdateSubscriptionRequest,
+    UpdateSubscriptionStatusRequest,
     UserDetail,
     UserListResponse,
 )
 from src.admin.services.analytics import get_dashboard_metrics, get_funnel_data
+from src.admin.services.payments import (
+    list_payments,
+    list_subscriptions,
+    update_subscription_status,
+)
 from src.admin.services.users import (
     bulk_action,
     get_user_detail,
@@ -172,3 +180,60 @@ async def users_bulk_action(
 ) -> BulkActionResponse:
     """Perform bulk action on multiple users."""
     return await bulk_action(session, request)
+
+
+# Payments and Subscriptions endpoints
+
+
+@admin_router.get("/payments", response_model=PaymentListResponse)
+async def payments_list(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    status: str | None = Query(None),
+    user_search: str | None = Query(None),
+    session: AsyncSession = Depends(get_session),
+    current_admin: Admin = Depends(get_current_admin),
+) -> PaymentListResponse:
+    """List payments with filters and pagination."""
+    return await list_payments(
+        session,
+        page=page,
+        page_size=page_size,
+        status=status,
+        user_search=user_search,
+    )
+
+
+@admin_router.get("/subscriptions", response_model=SubscriptionListResponse)
+async def subscriptions_list(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    status: str | None = Query(None),
+    plan: str | None = Query(None),
+    user_search: str | None = Query(None),
+    session: AsyncSession = Depends(get_session),
+    current_admin: Admin = Depends(get_current_admin),
+) -> SubscriptionListResponse:
+    """List subscriptions with filters and pagination."""
+    return await list_subscriptions(
+        session,
+        page=page,
+        page_size=page_size,
+        status=status,
+        plan=plan,
+        user_search=user_search,
+    )
+
+
+@admin_router.patch("/subscriptions/{subscription_id}")
+async def update_sub_status(
+    subscription_id: int = Path(...),
+    request: UpdateSubscriptionStatusRequest = ...,
+    session: AsyncSession = Depends(get_session),
+    current_admin: Admin = Depends(get_current_admin),
+) -> dict[str, str]:
+    """Update subscription status."""
+    success = await update_subscription_status(session, subscription_id, request)
+    if not success:
+        raise HTTPException(status_code=404, detail="Subscription not found")
+    return {"status": "ok"}
