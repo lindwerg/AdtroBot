@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-22)
 
 **Core value:** Качественная AI интерпретация астрологии и таро, которая конвертирует бесплатных пользователей в платных
-**Current focus:** Phase 4 - Free Tarot (COMPLETE)
+**Current focus:** Phase 5 - AI Integration (IN PROGRESS)
 
 ## Current Position
 
-Phase: 4 of 9 (Free Tarot) - COMPLETE
-Plan: 2 of 2 completed in Phase 4
-Status: Phase complete
-Last activity: 2026-01-22 22:58 — Completed 04-02-PLAN.md (Tarot Handlers)
+Phase: 5 of 9 (AI Integration)
+Plan: 1 of 2 completed in Phase 5
+Status: In progress
+Last activity: 2026-01-23 08:24 — Completed 05-01-PLAN.md (AI Service Module)
 
-Progress: [████████░░] 44%
+Progress: [█████████░] 50%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
-- Average duration: 11 min
-- Total execution time: 88 min
+- Total plans completed: 9
+- Average duration: 10 min
+- Total execution time: 93 min
 
 **By Phase:**
 
@@ -31,9 +31,10 @@ Progress: [████████░░] 44%
 | 2 | 2/2 | 16 min | 8 min |
 | 3 | 2/2 | 10 min | 5 min |
 | 4 | 2/2 | 13 min | 7 min |
+| 5 | 1/2 | 5 min | 5 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-01 (3 min), 03-02 (7 min), 04-01 (10 min), 04-02 (3 min)
+- Last 5 plans: 03-02 (7 min), 04-01 (10 min), 04-02 (3 min), 05-01 (5 min)
 - Trend: Consistent fast execution
 
 *Updated after each plan completion*
@@ -74,10 +75,18 @@ Recent decisions affecting current work:
 - Image rotation 180 degrees for reversed cards via Pillow
 - Singleton deck loading via get_deck() with lazy initialization
 
+**Phase 5 (AI Integration):**
+- GPT-4o-mini via OpenRouter (50x cheaper than Claude 3.5 Sonnet)
+- In-memory TTL cache (sufficient for MVP, clears on restart)
+- MAX_VALIDATION_RETRIES=2 for malformed outputs
+- 30s timeout (GPT-4o-mini is fast)
+- Zodiac-specific greeting based on grammatical gender
+
 ### Pending Todos
 
 - Add TELEGRAM_BOT_TOKEN and WEBHOOK_BASE_URL to Railway environment
 - Run tarot migration on Railway: `alembic upgrade head`
+- Add OPENROUTER_API_KEY to Railway environment
 
 ### Blockers/Concerns
 
@@ -87,8 +96,8 @@ From research:
 
 ## Session Continuity
 
-Last session: 2026-01-22 22:58
-Stopped at: Completed 04-02-PLAN.md, Phase 4 complete
+Last session: 2026-01-23 08:24
+Stopped at: Completed 05-01-PLAN.md
 Resume file: None
 
 **What's Ready:**
@@ -130,7 +139,13 @@ Resume file: None
   - Card of day: ritual, cache, image, interpretation (no limits)
   - 3-card spread: FSM question, 1/day limit, ritual, cards, interpretation
   - Menu "Tarot" leads to tarot submenu
+- **AI Service module complete (05-01):**
+  - AIService class with generate_horoscope, generate_tarot_interpretation, generate_card_of_day
+  - Prompt templates: HoroscopePrompt, TarotSpreadPrompt, CardOfDayPrompt
+  - Validators: length, structure, AI self-reference filter
+  - Cache: in-memory TTL for horoscopes and card of day
+  - Singleton: get_ai_service()
 
 **Next Steps:**
-- Run migrations on Railway: `alembic upgrade head`
-- Phase 5: AI Integration (заменит mock horoscopes)
+- Add OPENROUTER_API_KEY to Railway
+- Phase 5 Plan 2: Handler Integration (replace mock content with AI)
