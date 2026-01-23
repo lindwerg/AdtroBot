@@ -107,3 +107,103 @@ def format_limit_exceeded() -> Text:
         Bold("Premium:"),
         " 20 раскладов в день",
     )
+
+
+# ============== AI-powered formatting ==============
+
+AI_FALLBACK_MESSAGE = "Сервис интерпретации временно недоступен. Попробуй позже."
+
+
+def format_ai_interpretation(interpretation: str) -> Text:
+    """Format AI-generated interpretation text.
+
+    AI text comes with [SECTION] headers that need to be displayed nicely.
+    """
+    return Text(
+        Bold("Интерпретация:"),
+        "\n\n",
+        interpretation,
+    )
+
+
+def format_card_of_day_with_ai(
+    card: dict, reversed_flag: bool, ai_interpretation: str | None
+) -> Text:
+    """Format Card of the Day with AI interpretation.
+
+    If AI interpretation available, show it instead of static meaning.
+    """
+    card_name = card["name"]
+    card_type = CARD_TYPE_RU.get(card["type"], card["type"])
+    reversed_text = " (перевернутая)" if reversed_flag else ""
+
+    parts: list = [
+        Bold("Карта дня"),
+        "\n\n",
+        Bold(f"{card_name}{reversed_text}"),
+        "\n",
+        card_type,
+        "\n\n",
+    ]
+
+    if ai_interpretation:
+        parts.append(ai_interpretation)
+    else:
+        # Fallback to static meaning
+        meaning = card["meaning_rev"] if reversed_flag else card["meaning_up"]
+        parts.extend(
+            [
+                Bold("Значение:"),
+                "\n",
+                BlockQuote(meaning),
+            ]
+        )
+
+    return Text(*parts)
+
+
+def format_three_card_spread_with_ai(
+    cards: list[tuple[dict, bool]],
+    question: str,
+    ai_interpretation: str | None,
+) -> Text:
+    """Format 3-card spread with AI interpretation.
+
+    If AI interpretation available, show question + cards + AI text.
+    Otherwise fallback to static meanings.
+    """
+    content: list = [
+        Bold("Ваш вопрос:"),
+        "\n",
+        BlockQuote(question),
+        "\n\n",
+    ]
+
+    # Show cards with names
+    content.append(Bold("Карты расклада:"))
+    content.append("\n")
+    for i, (card, reversed_flag) in enumerate(cards):
+        position = SPREAD_POSITIONS[i]
+        card_name = card["name"]
+        reversed_text = " (перевернутая)" if reversed_flag else ""
+        content.append(f"{position}: {card_name}{reversed_text}\n")
+
+    content.append("\n")
+
+    if ai_interpretation:
+        content.append(ai_interpretation)
+    else:
+        # Fallback to static meanings (same as original format_three_card_spread)
+        for i, (card, reversed_flag) in enumerate(cards):
+            position = SPREAD_POSITIONS[i]
+            meaning = card["meaning_rev"] if reversed_flag else card["meaning_up"]
+            content.extend(
+                [
+                    Bold(f"{position}:"),
+                    "\n",
+                    BlockQuote(meaning),
+                    "\n\n",
+                ]
+            )
+
+    return Text(*content)

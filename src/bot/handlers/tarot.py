@@ -25,11 +25,12 @@ from src.bot.utils.tarot_cards import (
     get_three_cards,
 )
 from src.bot.utils.tarot_formatting import (
-    format_card_of_day,
+    format_card_of_day_with_ai,
     format_limit_exceeded,
     format_limit_message,
-    format_three_card_spread,
+    format_three_card_spread_with_ai,
 )
+from src.services.ai import get_ai_service
 from src.db.models.user import User
 
 router = Router(name="tarot")
@@ -119,7 +120,9 @@ async def tarot_card_of_day_start(
         card = get_card_by_id(user.card_of_day_id)
         if card:
             reversed_flag = user.card_of_day_reversed or False
-            await send_card_of_day(callback.message, card, reversed_flag)
+            await send_card_of_day(
+                callback.message, card, reversed_flag, callback.from_user.id
+            )
             await callback.answer()
             return
 
@@ -152,7 +155,9 @@ async def tarot_draw_card_of_day(
         if card:
             reversed_flag = user.card_of_day_reversed or False
             await callback.message.delete()
-            await send_card_of_day(callback.message, card, reversed_flag)
+            await send_card_of_day(
+                callback.message, card, reversed_flag, callback.from_user.id
+            )
             await callback.answer()
             return
 
@@ -166,22 +171,35 @@ async def tarot_draw_card_of_day(
     await session.commit()
 
     await callback.message.delete()
-    await send_card_of_day(callback.message, card, reversed_flag)
+    await send_card_of_day(
+        callback.message, card, reversed_flag, callback.from_user.id
+    )
     await callback.answer()
 
 
-async def send_card_of_day(message: Message, card: dict, reversed_flag: bool) -> None:
-    """
-    Send card of the day with image and interpretation.
+async def send_card_of_day(
+    message: Message, card: dict, reversed_flag: bool, user_id: int
+) -> None:
+    """Send card of the day with image and AI interpretation.
 
     NOTE: НЕ показываем лимиты после карты дня - она бесплатная и неограниченная.
+
+    Args:
+        message: Telegram message
+        card: Card dict from deck
+        reversed_flag: Whether card is reversed
+        user_id: Telegram user ID for caching AI response
     """
     # Send image
     photo = get_card_image(card["name_short"], reversed_flag)
     await message.answer_photo(photo)
 
-    # Send interpretation (без информации о лимитах!)
-    content = format_card_of_day(card, reversed_flag)
+    # Get AI interpretation (with caching)
+    ai = get_ai_service()
+    interpretation = await ai.generate_card_of_day(user_id, card, reversed_flag)
+
+    # Send formatted message (AI or fallback to static meaning)
+    content = format_card_of_day_with_ai(card, reversed_flag, interpretation)
     await message.answer(**content.as_kwargs(), reply_markup=get_tarot_menu_keyboard())
 
 
@@ -294,8 +312,16 @@ async def tarot_draw_three_cards(callback: CallbackQuery, state: FSMContext) -> 
         if i < 2:  # Don't sleep after last card
             await asyncio.sleep(1)
 
-    # Send interpretation
-    content = format_three_card_spread(cards, question)
+    # Get AI interpretation
+    ai = get_ai_service()
+    cards_data = [card for card, _ in cards]
+    is_reversed_list = [reversed_flag for _, reversed_flag in cards]
+    interpretation = await ai.generate_tarot_interpretation(
+        question, cards_data, is_reversed_list
+    )
+
+    # Send interpretation (AI or fallback to static meanings)
+    content = format_three_card_spread_with_ai(cards, question, interpretation)
     limit_text = format_limit_message(remaining)
 
     await callback.message.answer(
