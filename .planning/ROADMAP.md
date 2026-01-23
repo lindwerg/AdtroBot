@@ -104,7 +104,7 @@ Plans:
 - [x] 05-02-PLAN.md — Handler integration (horoscope + tarot AI, fallbacks)
 
 ### Phase 6: Payments
-**Goal**: Пользователь может оформить и управлять платной подпиской
+**Goal**: Пользователь может оформить и управлять платной подпиской через ЮКасса
 **Depends on**: Phase 5
 **Requirements**: PAY-01, PAY-02, PAY-03, PAY-04, PAY-05, PAY-06, PAY-07, PAY-08, PAY-09, PAY-10, BOT-05
 **Success Criteria** (what must be TRUE):
@@ -113,11 +113,12 @@ Plans:
   3. Подписка автоматически продлевается каждый месяц
   4. Пользователь может отменить подписку через бота
   5. Пользователь получает уведомление об истечении подписки
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 06-01: YooKassa SDK integration
-- [ ] 06-02: Subscription handlers + webhook
+- [ ] 06-01-PLAN.md — Payment infrastructure (yookassa SDK, config, DB models, migration)
+- [ ] 06-02-PLAN.md — Payment service + webhook (async client, subscription service, webhook endpoint)
+- [ ] 06-03-PLAN.md — Subscription handlers (plan selection, payment flow, profile integration, limit checks, notifications)
 
 ### Phase 7: Premium Horoscopes
 **Goal**: Платный пользователь получает детальные гороскопы по сферам жизни
@@ -177,7 +178,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 3. Free Horoscopes | 2/2 | Complete | 2026-01-22 |
 | 4. Free Tarot | 2/2 | Complete | 2026-01-22 |
 | 5. AI Integration | 2/2 | Complete | 2026-01-23 |
-| 6. Payments | 0/2 | Not started | - |
+| 6. Payments | 0/3 | Not started | - |
 | 7. Premium Horoscopes | 0/1 | Not started | - |
 | 8. Premium Tarot + Natal | 0/2 | Not started | - |
 | 9. Admin Panel | 0/2 | Not started | - |
