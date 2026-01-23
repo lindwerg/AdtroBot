@@ -14,6 +14,8 @@ from src.admin.schemas import (
     DashboardMetrics,
     FunnelData,
     GiftRequest,
+    HoroscopeContentItem,
+    HoroscopeContentListResponse,
     MessageHistoryResponse,
     PaymentListResponse,
     SendMessageRequest,
@@ -22,12 +24,18 @@ from src.admin.schemas import (
     TarotSpreadDetail,
     TarotSpreadListResponse,
     Token,
+    UpdateHoroscopeContentRequest,
     UpdateSubscriptionRequest,
     UpdateSubscriptionStatusRequest,
     UserDetail,
     UserListResponse,
 )
 from src.admin.services.analytics import get_dashboard_metrics, get_funnel_data
+from src.admin.services.content import (
+    get_all_horoscope_content,
+    get_horoscope_content,
+    update_horoscope_content,
+)
 from src.admin.services.payments import (
     list_payments,
     list_subscriptions,
@@ -289,3 +297,83 @@ async def get_tarot_spread(
     if not spread:
         raise HTTPException(status_code=404, detail="Spread not found")
     return spread
+
+
+# Messaging endpoints
+
+
+@admin_router.post("/messages", response_model=SendMessageResponse)
+async def send_message(
+    request: SendMessageRequest,
+    session: AsyncSession = Depends(get_session),
+    current_admin: Admin = Depends(get_current_admin),
+) -> SendMessageResponse:
+    """Send or schedule a message."""
+    return await send_or_schedule_message(session, request, current_admin.id)
+
+
+@admin_router.get("/messages", response_model=MessageHistoryResponse)
+async def messages_history(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    session: AsyncSession = Depends(get_session),
+    current_admin: Admin = Depends(get_current_admin),
+) -> MessageHistoryResponse:
+    """Get message history."""
+    return await get_message_history(session, page, page_size)
+
+
+@admin_router.delete("/messages/{message_id}")
+async def cancel_message(
+    message_id: int = Path(...),
+    session: AsyncSession = Depends(get_session),
+    current_admin: Admin = Depends(get_current_admin),
+) -> dict[str, str]:
+    """Cancel a scheduled message."""
+    success = await cancel_scheduled_message(session, message_id)
+    if not success:
+        raise HTTPException(status_code=400, detail="Cannot cancel message")
+    return {"status": "canceled"}
+
+
+# Content management endpoints
+
+
+@admin_router.get("/content/horoscopes", response_model=HoroscopeContentListResponse)
+async def list_horoscope_content(
+    session: AsyncSession = Depends(get_session),
+    current_admin: Admin = Depends(get_current_admin),
+) -> HoroscopeContentListResponse:
+    """Get horoscope content for all zodiac signs."""
+    return await get_all_horoscope_content(session)
+
+
+@admin_router.get(
+    "/content/horoscopes/{zodiac_sign}", response_model=HoroscopeContentItem
+)
+async def get_content_by_sign(
+    zodiac_sign: str = Path(...),
+    session: AsyncSession = Depends(get_session),
+    current_admin: Admin = Depends(get_current_admin),
+) -> HoroscopeContentItem:
+    """Get horoscope content for specific zodiac sign."""
+    content = await get_horoscope_content(session, zodiac_sign)
+    if not content:
+        raise HTTPException(status_code=404, detail="Content not found")
+    return HoroscopeContentItem.model_validate(content)
+
+
+@admin_router.put(
+    "/content/horoscopes/{zodiac_sign}", response_model=HoroscopeContentItem
+)
+async def update_content_by_sign(
+    request: UpdateHoroscopeContentRequest,
+    zodiac_sign: str = Path(...),
+    session: AsyncSession = Depends(get_session),
+    current_admin: Admin = Depends(get_current_admin),
+) -> HoroscopeContentItem:
+    """Update horoscope content for specific zodiac sign."""
+    content = await update_horoscope_content(
+        session, zodiac_sign, request, current_admin.id
+    )
+    return HoroscopeContentItem.model_validate(content)
