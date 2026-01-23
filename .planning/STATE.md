@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-22)
 ## Current Position
 
 Phase: 9 of 10 (Admin Panel)
-Plan: 7 of 14 completed in Phase 9
+Plan: 8 of 14 completed in Phase 9
 Status: In progress
-Last activity: 2026-01-23 — Completed 09-14: Tarot spreads viewing
+Last activity: 2026-01-23 — Completed 09-08: Payments and subscriptions management
 
-Progress: [███████████████████████░░░░] 88% (30/34 plans)
+Progress: [████████████████████████░░░] 91% (31/34 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 30
+- Total plans completed: 31
 - Average duration: 7 min
-- Total execution time: 197 min
+- Total execution time: 202 min
 
 **By Phase:**
 
@@ -36,10 +36,10 @@ Progress: [███████████████████████
 | 7 | 3/3 | 17 min | 6 min |
 | 8 | 3/3 | 18 min | 6 min |
 | 10 | 4/4 | 13 min | 3 min |
-| 9 | 7/14 | 23 min | 3 min |
+| 9 | 8/14 | 28 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 09-02 (4 min), 09-03 (3 min), 09-04 (3 min), 09-06 (5 min), 09-14 (5 min)
+- Last 5 plans: 09-03 (3 min), 09-04 (3 min), 09-06 (5 min), 09-14 (5 min), 09-08 (5 min)
 - Trend: Consistent fast execution
 
 *Updated after each plan completion*
@@ -194,7 +194,7 @@ From research:
 ## Session Continuity
 
 Last session: 2026-01-23
-Stopped at: Completed 09-14 (Tarot spreads viewing)
+Stopped at: Completed 09-08 (Payments and subscriptions management)
 Resume file: None
 
 **What's Ready:**
@@ -363,5 +363,12 @@ Resume file: None
   - Frontend page: table, search, type filter, detail modal
   - Card names resolved from deck, position names by spread type
 
+- **Payments and Subscriptions Management complete (09-08):**
+  - GET /admin/payments with filters (status, user), total amount stat
+  - GET /admin/subscriptions with filters (status, plan, user)
+  - PATCH /admin/subscriptions/{id} - change status + sync user premium
+  - PaymentsPage: ProTable with colored status tags, recurring badge
+  - SubscriptionsPage: ProTable with status change modal, link to user
+
 **Next Steps:**
-- Continue Phase 9: Messaging system (09-07), Promo codes (09-08), etc.
+- Continue Phase 9: Messaging system (09-07), Promo codes (09-09), etc.
