@@ -5,18 +5,21 @@ from enum import Enum
 class PaymentPlan(str, Enum):
     MONTHLY = "monthly"
     YEARLY = "yearly"
+    DETAILED_NATAL = "detailed_natal"  # One-time purchase
 
 
 # Prices in kopeks
 PLAN_PRICES = {
     PaymentPlan.MONTHLY: 29900,  # 299.00 RUB
     PaymentPlan.YEARLY: 249900,  # 2499.00 RUB
+    PaymentPlan.DETAILED_NATAL: 19900,  # 199.00 RUB (one-time)
 }
 
 # Prices as strings for YooKassa API
 PLAN_PRICES_STR = {
     PaymentPlan.MONTHLY: "299.00",
     PaymentPlan.YEARLY: "2499.00",
+    PaymentPlan.DETAILED_NATAL: "199.00",
 }
 
 # Subscription duration in days
