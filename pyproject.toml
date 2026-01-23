@@ -27,6 +27,8 @@ dependencies = [
     "yookassa (>=3.9.0,<4.0.0)",
     "pyswisseph (>=2.10.3.2,<3.0.0.0)",
     "geopy (>=2.4.1,<3.0.0)",
+    "svgwrite (>=1.4.3,<2.0.0)",
+    "cairosvg (>=2.8.2,<3.0.0)",
 ]
 
 [tool.poetry]

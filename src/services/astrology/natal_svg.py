@@ -1,0 +1,328 @@
+"""Natal chart SVG generation and PNG conversion.
+
+Creates visual representation of natal chart with:
+- Zodiac wheel (12 signs)
+- Planet positions
+- House cusps
+- Aspect lines between planets
+"""
+
+import asyncio
+import math
+from io import BytesIO
+
+import cairosvg
+import svgwrite
+import structlog
+
+from src.services.astrology.natal_chart import FullNatalChartResult
+
+logger = structlog.get_logger()
+
+# Color scheme (dark theme)
+BACKGROUND_COLOR = "#1a1a2e"
+WHEEL_COLOR = "#4a4e69"
+SIGN_COLOR = "#9a8c98"
+TEXT_COLOR = "#f2e9e4"
+HOUSE_LINE_COLOR = "#4a4e69"
+
+# Planet colors for visibility
+PLANET_COLORS = {
+    "sun": "#FFD700",      # Gold
+    "moon": "#C0C0C0",     # Silver
+    "mercury": "#FFA500",  # Orange
+    "venus": "#FFB6C1",    # Pink
+    "mars": "#FF4444",     # Red
+    "jupiter": "#9370DB",  # Purple
+    "saturn": "#808080",   # Gray
+    "uranus": "#00CED1",   # Cyan
+    "neptune": "#4B0082",  # Indigo
+    "pluto": "#8B0000",    # Dark red
+    "north_node": "#32CD32",  # Green
+}
+
+# Planet abbreviations
+PLANET_ABBR = {
+    "sun": "Su",
+    "moon": "Mo",
+    "mercury": "Me",
+    "venus": "Ve",
+    "mars": "Ma",
+    "jupiter": "Ju",
+    "saturn": "Sa",
+    "uranus": "Ur",
+    "neptune": "Ne",
+    "pluto": "Pl",
+    "north_node": "NN",
+}
+
+# Zodiac sign abbreviations
+SIGN_ABBR = [
+    "Ari", "Tau", "Gem", "Can",
+    "Leo", "Vir", "Lib", "Sco",
+    "Sag", "Cap", "Aqu", "Pis",
+]
+
+# Aspect colors
+ASPECT_COLORS = {
+    "Conjunction": "#32CD32",  # Green (harmonious)
+    "Sextile": "#4169E1",      # Blue (harmonious)
+    "Square": "#FF4444",       # Red (challenging)
+    "Trine": "#4169E1",        # Blue (harmonious)
+    "Opposition": "#FF4444",   # Red (challenging)
+}
+
+
+def _lon_to_angle(longitude: float, offset: float = 0) -> float:
+    """Convert ecliptic longitude to angle for drawing.
+
+    In SVG, 0 degrees is at 3 o'clock (right), counter-clockwise.
+    We want Aries (0 degrees) at 9 o'clock (left), going clockwise.
+
+    Args:
+        longitude: Ecliptic longitude (0-360)
+        offset: Additional rotation offset
+
+    Returns:
+        Angle in radians for SVG drawing
+    """
+    # SVG angles: 0 = right, goes counter-clockwise
+    # We want: Aries at top-left (9 o'clock), zodiac goes counter-clockwise
+    angle = 180 - longitude + offset
+    return math.radians(angle)
+
+
+def _polar_to_cart(cx: float, cy: float, r: float, angle_rad: float) -> tuple[float, float]:
+    """Convert polar to Cartesian coordinates.
+
+    Args:
+        cx: Center X
+        cy: Center Y
+        r: Radius
+        angle_rad: Angle in radians
+
+    Returns:
+        (x, y) Cartesian coordinates
+    """
+    x = cx + r * math.cos(angle_rad)
+    y = cy - r * math.sin(angle_rad)  # SVG Y is inverted
+    return x, y
+
+
+def _generate_svg(chart_data: FullNatalChartResult, size: int = 600) -> str:
+    """Generate SVG string for natal chart.
+
+    Args:
+        chart_data: Full natal chart data
+        size: Image size in pixels
+
+    Returns:
+        SVG string
+    """
+    dwg = svgwrite.Drawing(size=(size, size))
+    center = size / 2
+    outer_r = size / 2 - 20
+    sign_r = outer_r - 30  # Radius for sign labels
+    inner_r = outer_r - 50  # Inner edge of zodiac band
+    planet_r = inner_r - 30  # Radius for planets
+    house_r = inner_r - 60  # Inner circle for houses
+
+    # Background
+    dwg.add(dwg.rect((0, 0), (size, size), fill=BACKGROUND_COLOR))
+
+    # Outer circle (zodiac wheel)
+    dwg.add(dwg.circle(
+        center=(center, center),
+        r=outer_r,
+        stroke=WHEEL_COLOR,
+        fill="none",
+        stroke_width=2
+    ))
+
+    # Inner circle
+    dwg.add(dwg.circle(
+        center=(center, center),
+        r=inner_r,
+        stroke=WHEEL_COLOR,
+        fill="none",
+        stroke_width=1
+    ))
+
+    # House circle
+    dwg.add(dwg.circle(
+        center=(center, center),
+        r=house_r,
+        stroke=HOUSE_LINE_COLOR,
+        fill="none",
+        stroke_width=1
+    ))
+
+    # Draw zodiac sign divisions (12 signs, 30 degrees each)
+    for i in range(12):
+        angle = _lon_to_angle(i * 30)
+        x1, y1 = _polar_to_cart(center, center, inner_r, angle)
+        x2, y2 = _polar_to_cart(center, center, outer_r, angle)
+        dwg.add(dwg.line((x1, y1), (x2, y2), stroke=WHEEL_COLOR, stroke_width=1))
+
+        # Sign abbreviation at midpoint
+        mid_angle = _lon_to_angle(i * 30 + 15)
+        sx, sy = _polar_to_cart(center, center, sign_r, mid_angle)
+        dwg.add(dwg.text(
+            SIGN_ABBR[i],
+            insert=(sx, sy),
+            text_anchor="middle",
+            dominant_baseline="middle",
+            fill=SIGN_COLOR,
+            font_size=10,
+            font_family="Arial, sans-serif"
+        ))
+
+    # Draw house cusps (if time known, all 12 houses)
+    if chart_data["time_known"]:
+        for house_num, house_data in chart_data["houses"].items():
+            cusp_lon = house_data["cusp"]
+            angle = _lon_to_angle(cusp_lon)
+            x1, y1 = _polar_to_cart(center, center, house_r - 10, angle)
+            x2, y2 = _polar_to_cart(center, center, inner_r, angle)
+
+            # Main angles (1, 4, 7, 10) are thicker
+            stroke_width = 2 if house_num in (1, 4, 7, 10) else 1
+            dwg.add(dwg.line(
+                (x1, y1), (x2, y2),
+                stroke=HOUSE_LINE_COLOR,
+                stroke_width=stroke_width
+            ))
+
+    # Draw aspect lines between planets (only top 10 for readability)
+    top_aspects = chart_data["aspects"][:10]
+    for aspect in top_aspects:
+        p1_lon = chart_data["planets"][aspect["planet1"]]["longitude"]
+        p2_lon = chart_data["planets"][aspect["planet2"]]["longitude"]
+
+        angle1 = _lon_to_angle(p1_lon)
+        angle2 = _lon_to_angle(p2_lon)
+
+        x1, y1 = _polar_to_cart(center, center, planet_r, angle1)
+        x2, y2 = _polar_to_cart(center, center, planet_r, angle2)
+
+        color = ASPECT_COLORS.get(aspect["aspect"], "#666666")
+        # Opacity based on orb (tighter = more visible)
+        opacity = max(0.3, 1 - aspect["orb"] / 8)
+
+        dwg.add(dwg.line(
+            (x1, y1), (x2, y2),
+            stroke=color,
+            stroke_width=1,
+            stroke_opacity=opacity
+        ))
+
+    # Draw planets
+    for planet_name, planet_data in chart_data["planets"].items():
+        lon = planet_data["longitude"]
+        angle = _lon_to_angle(lon)
+        px, py = _polar_to_cart(center, center, planet_r, angle)
+
+        color = PLANET_COLORS.get(planet_name, "#FFFFFF")
+        abbr = PLANET_ABBR.get(planet_name, planet_name[:2])
+
+        # Planet circle
+        dwg.add(dwg.circle(
+            center=(px, py),
+            r=12,
+            fill=color,
+            stroke="#000000",
+            stroke_width=1
+        ))
+
+        # Planet label
+        dwg.add(dwg.text(
+            abbr,
+            insert=(px, py),
+            text_anchor="middle",
+            dominant_baseline="middle",
+            fill="#000000",
+            font_size=9,
+            font_weight="bold",
+            font_family="Arial, sans-serif"
+        ))
+
+    # Ascendant marker (arrow on left side)
+    if chart_data["time_known"]:
+        asc_lon = chart_data["angles"]["ascendant"]["longitude"]
+        asc_angle = _lon_to_angle(asc_lon)
+        ax1, ay1 = _polar_to_cart(center, center, outer_r + 5, asc_angle)
+        ax2, ay2 = _polar_to_cart(center, center, outer_r + 15, asc_angle)
+        dwg.add(dwg.line(
+            (ax1, ay1), (ax2, ay2),
+            stroke="#FF6B6B",
+            stroke_width=3
+        ))
+        dwg.add(dwg.text(
+            "ASC",
+            insert=(ax2, ay2 - 5),
+            text_anchor="middle",
+            fill="#FF6B6B",
+            font_size=8,
+            font_weight="bold",
+            font_family="Arial, sans-serif"
+        ))
+
+        # MC marker (top)
+        mc_lon = chart_data["angles"]["mc"]["longitude"]
+        mc_angle = _lon_to_angle(mc_lon)
+        mx1, my1 = _polar_to_cart(center, center, outer_r + 5, mc_angle)
+        mx2, my2 = _polar_to_cart(center, center, outer_r + 15, mc_angle)
+        dwg.add(dwg.line(
+            (mx1, my1), (mx2, my2),
+            stroke="#4ECDC4",
+            stroke_width=3
+        ))
+        dwg.add(dwg.text(
+            "MC",
+            insert=(mx2, my2 - 5),
+            text_anchor="middle",
+            fill="#4ECDC4",
+            font_size=8,
+            font_weight="bold",
+            font_family="Arial, sans-serif"
+        ))
+
+    return dwg.tostring()
+
+
+async def generate_natal_png(
+    chart_data: FullNatalChartResult,
+    size: int = 600,
+) -> bytes:
+    """Generate natal chart as PNG image.
+
+    Args:
+        chart_data: Full natal chart data
+        size: Image size in pixels (default 600)
+
+    Returns:
+        PNG image bytes
+    """
+    try:
+        # Generate SVG
+        svg_string = _generate_svg(chart_data, size)
+
+        # Convert to PNG in thread (CPU-bound)
+        png_bytes = await asyncio.to_thread(
+            cairosvg.svg2png,
+            bytestring=svg_string.encode("utf-8"),
+            output_width=size,
+            output_height=size,
+        )
+
+        logger.debug(
+            "natal_png_generated",
+            size=size,
+            bytes_len=len(png_bytes),
+        )
+
+        return png_bytes
+
+    except Exception as e:
+        logger.error("natal_png_error", error=str(e))
+        raise
