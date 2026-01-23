@@ -8,6 +8,18 @@ Telegram бот для гороскопов и таро с freemium модель
 
 Качественная AI интерпретация астрологии и таро, которая конвертирует бесплатных пользователей в платных подписчиков.
 
+## Current Milestone: v2.0 Production Polish & Visual Enhancement
+
+**Goal:** Довести v1.0 MVP до production-ready состояния — исправить критические проблемы производительности и UX, добавить визуальное улучшение и полный monitoring.
+
+**Target features:**
+- Оптимизация производительности — фоновая генерация гороскопов, кеширование, быстрые ответы
+- Визуальное улучшение — изображения для всех key moments (welcome, знаки зодиака, таро, натальная карта, paywall)
+- Welcome flow — engaging тексты, onboarding, BotFather description, FAQ
+- Monitoring — horoscopes_today, Bot Health, API Costs, unit economics
+- QA — полная проверка через Playwright (админка + бот) и Telegram API
+- Исправление всех найденных проблем
+
 ## Requirements
 
 ### Validated
@@ -70,7 +82,48 @@ Telegram бот для гороскопов и таро с freemium модель
 
 ### Active
 
-(None — v2 planning needed)
+**v2.0 Production Polish & Visual Enhancement (In Planning):**
+
+**Performance критические:**
+- [ ] Оптимизация долгих ответов при нажатии кнопок
+- [ ] Фоновая генерация 12 общих гороскопов — каждые 12ч, кеширование
+- [ ] Оптимизация /start — быстрый первый запуск
+- [ ] Оптимизация переключения между знаками зодиака
+- [ ] Настройка кеширования — всё что должно грузиться быстро
+
+**UX критические:**
+- [ ] Визуальное разделение общий vs личный гороскоп
+- [ ] Исправление Markdown форматирования (разметка видна)
+- [ ] Понятная воронка free → premium
+- [ ] Улучшение первого прогноза после ввода даты
+
+**Monitoring & Metrics:**
+- [ ] horoscopes_today metric — tracking таблица
+- [ ] Bot Health metrics — uptime, errors, response time
+- [ ] API Costs metrics — OpenRouter spending по операциям
+- [ ] Unit economics dashboard — cost per user
+
+**Визуальное улучшение:**
+- [ ] Изображения для welcome /start
+- [ ] Изображения для 12 знаков зодиака
+- [ ] Изображения для раскладов таро
+- [ ] Изображение для натальной карты
+- [ ] Изображение для paywall/premium offer
+- [ ] Выбор AI генератора изображений (единый стиль, бесплатно/дешево)
+
+**Welcome flow:**
+- [ ] Engaging текст приветствия /start
+- [ ] BotFather description для поиска
+- [ ] Onboarding tutorial для новичков
+- [ ] About/FAQ команда
+
+**QA & Testing:**
+- [ ] Playwright проверка админки — весь функционал
+- [ ] Playwright проверка бота — весь user journey через браузер
+- [ ] Telegram API тестирование — программная проверка бота через MTProto
+- [ ] Исправление нерабочих частей админки
+- [ ] Исправление найденных проблем в боте
+- [ ] Улучшение UX админки
 
 ### Out of Scope
 
@@ -137,4 +190,4 @@ Telegram бот для гороскопов и таро с freemium модель
 | Railway для хостинга | Simple deployment, PostgreSQL addon, auto-scaling | ✓ Good — zero-config production |
 
 ---
-*Last updated: 2026-01-23 after v1.0 milestone*
+*Last updated: 2026-01-23 after starting v2.0 milestone*

@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-23)
 
 **Core value:** Качественная AI интерпретация астрологии и таро, которая конвертирует бесплатных пользователей в платных
-**Current focus:** v1.0 shipped — Planning next milestone
+**Current focus:** v2.0 Production Polish & Visual Enhancement
 
 ## Current Position
 
-Phase: None (v1.0 shipped)
-Plan: Not started
-Status: Ready to plan next milestone
-Last activity: 2026-01-23 — v1.0 milestone complete
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements for v2.0
+Last activity: 2026-01-23 — Milestone v2.0 started
 
-Progress: Milestone v1.0 shipped (10 phases, 37 plans, 74 requirements)
+Progress: v1.0 complete (10 phases, 37 plans, 74 requirements) → v2.0 in planning
 
 ## Performance Metrics
 
