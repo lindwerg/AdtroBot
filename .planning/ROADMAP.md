@@ -164,11 +164,30 @@ Plans:
   3. Админ может найти пользователя и изменить его подписку
   4. Админ может отправить сообщение конкретному пользователю
   5. Админ может экспортировать данные для анализа
-**Plans**: TBD
+**Plans**: 12 plans (7 waves)
+
+**Wave Structure:**
+- Wave 1: 09-01, 09-02 (parallel - backend foundation, frontend scaffold)
+- Wave 2: 09-03, 09-04 (parallel - dashboard API, user management API)
+- Wave 3: 09-05, 09-06 (parallel - dashboard UI, users UI)
+- Wave 4: 09-07, 09-08 (parallel - messaging, payments/subscriptions)
+- Wave 5: 09-09, 09-10 (parallel - promo codes, export)
+- Wave 6: 09-11 (A/B tests + UTM tracking)
+- Wave 7: 09-12 (integration checkpoint)
 
 Plans:
-- [ ] 09-01: Admin dashboard + user management
-- [ ] 09-02: Analytics + messaging
+- [ ] 09-01-PLAN.md — Backend foundation (Admin model, JWT auth, CORS)
+- [ ] 09-02-PLAN.md — Frontend scaffold (Vite, React, Ant Design, routing)
+- [ ] 09-03-PLAN.md — Dashboard API (metrics endpoints)
+- [ ] 09-04-PLAN.md — User management API (CRUD, filters, pagination)
+- [ ] 09-05-PLAN.md — Dashboard UI (KPI cards, charts, funnel)
+- [ ] 09-06-PLAN.md — Users page UI (ProTable, actions)
+- [ ] 09-07-PLAN.md — Messaging system (send, schedule)
+- [ ] 09-08-PLAN.md — Payments and subscriptions pages
+- [ ] 09-09-PLAN.md — Promo codes management
+- [ ] 09-10-PLAN.md — Export functionality (CSV/Excel)
+- [ ] 09-11-PLAN.md — A/B tests + UTM tracking
+- [ ] 09-12-PLAN.md — Integration checkpoint (human-verify)
 
 ### Phase 10: Улучшить натальную карту
 **Goal**: Натальная карта выглядит профессионально, интерпретация максимально полная, добавлена монетизация детального разбора личности
@@ -202,7 +221,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 6. Payments | 3/3 | Complete | 2026-01-23 |
 | 7. Premium Horoscopes | 3/3 | Complete | 2026-01-23 |
 | 8. Premium Tarot + Natal | 3/3 | Complete | 2026-01-23 |
-| 9. Admin Panel | 0/2 | Not started | - |
+| 9. Admin Panel | 0/12 | Not started | - |
 | 10. Улучшить натальную карту | 4/4 | Complete | 2026-01-23 |
 
 ---
