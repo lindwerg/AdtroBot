@@ -9,6 +9,7 @@ from alembic import context
 # Import Base and all models for autogenerate to detect them
 from src.db.models.base import Base
 from src.db.models import user  # noqa: F401 - required for Alembic to see models
+from src.admin import models as admin_models  # noqa: F401 - admin models for Alembic
 from src.config import settings
 
 # this is the Alembic Config object, which provides

@@ -67,6 +67,16 @@ class Settings(BaseSettings):
         validation_alias="YOOKASSA_RETURN_URL",
     )
 
+    # Admin JWT
+    admin_jwt_secret: str = Field(
+        default_factory=lambda: secrets.token_urlsafe(32),
+        validation_alias="ADMIN_JWT_SECRET",
+    )
+    admin_jwt_expire_minutes: int = Field(
+        default=30,
+        validation_alias="ADMIN_JWT_EXPIRE_MINUTES",
+    )
+
     @property
     def async_database_url(self) -> str:
         """Convert postgresql:// to postgresql+asyncpg:// if needed."""
