@@ -4,13 +4,13 @@ Bug tracking for Phase 16: Testing & Polish. All discovered bugs are documented 
 
 ## Summary
 
-- **Total bugs discovered:** 0
-- **P0 (Critical):** 0
+- **Total bugs discovered:** 1
+- **P0 (Critical):** 1
 - **P1 (High):** 0
 - **P2 (Medium):** 0
 - **P3 (Low):** 0
 
-**Note:** All test suites were executed but couldn't discover runtime bugs due to infrastructure blockers (Cairo library, Telegram credentials). Tests compile and are ready for execution in proper environment.
+**Note:** Production testing revealed critical admin panel loading issue. Local testing blocked by infrastructure (Cairo library, Telegram credentials).
 
 ## Bug Categories
 
@@ -30,7 +30,7 @@ Bug tracking for Phase 16: Testing & Polish. All discovered bugs are documented 
 
 | ID | Category | Severity | Status | Component | Description | Steps to Reproduce |
 |----|----------|----------|--------|-----------|-------------|-------------------|
-| - | - | - | - | - | No runtime bugs discovered (tests blocked by infrastructure) | - |
+| B001 | Admin | P0 | Open | Production SPA | Admin panel shows `{"detail":"Not Found"}` instead of React app in automated tests | 1. Open https://adtrobot-production.up.railway.app/admin/ in Playwright<br>2. Page loads with body content: `{"detail":"Not Found"}`<br>3. Expected: React app with login form<br>4. Actual: JSON error response |
 
 ---
 
@@ -38,6 +38,60 @@ Bug tracking for Phase 16: Testing & Polish. All discovered bugs are documented 
 
 **Date:** 2026-01-24
 **Executed by:** Automated test runner
+
+### Production Testing Results
+
+**Admin Panel URL:** https://adtrobot-production.up.railway.app/admin/
+**Bot:** @Astraro_bot
+
+#### Playwright Production Tests
+
+**Status:** FAILED - Critical bug discovered
+**Execution:**
+```bash
+cd admin-frontend && CI=true BASE_URL=https://adtrobot-production.up.railway.app/admin \
+  ADMIN_USERNAME=admin ADMIN_PASSWORD=admin123 npx playwright test --reporter=list
+```
+
+**Result:**
+- Auth setup failed after 3 retries (90 seconds timeout)
+- Error: `locator.fill: Test timeout exceeded. waiting for getByPlaceholder(/username|логин/i)`
+- Screenshot shows: `{"detail":"Not Found"}` instead of React SPA
+
+**Analysis:**
+- HTML correctly returned from `/admin/` endpoint
+- Assets (JS/CSS) are accessible at `/admin/assets/*`
+- Playwright receives JSON error instead of rendered React app
+- Possible causes:
+  1. JavaScript loading error in headless browser
+  2. API route conflict with SPA routing
+  3. CORS or security policy issue
+  4. Missing environment variables in production
+
+**Manual curl verification:**
+```bash
+$ curl -s https://adtrobot-production.up.railway.app/admin/ | head -12
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/admin/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>admin-frontend</title>
+    <script type="module" crossorigin src="/admin/assets/index-DavJRVml.js"></script>
+    <link rel="stylesheet" crossorigin href="/admin/assets/index-0nUjLhND.css">
+  </head>
+  <body>
+    <div id="root"></div>
+```
+
+HTML structure correct, but Playwright sees different content.
+
+**Severity:** P0 - Critical blocker for automated admin testing
+
+---
+
+### Local Testing Results
 
 ### 1. Playwright E2E Tests (Admin Frontend)
 
