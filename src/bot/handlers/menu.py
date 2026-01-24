@@ -112,15 +112,10 @@ async def menu_profile(message: Message, session: AsyncSession) -> None:
     await message.answer("\n".join(lines), reply_markup=keyboard)
 
 
-@router.message(F.text == "Главное меню")
-async def menu_main(message: Message, session: AsyncSession) -> None:
-    """Handle 'Главное меню' reply button press."""
-    await show_main_menu(message, session)
-
-
 @router.callback_query(MenuCallback.filter(F.action == MenuAction.BACK_TO_MAIN_MENU))
 async def callback_main_menu(callback: CallbackQuery, session: AsyncSession) -> None:
     """Handle '🏠 Главное меню' inline button press."""
-    await callback.message.delete()  # Remove previous message
-    await show_main_menu(callback.message, session)
+    # Правильный порядок: ответить → удалить → отправить новое
     await callback.answer()
+    await callback.message.delete()
+    await show_main_menu(callback.message, session)
