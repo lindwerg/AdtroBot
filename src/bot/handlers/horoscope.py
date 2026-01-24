@@ -114,13 +114,19 @@ async def show_zodiac_horoscope(
     is_premium = user.is_premium if user else False
     has_natal = bool(user and user.birth_lat and user.birth_lon) if user else False
 
-    await callback.message.edit_text(
-        **content.as_kwargs(),
-        reply_markup=build_zodiac_keyboard(
+    # Персональный гороскоп (premium + natal) = без переключения знаков
+    keyboard = None
+    if not (is_premium and has_natal):
+        # Только для общих гороскопов показывать кнопки переключения
+        keyboard = build_zodiac_keyboard(
             current_sign=sign_name,
             is_premium=is_premium,
             has_natal_data=has_natal,
-        ),
+        )
+
+    await callback.message.edit_text(
+        **content.as_kwargs(),
+        reply_markup=keyboard,
     )
     await callback.answer()
 
@@ -231,15 +237,20 @@ async def show_horoscope_message(
     )
 
     # Onboarding: no keyboard (only notification question follows)
-    # Regular: show zodiac grid keyboard
+    # Regular: show zodiac grid keyboard (except for premium with natal data)
     if is_onboarding:
         await message.answer(**content.as_kwargs())
     else:
-        await message.answer(
-            **content.as_kwargs(),
-            reply_markup=build_zodiac_keyboard(
+        # Персональный гороскоп (premium + natal) = без переключения знаков
+        keyboard = None
+        if not (is_premium and has_natal):
+            keyboard = build_zodiac_keyboard(
                 current_sign=user_sign or sign_name,
                 is_premium=is_premium,
                 has_natal_data=has_natal,
-            ),
+            )
+
+        await message.answer(
+            **content.as_kwargs(),
+            reply_markup=keyboard,
         )

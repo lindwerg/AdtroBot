@@ -115,7 +115,12 @@ async def menu_profile(message: Message, session: AsyncSession) -> None:
 @router.callback_query(MenuCallback.filter(F.action == MenuAction.BACK_TO_MAIN_MENU))
 async def callback_main_menu(callback: CallbackQuery, session: AsyncSession) -> None:
     """Handle '🏠 Главное меню' inline button press."""
+    from src.bot.bot import get_bot
+
     # Правильный порядок: ответить → удалить → отправить новое
     await callback.answer()
     await callback.message.delete()
-    await show_main_menu(callback.message, session)
+
+    # Передаем bot чтобы отправить новое сообщение после удаления
+    bot = get_bot()
+    await show_main_menu(callback.message, session, bot=bot)

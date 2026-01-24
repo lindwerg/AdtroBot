@@ -1,5 +1,6 @@
 """Обработчик главного меню с информативным блоком."""
 
+from aiogram import Bot
 from aiogram.types import Message
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,7 +11,11 @@ from src.db.models.user import User
 from src.services.astrology.natal_chart import calculate_full_natal_chart
 
 
-async def show_main_menu(message: Message, session: AsyncSession) -> None:
+async def show_main_menu(
+    message: Message,
+    session: AsyncSession,
+    bot: Bot | None = None,
+) -> None:
     """Показать главное меню с информативным блоком.
 
     Логика:
@@ -29,10 +34,13 @@ async def show_main_menu(message: Message, session: AsyncSession) -> None:
 
     if not user:
         # Пользователь не найден — показать базовое меню
-        await message.answer(
-            "Главное меню 🏠",
-            reply_markup=get_main_menu_keyboard(),
-        )
+        text = "Главное меню 🏠"
+        keyboard = get_main_menu_keyboard()
+
+        if bot:
+            await bot.send_message(chat_id=message.chat.id, text=text, reply_markup=keyboard)
+        else:
+            await message.answer(text, reply_markup=keyboard)
         return
 
     # Определить какую информацию показывать
@@ -57,10 +65,15 @@ async def show_main_menu(message: Message, session: AsyncSession) -> None:
     info_block = format_natal_info_for_menu(user, natal_data)
 
     # Отправить сообщение с информацией + клавиатура
-    await message.answer(
-        f"Главное меню 🏠\n\n{info_block}",
-        reply_markup=get_main_menu_keyboard(),
-    )
+    text = f"Главное меню 🏠\n\n{info_block}"
+    keyboard = get_main_menu_keyboard()
+
+    if bot:
+        # Используем bot.send_message когда message удалено (callback)
+        await bot.send_message(chat_id=message.chat.id, text=text, reply_markup=keyboard)
+    else:
+        # Используем message.answer для обычных команд
+        await message.answer(text, reply_markup=keyboard)
 
 
 def _has_natal_data(user: User) -> bool:
