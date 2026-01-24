@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-23)
 ## Current Position
 
 Phase: 15 of 16 (Monitoring & Observability)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-01-24 — Completed 15-01-PLAN.md (Monitoring Infrastructure)
+Last activity: 2026-01-24 — Completed 15-02-PLAN.md (Cost Tracking & Monitoring API)
 
-Progress: [████████░░] 72% (v2.0: Phase 15 started)
+Progress: [████████░░] 75% (v2.0: 5/6 plans complete)
 
 ## Performance Metrics
 
@@ -51,6 +51,8 @@ Recent decisions affecting current work:
 - [15-01]: AIUsage.user_id nullable для system operations (scheduled horoscope generation)
 - [15-01]: Health checks run in parallel via asyncio.gather
 - [15-01]: /health returns 503 if any check fails (load balancer integration)
+- [15-02]: Cost tracking embedded in AIService._generate for accurate latency
+- [15-02]: DAU/WAU/MAU from TarotSpread (not ai_usage) - active intent signal
 
 ### Pending Todos
 
@@ -67,7 +69,7 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-24
-Stopped at: Completed 15-01-PLAN.md (Monitoring Infrastructure)
+Stopped at: Completed 15-02-PLAN.md (Cost Tracking & Monitoring API)
 Resume file: None
 
 ## v1.0 Reference
