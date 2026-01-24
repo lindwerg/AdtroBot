@@ -58,6 +58,8 @@ Recent decisions affecting current work:
 - [16-01]: StringSession for Telethon (CI-friendly authentication)
 - [16-01]: Page Object Model for Playwright (maintainable selectors)
 - [16-01]: Faker ru_RU locale for realistic Russian test data
+- [16-03]: ZODIAC_SIGNS_QUICK (3 signs) for CI, full coverage marked @slow
+- [16-03]: 45 E2E tests for bot flows (start, horoscope, tarot, natal, subscription)
 - [16-04]: SLA targets: /health <1s (P0), admin API <2s (P1), export <5s (P2)
 - [16-04]: Horoscope cache tested via /health DB latency (no direct HTTP endpoint)
 
