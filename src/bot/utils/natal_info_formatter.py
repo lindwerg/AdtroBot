@@ -174,7 +174,8 @@ def _format_premium_natal_info(natal_data: FullNatalChartResult) -> str:
     """
     planets = natal_data["planets"]
     houses = natal_data["houses"]
-    ascendant = natal_data["ascendant"]
+    angles = natal_data.get("angles", {})
+    ascendant = angles.get("ascendant")  # Может быть None если время неизвестно
 
     lines = ["🌟 Ваш астрологический профиль", ""]
 
