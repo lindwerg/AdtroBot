@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-23)
 
 **Core value:** Качественная AI интерпретация астрологии и таро, которая конвертирует бесплатных пользователей в платных подписчиков
-**Current focus:** Phase 16 - Testing & Polish
+**Current focus:** Phase 16 - Testing & Polish (COMPLETE)
 
 ## Current Position
 
 Phase: 16 of 16 (Testing & Polish)
-Plan: 4 of 5 in current phase (16-01, 16-02, 16-03, 16-04 complete)
-Status: In progress
-Last activity: 2026-01-24 — Completed 16-02-PLAN.md (Admin E2E Tests)
+Plan: 5 of 5 in current phase (16-01, 16-02, 16-03, 16-04, 16-05 complete)
+Status: Phase complete
+Last activity: 2026-01-24 — Completed 16-05-PLAN.md (UX Polish)
 
-Progress: [█████████░] 92% (v2.0: 5/6 phases, 4/5 plans in phase 16)
+Progress: [██████████] 100% (v2.0: 6/6 phases complete)
 
 ## Performance Metrics
 
@@ -64,6 +64,8 @@ Recent decisions affecting current work:
 - [16-04]: Horoscope cache tested via /health DB latency (no direct HTTP endpoint)
 - [16-02]: No storageState for login tests (direct auth flow testing)
 - [16-02]: Accessibility-first selectors (getByRole, getByPlaceholder)
+- [16-05]: Antd Spin/Table/Empty components for UX polish
+- [16-05]: Tests blocked by Cairo lib and Telegram credentials - infrastructure blockers documented
 
 ### Pending Todos
 
@@ -77,10 +79,14 @@ None yet.
 - Configure YooKassa webhook URL
 - Add GEONAMES_USERNAME for geocoding
 
+**Testing infrastructure (from 16-05):**
+- Install Cairo library for natal chart SVG (blocks server startup)
+- Set up Telegram test credentials for bot E2E tests
+
 ## Session Continuity
 
 Last session: 2026-01-24
-Stopped at: Completed 16-02-PLAN.md (Admin E2E Tests)
+Stopped at: Completed 16-05-PLAN.md (UX Polish) - Phase 16 complete
 Resume file: None
 
 ## v1.0 Reference
@@ -88,3 +94,14 @@ Resume file: None
 **Shipped:** 2026-01-23
 **Stats:** 10 phases, 37 plans, 74 requirements
 **Full details:** `.planning/milestones/v1.0-ROADMAP.md`
+
+## v2.0 Status
+
+**Completed:** 2026-01-24
+**Stats:** 6 phases (11-16), all plans complete
+**Highlights:**
+- Admin dashboard with metrics and monitoring
+- Horoscope cache for GPT-4o mini costs
+- Cosmic images from Pexels
+- E2E tests (Playwright, Telethon, Locust)
+- UX polish with loading/empty states
