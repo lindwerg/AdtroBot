@@ -1,517 +1,570 @@
 # Phase 13: Image Generation - Research
 
-**Researched:** 2026-01-24 (Updated)
-**Domain:** AI image generation, бесплатные API без карты, Gemini 2.5 Flash Image
+**Researched:** 2026-01-24
+**Domain:** Бесплатные stock изображения (Unsplash/Pexels) + Pillow обработка
 **Confidence:** HIGH
 
 ## Summary
 
-**КРИТИЧНО:** Together.ai теперь требует карту ($5 минимум) — исключен из рассмотрения.
-
-Исследование выявило **Google Gemini 2.5 Flash Image** как оптимальный бесплатный генератор изображений. Free tier включает до 500 запросов в день без кредитной карты. Модель gemini-2.5-flash-image (кодовое имя "Nano Banana") поддерживает высококачественную генерацию 1024x1024, различные aspect ratios, и имеет официальный Python SDK `google-genai`.
+Исследование нового подхода: вместо AI-генерации использовать готовые бесплатные stock изображения с Unsplash и Pexels, затем обрабатывать их Pillow для единого мистического стиля.
 
 **Ключевые находки:**
-- Gemini API: бесплатно до 500 req/day, регистрация через Google аккаунт
-- Model ID: `gemini-2.5-flash-image`
-- Размеры: 1024x1024 (1K), 2048x2048 (2K), aspect ratios 1:1, 16:9, 9:16, 3:4, 4:3
-- Telegram: оптимальный размер 1024x1024 (автомасштабирование)
-- Для consistency: использовать идентичные style prompts, одинаковые настройки
-- Изображения получают невидимый SynthID watermark (не влияет на визуал)
+- **Pexels** — лучший выбор: 200 req/hour бесплатно, лицензия разрешает коммерческое использование без атрибуции
+- **Unsplash** — backup: 50 req/hour (demo), требует approval для production (5000 req/hour)
+- **Pillow 12.1.0** — уже установлен в проекте, достаточен для всех операций обработки
+- **Лицензии** — обе платформы разрешают коммерческое использование в ботах без атрибуции
+- **Единый стиль** — достигается через Pillow: darkening + purple overlay + contrast
 
-**Primary recommendation:** Использовать Google Gemini 2.5 Flash Image API с Python SDK `google-genai`. Создать скрипт `scripts/generate_images.py`, сохранять в `assets/images/`. Единый стиль через repeated style phrases в каждом промпте.
+**Primary recommendation:** Использовать Pexels API для поиска/скачивания изображений + Pillow для унификации стиля (darkening, purple tint, contrast boost). Создать скрипт `scripts/fetch_and_process_images.py` с двухэтапной обработкой.
 
 ## Standard Stack
 
 ### Core
 | Library | Version | Purpose | Why Standard |
 |---------|---------|---------|--------------|
-| google-genai | latest | Google Gemini Python SDK | Официальный SDK, простой API, бесплатный tier |
-| Pillow | 12.1.0 | Image processing | Уже установлен в проекте, для save/convert |
-| python-dotenv | (installed) | Env variables | Уже используется в проекте |
+| pexels-api-py | 0.0.5 | Pexels API wrapper | Простой API, хорошая документация, активно поддерживается |
+| Pillow | 12.1.0 | Image processing | УЖЕ УСТАНОВЛЕН в проекте, полный функционал |
+| requests | (installed) | HTTP для скачивания | Стандарт Python, уже в проекте |
 
 ### Supporting
 | Library | Version | Purpose | When to Use |
 |---------|---------|---------|-------------|
 | pathlib | stdlib | Path management | Организация assets/ |
-| io | stdlib | BytesIO для images | Промежуточная обработка |
+| io | stdlib | BytesIO | Промежуточная обработка |
+| python-unsplash | 1.1.0 | Unsplash API (backup) | Если Pexels не найдет подходящие изображения |
 
 ### Alternatives Considered
 | Instead of | Could Use | Tradeoff |
 |------------|-----------|----------|
-| Gemini | Hugging Face | $0.10/месяц (8-80 изображений), меньше лимит |
-| Gemini | Replicate | 50 генераций/месяц, недостаточно для итераций |
-| Gemini | Leonardo.ai | API платный ($9/мес), web 150 токенов/день |
-| Gemini | Ideogram.ai | API требует карту, web 10 кредитов/неделю |
-| Gemini | Together.ai | Теперь требует карту ($5 минимум) |
+| Pexels | Unsplash | 50 vs 200 req/hour бесплатно, Unsplash требует approval |
+| Pexels | Pixabay | Нет официального Python SDK, API менее удобный |
+| pexels-api-py | requests напрямую | Больше кода, но без зависимости |
 
 **Installation:**
 ```bash
-pip install google-genai pillow
+pip install pexels-api-py
+# Pillow уже установлен в проекте
 ```
 
-Или добавить в `pyproject.toml`:
-```toml
-dependencies = [
-    "google-genai",
-    # ... existing deps
-]
-```
+## Лицензирование (КРИТИЧНО)
 
-## Сравнение бесплатных генераторов (без карты)
+### Pexels License
+| Аспект | Статус | Детали |
+|--------|--------|--------|
+| Коммерческое использование | ДА | Разрешено в приложениях, ботах, продуктах |
+| Атрибуция | НЕ ТРЕБУЕТСЯ | Опционально, но приветствуется |
+| Модификация | ДА | Можно обрабатывать, фильтровать, изменять |
+| Ограничения | Да | Нельзя создавать конкурирующий stock сервис |
 
-| Сервис | Бесплатный лимит | API доступ | Карта нужна | Рекомендация |
-|--------|------------------|------------|-------------|--------------|
-| **Gemini 2.5 Flash Image** | 500 req/day | Да (Python SDK) | Нет | РЕКОМЕНДУЕТСЯ |
-| Hugging Face | $0.10/месяц (~8-80 img) | Да | Нет | Backup вариант |
-| Replicate | 50 img/месяц | Да | Нет | Слишком мало |
-| Leonardo.ai web | 150 токенов/день | Нет (API платный) | Нет | Только ручная работа |
-| Ideogram.ai web | 10 кредитов/неделю | Нет (API платный) | Нет | Только ручная работа |
-| Together.ai | НЕТ БЕСПЛАТНОГО | Да | ДА ($5 min) | ИСКЛЮЧЕН |
+**Источник:** https://help.pexels.com/hc/en-us/articles/360042295174
+
+### Unsplash License
+| Аспект | Статус | Детали |
+|--------|--------|--------|
+| Коммерческое использование | ДА | Irrevocable, worldwide license |
+| Атрибуция | НЕ ТРЕБУЕТСЯ | "No permission needed" |
+| Модификация | ДА | Полная свобода обработки |
+| Ограничения | Да | Нельзя продавать без модификации, нельзя конкурировать |
+
+**Источник:** https://unsplash.com/license
+
+### Вывод по лицензиям
+Оба сервиса полностью подходят для коммерческого Telegram бота. Модификация изображений (наша обработка) дополнительно защищает от любых претензий.
+
+## API Rate Limits
+
+### Pexels (РЕКОМЕНДУЕТСЯ)
+| Tier | Requests/Hour | Requests/Month | Карта |
+|------|---------------|----------------|-------|
+| Default | 200 | 20,000 | НЕТ |
+| Unlimited | Unlimited | Unlimited | НЕТ (нужна атрибуция) |
+
+**Для 17 изображений:** 17 запросов = 8.5% часового лимита. Более чем достаточно.
+
+### Unsplash
+| Tier | Requests/Hour | Approval |
+|------|---------------|----------|
+| Demo | 50 | Не нужен |
+| Production | 5,000 | Нужен (показать использование) |
+
+**Для 17 изображений:** Хватит даже demo tier.
 
 ## Architecture Patterns
 
 ### Recommended Project Structure
 ```
 assets/
-├── images/
-│   ├── welcome.png              # Welcome screen (1024x1024)
-│   ├── zodiac/
-│   │   ├── aries.png           # Знаки зодиака (1024x1024)
-│   │   ├── taurus.png
-│   │   └── ...                 # Всего 12 файлов
-│   ├── tarot/
-│   │   ├── three_card.png      # 3-карточный расклад
-│   │   └── celtic_cross.png    # Celtic Cross расклад
-│   ├── natal_chart.png         # Натальная карта
-│   └── paywall.png             # Premium paywall
+└── images/
+    ├── raw/                    # Оригиналы с Pexels (временно)
+    │   ├── welcome_raw.jpg
+    │   ├── zodiac/
+    │   └── tarot/
+    └── processed/              # Обработанные (финальные)
+        ├── welcome.png
+        ├── zodiac/
+        │   ├── aries.png
+        │   └── ...
+        ├── tarot/
+        │   ├── three_card.png
+        │   └── celtic_cross.png
+        ├── natal_chart.png
+        └── paywall.png
 scripts/
-└── generate_images.py          # Скрипт генерации
+├── fetch_images.py             # Скачивание с Pexels
+└── process_images.py           # Обработка Pillow
 ```
 
-### Pattern 1: Unified Prompt Template
-**What:** Базовый шаблон промпта для единого стиля всех изображений
-**When to use:** Для каждого изображения
+### Pattern 1: Pexels Search and Download
+**What:** Поиск изображений по ключевым словам и скачивание
+**When to use:** Первый этап — получение raw материала
 **Example:**
 ```python
-# Source: CONTEXT.md decisions + Gemini best practices
-BASE_STYLE = """
-Mystical cosmic art style, dark background with deep purple and black tones,
-golden and white accents, high detail, starfield with nebulae,
-magical atmosphere, elegant composition, no text, no watermarks
-"""
-
-def zodiac_prompt(sign_name: str, glyph_description: str) -> str:
-    return f"""
-    {sign_name} zodiac symbol, {glyph_description},
-    large centered glowing golden glyph with white outline,
-    cosmic background with stars and purple nebulae,
-    {BASE_STYLE}
-    """
-```
-
-### Pattern 2: Gemini Image Generation
-**What:** Генерация через Gemini API с правильной конфигурацией
-**When to use:** Для каждого изображения
-**Example:**
-```python
-# Source: Google Gemini API docs
-from google import genai
-from google.genai import types
-from PIL import Image
-from io import BytesIO
-
-client = genai.Client(api_key="YOUR_API_KEY")  # или из env
-
-response = client.models.generate_content(
-    model="gemini-2.5-flash-image",
-    contents=[zodiac_prompt("Aries", "ram horns symbol")],
-    config=types.GenerateContentConfig(
-        response_modalities=["IMAGE"],
-        image_config=types.ImageConfig(
-            aspect_ratio="1:1",  # квадрат для zodiac
-        )
-    )
-)
-
-# Извлечение изображения
-for part in response.parts:
-    if part.inline_data is not None:
-        image = part.as_image()
-        image.save("aries.png")
-```
-
-### Pattern 3: Batch Generation with Rate Limiting
-**What:** Последовательная генерация с паузами
-**When to use:** Для batch генерации 17 изображений
-**Example:**
-```python
-import time
+# Source: Pexels API documentation + pexels-api-py
+import os
+import requests
+from pexelsapi.pexels import Pexels
 from pathlib import Path
 
-def generate_all_zodiac(client, output_dir: Path):
-    zodiac_signs = [
-        ("aries", "ram horns symbol"),
-        ("taurus", "bull head symbol"),
-        ("gemini", "twins symbol"),
-        ("cancer", "crab claws symbol"),
-        ("leo", "lion mane symbol"),
-        ("virgo", "maiden symbol"),
-        ("libra", "balanced scales symbol"),
-        ("scorpio", "scorpion tail symbol"),
-        ("sagittarius", "archer bow symbol"),
-        ("capricorn", "sea-goat symbol"),
-        ("aquarius", "water bearer waves symbol"),
-        ("pisces", "twin fish symbol"),
-    ]
+PEXELS_API_KEY = os.getenv("PEXELS_API_KEY")
+pexel = Pexels(PEXELS_API_KEY)
 
-    for sign_name, glyph in zodiac_signs:
-        prompt = zodiac_prompt(sign_name.capitalize(), glyph)
+def search_and_download(query: str, output_path: Path, color: str = "", orientation: str = "square"):
+    """Search for image and download best match."""
+    results = pexel.search_photos(
+        query=query,
+        orientation=orientation,  # square, landscape, portrait
+        size="large",             # large(24MP), medium(12MP), small(4MP)
+        color=color,              # purple, black, blue, etc.
+        per_page=5
+    )
 
-        response = client.models.generate_content(
-            model="gemini-2.5-flash-image",
-            contents=[prompt],
-            config=types.GenerateContentConfig(
-                response_modalities=["IMAGE"],
-            )
-        )
+    if not results or 'photos' not in results or not results['photos']:
+        print(f"No results for: {query}")
+        return False
 
-        for part in response.parts:
-            if part.inline_data is not None:
-                image = part.as_image()
-                output_path = output_dir / f"{sign_name}.png"
-                image.save(output_path)
-                print(f"Generated: {output_path}")
+    # Берем первое изображение
+    photo = results['photos'][0]
+    image_url = photo['src']['large']  # или 'original' для максимального качества
 
-        time.sleep(2)  # Rate limit protection (IPM = 2 for free tier)
+    # Скачиваем
+    response = requests.get(image_url)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_bytes(response.content)
+    print(f"Downloaded: {output_path}")
+    return True
+```
+
+### Pattern 2: Unified Style Processing
+**What:** Обработка изображения для единого мистического стиля
+**When to use:** Второй этап — унификация всех изображений
+**Example:**
+```python
+# Source: Pillow documentation + ImageEnhance, ImageOps
+from PIL import Image, ImageEnhance, ImageOps, ImageFilter
+from pathlib import Path
+
+def apply_mystical_style(input_path: Path, output_path: Path, size: tuple = (1024, 1024)):
+    """Apply unified mystical style to image."""
+    # Открываем изображение
+    img = Image.open(input_path)
+
+    # 1. Resize to square (crop center if needed)
+    img = ImageOps.fit(img, size, method=Image.Resampling.LANCZOS)
+
+    # 2. Convert to RGB (remove alpha if present)
+    if img.mode != 'RGB':
+        img = img.convert('RGB')
+
+    # 3. Darken (reduce brightness to 0.6-0.7)
+    brightness = ImageEnhance.Brightness(img)
+    img = brightness.enhance(0.65)
+
+    # 4. Increase contrast slightly
+    contrast = ImageEnhance.Contrast(img)
+    img = contrast.enhance(1.2)
+
+    # 5. Purple tint overlay
+    # Создаем фиолетовый слой и blend
+    purple = Image.new('RGB', size, (75, 0, 130))  # Indigo purple
+    img = Image.blend(img, purple, alpha=0.15)  # 15% tint
+
+    # 6. Optional: slight blur for mystical effect
+    # img = img.filter(ImageFilter.GaussianBlur(radius=0.5))
+
+    # 7. Final contrast boost
+    contrast = ImageEnhance.Contrast(img)
+    img = contrast.enhance(1.1)
+
+    # Save
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    img.save(output_path, "PNG", optimize=True)
+    print(f"Processed: {output_path}")
+```
+
+### Pattern 3: Golden Accent Enhancement
+**What:** Усиление золотых/желтых тонов для символов
+**When to use:** Для изображений с золотыми элементами (zodiac symbols, paywall lock)
+**Example:**
+```python
+from PIL import Image, ImageEnhance
+
+def enhance_golden_tones(img: Image.Image) -> Image.Image:
+    """Boost warm/golden colors in image."""
+    # Increase color saturation
+    color = ImageEnhance.Color(img)
+    img = color.enhance(1.3)  # 30% more saturated
+
+    # Slightly warm the image (shift toward yellow/gold)
+    r, g, b = img.split()
+    r = r.point(lambda x: min(255, int(x * 1.05)))  # +5% red
+    g = g.point(lambda x: min(255, int(x * 1.02)))  # +2% green
+    # blue stays same
+
+    return Image.merge('RGB', (r, g, b))
 ```
 
 ### Anti-Patterns to Avoid
-- **Слишком быстрая генерация:** Free tier ограничен 2 images/minute. Добавлять паузы 30-60 секунд между генерациями
-- **Слишком длинные промпты:** Оптимально 50-100 слов. Более 200 снижает качество
-- **Отсутствие style consistency:** Каждый промпт должен содержать BASE_STYLE
-- **Игнорирование errors:** Всегда обрабатывать исключения, retry при failures
+- **Скачивание без проверки:** Всегда проверять, что изображение загрузилось успешно
+- **Hardcoded paths:** Использовать pathlib и относительные пути от корня проекта
+- **Сохранение raw в git:** Добавить `assets/images/raw/` в .gitignore (только processed коммитить)
+- **Игнорирование aspect ratio:** Всегда использовать `ImageOps.fit()` для правильного crop
+
+## Поиск изображений — Ключевые слова
+
+### Таблица поиска для 17 изображений
+
+| Категория | Файл | Query (Pexels) | Color filter | Backup query |
+|-----------|------|----------------|--------------|--------------|
+| Welcome | welcome.png | "zodiac wheel cosmic" | purple | "astrology cosmic stars" |
+| Aries | aries.png | "aries zodiac symbol" | - | "ram horns golden" |
+| Taurus | taurus.png | "taurus zodiac symbol" | - | "bull symbol zodiac" |
+| Gemini | gemini.png | "gemini zodiac symbol" | - | "twins symbol zodiac" |
+| Cancer | cancer.png | "cancer zodiac symbol" | - | "crab zodiac" |
+| Leo | leo.png | "leo zodiac symbol" | - | "lion zodiac" |
+| Virgo | virgo.png | "virgo zodiac symbol" | - | "maiden zodiac" |
+| Libra | libra.png | "libra zodiac symbol" | - | "scales zodiac" |
+| Scorpio | scorpio.png | "scorpio zodiac symbol" | - | "scorpion zodiac" |
+| Sagittarius | sagittarius.png | "sagittarius zodiac" | - | "archer zodiac" |
+| Capricorn | capricorn.png | "capricorn zodiac" | - | "goat zodiac" |
+| Aquarius | aquarius.png | "aquarius zodiac" | - | "water bearer zodiac" |
+| Pisces | pisces.png | "pisces zodiac" | - | "fish zodiac" |
+| Tarot 3-card | three_card.png | "tarot cards back" | black | "tarot spread dark" |
+| Celtic Cross | celtic_cross.png | "celtic cross tarot" | - | "tarot spread ten cards" |
+| Natal Chart | natal_chart.png | "birth chart astrology" | - | "natal chart wheel" |
+| Paywall | paywall.png | "golden lock unlock" | gold | "premium lock mystical" |
+
+### Альтернативные источники (если Pexels не найдет)
+1. **Unsplash** — те же запросы, другая база
+2. **Pixabay** — 10,000+ tarot cards images
+3. **Ручной поиск** — Pexels.com web interface с manual download
 
 ## Don't Hand-Roll
 
 | Problem | Don't Build | Use Instead | Why |
 |---------|-------------|-------------|-----|
-| Image decoding | Custom parsers | `part.as_image()` + Pillow | SDK делает это автоматически |
-| Retry logic | Manual while loops | `tenacity` или простой try/except | Backoff, jitter |
-| Prompt templating | String concatenation | F-strings с constants | Maintainability |
-| File organization | Ad-hoc paths | `pathlib.Path` | Cross-platform |
-| API key management | Hardcoded | `python-dotenv` + env vars | Security |
+| Image resize | Manual pixel math | `ImageOps.fit()` | Handles aspect ratio, centering |
+| Color overlay | Per-pixel loops | `Image.blend()` | Fast, vectorized |
+| Brightness adjust | Manual math | `ImageEnhance.Brightness` | Preserves color balance |
+| HTTP downloads | Custom socket code | `requests.get()` | Handles redirects, errors |
+| API rate limiting | Manual timers | `time.sleep(2)` | 200 req/hour = safe margin |
+| Path handling | String concatenation | `pathlib.Path` | Cross-platform |
 
-**Key insight:** Генерация 17 изображений — одноразовый процесс. Простой скрипт с proper error handling достаточен. Не overengineer.
+**Key insight:** Pillow и requests делают 90% работы. Скрипт будет < 200 строк.
 
 ## Common Pitfalls
 
-### Pitfall 1: Rate Limiting (IPM = 2)
-**What goes wrong:** Gemini блокирует запросы при быстрой генерации
-**Why it happens:** Free tier ограничен 2 images per minute
-**How to avoid:** Добавить `time.sleep(30)` между генерациями (или 60 для безопасности)
-**Warning signs:** 429 Too Many Requests, ResourceExhausted errors
-
-### Pitfall 2: Inconsistent Style
-**What goes wrong:** Изображения выглядят по-разному
-**Why it happens:** Вариации в промптах, отсутствие style anchors
+### Pitfall 1: Неподходящие изображения
+**What goes wrong:** Stock фото не соответствует мистическому стилю
+**Why it happens:** Общие запросы возвращают любые изображения
 **How to avoid:**
-- Повторять BASE_STYLE в каждом промпте
-- Использовать одинаковый aspect_ratio для всей серии
-- Генерировать test batch (2-3 изображения) перед полной генерацией
+- Использовать color filter (`color="purple"` или `color="black"`)
+- Просматривать результаты перед batch processing
+- Иметь backup queries
+**Warning signs:** Яркие, дневные, несерьезные изображения
+
+### Pitfall 2: Разный стиль после обработки
+**What goes wrong:** Изображения все равно выглядят разрозненно
+**Why it happens:** Исходники слишком разные
+**How to avoid:**
+- Применять ОДИНАКОВЫЕ настройки ко всем изображениям
+- Тестировать на 2-3 изображениях перед full batch
+- При необходимости корректировать индивидуально
 **Warning signs:** Визуальная несогласованность при preview
 
-### Pitfall 3: API Key Exposure
-**What goes wrong:** API ключ утекает в git
-**Why it happens:** Hardcoded ключ или .env не в .gitignore
+### Pitfall 3: Rate Limit Exceeded
+**What goes wrong:** API возвращает 429 ошибку
+**Why it happens:** Слишком быстрые запросы
 **How to avoid:**
-- Использовать `GOOGLE_API_KEY` env variable
-- Проверить .gitignore включает .env
-- Никогда не коммитить ключи
+- `time.sleep(2)` между запросами (200/hour = 3/minute safe)
+- Retry с exponential backoff
+**Warning signs:** 429 status code, "Too Many Requests"
+
+### Pitfall 4: API Key в коде
+**What goes wrong:** Ключ утекает в git
+**Why it happens:** Hardcoded или .env не в .gitignore
+**How to avoid:**
+- Использовать `os.getenv("PEXELS_API_KEY")`
+- Проверить .gitignore
 **Warning signs:** Git history содержит ключи
 
-### Pitfall 4: Wrong Image Format for Telegram
-**What goes wrong:** Изображения слишком большие или неоптимальные
-**Why it happens:** Неправильный формат/размер
+### Pitfall 5: Wrong Image Format
+**What goes wrong:** Telegram сжимает или искажает
+**Why it happens:** Неоптимальный размер/формат
 **How to avoid:**
-- Использовать 1024x1024 для универсальности
-- Сохранять как PNG (лучше для графики с золотом)
-- Проверять размер файла < 10MB
-**Warning signs:** Telegram долго загружает или сжимает изображение
-
-### Pitfall 5: SynthID Watermark Concerns
-**What goes wrong:** Беспокойство о водяных знаках
-**Why it happens:** Gemini добавляет невидимый SynthID
-**How to avoid:** Это НЕ проблема — SynthID невидим для пользователей
-**Warning signs:** Нет визуальных признаков (watermark невидим)
+- 1024x1024 PNG для всех изображений
+- Проверить файл < 10MB
+**Warning signs:** Telegram долго загружает
 
 ## Code Examples
 
-### Complete Generation Script
+### Complete Fetch Script
 ```python
 #!/usr/bin/env python3
-"""Generate all images for AdtroBot using Google Gemini."""
-# Source: Google Gemini API docs + project patterns
+"""Fetch images from Pexels for AdtroBot."""
+# Source: Pexels API docs + pexels-api-py
 
 import os
 import time
+import requests
 from pathlib import Path
+from pexelsapi.pexels import Pexels
 
-from google import genai
-from google.genai import types
+PEXELS_API_KEY = os.getenv("PEXELS_API_KEY")
+RAW_DIR = Path("assets/images/raw")
+DELAY = 2  # seconds between requests
 
-# Configuration
-OUTPUT_DIR = Path("assets/images")
-MODEL = "gemini-2.5-flash-image"
-DELAY_SECONDS = 35  # Free tier: 2 IPM, safe margin
-
-# Base style for all images (from CONTEXT.md)
-BASE_STYLE = """
-Mystical cosmic art style, dark background with deep purple and black tones,
-golden and white accents, stars and nebulae, magical atmosphere,
-high detail, elegant composition, professional quality, no text, no watermarks
-"""
-
-
-def create_client():
-    """Create Gemini client with API key from environment."""
-    api_key = os.getenv("GOOGLE_API_KEY")
-    if not api_key:
-        raise ValueError("GOOGLE_API_KEY environment variable not set")
-    return genai.Client(api_key=api_key)
-
-
-def generate_image(client, prompt: str, output_path: Path, aspect_ratio: str = "1:1"):
-    """Generate single image and save to file."""
-    full_prompt = f"{prompt}, {BASE_STYLE}"
-
-    try:
-        response = client.models.generate_content(
-            model=MODEL,
-            contents=[full_prompt],
-            config=types.GenerateContentConfig(
-                response_modalities=["IMAGE"],
-                image_config=types.ImageConfig(
-                    aspect_ratio=aspect_ratio,
-                )
-            )
-        )
-
-        for part in response.parts:
-            if part.inline_data is not None:
-                image = part.as_image()
-                output_path.parent.mkdir(parents=True, exist_ok=True)
-                image.save(output_path, "PNG")
-                print(f"Generated: {output_path}")
-                return True
-
-        print(f"No image in response for: {output_path}")
-        return False
-
-    except Exception as e:
-        print(f"Error generating {output_path}: {e}")
-        return False
-
-
-# Zodiac signs configuration
-ZODIAC_PROMPTS = {
-    "aries": "Aries zodiac symbol, golden ram horns glyph, centered large glowing symbol",
-    "taurus": "Taurus zodiac symbol, golden bull head glyph, centered large glowing symbol",
-    "gemini": "Gemini zodiac symbol, golden twins glyph, centered large glowing symbol",
-    "cancer": "Cancer zodiac symbol, golden crab claws glyph, centered large glowing symbol",
-    "leo": "Leo zodiac symbol, golden lion mane glyph, centered large glowing symbol",
-    "virgo": "Virgo zodiac symbol, golden maiden glyph, centered large glowing symbol",
-    "libra": "Libra zodiac symbol, golden balanced scales glyph, centered large glowing symbol",
-    "scorpio": "Scorpio zodiac symbol, golden scorpion tail glyph, centered large glowing symbol",
-    "sagittarius": "Sagittarius zodiac symbol, golden archer bow glyph, centered large glowing symbol",
-    "capricorn": "Capricorn zodiac symbol, golden sea-goat glyph, centered large glowing symbol",
-    "aquarius": "Aquarius zodiac symbol, golden water bearer waves glyph, centered large glowing symbol",
-    "pisces": "Pisces zodiac symbol, golden twin fish glyph, centered large glowing symbol",
+# Image search configuration
+IMAGES_CONFIG = {
+    "welcome": {"query": "zodiac wheel cosmic", "color": "purple"},
+    "zodiac/aries": {"query": "aries zodiac symbol golden"},
+    "zodiac/taurus": {"query": "taurus zodiac symbol"},
+    "zodiac/gemini": {"query": "gemini zodiac twins"},
+    "zodiac/cancer": {"query": "cancer zodiac crab"},
+    "zodiac/leo": {"query": "leo zodiac lion"},
+    "zodiac/virgo": {"query": "virgo zodiac maiden"},
+    "zodiac/libra": {"query": "libra zodiac scales"},
+    "zodiac/scorpio": {"query": "scorpio zodiac"},
+    "zodiac/sagittarius": {"query": "sagittarius zodiac archer"},
+    "zodiac/capricorn": {"query": "capricorn zodiac goat"},
+    "zodiac/aquarius": {"query": "aquarius zodiac water"},
+    "zodiac/pisces": {"query": "pisces zodiac fish"},
+    "tarot/three_card": {"query": "tarot cards back dark", "color": "black"},
+    "tarot/celtic_cross": {"query": "tarot spread cards"},
+    "natal_chart": {"query": "birth chart astrology wheel"},
+    "paywall": {"query": "golden lock premium", "color": "gold"},
 }
 
 
+def fetch_image(pexel: Pexels, name: str, config: dict) -> bool:
+    """Fetch single image from Pexels."""
+    query = config.get("query", name)
+    color = config.get("color", "")
+
+    results = pexel.search_photos(
+        query=query,
+        orientation="square",
+        size="large",
+        color=color,
+        per_page=5
+    )
+
+    if not results or 'photos' not in results or not results['photos']:
+        print(f"No results for: {name} (query: {query})")
+        return False
+
+    photo = results['photos'][0]
+    image_url = photo['src']['large']
+    photographer = photo.get('photographer', 'Unknown')
+
+    output_path = RAW_DIR / f"{name}_raw.jpg"
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    response = requests.get(image_url)
+    output_path.write_bytes(response.content)
+
+    print(f"Downloaded: {name} (by {photographer})")
+    return True
+
+
 def main():
-    """Generate all images."""
-    client = create_client()
+    if not PEXELS_API_KEY:
+        raise ValueError("PEXELS_API_KEY not set")
 
-    # Create output directories
-    (OUTPUT_DIR / "zodiac").mkdir(parents=True, exist_ok=True)
-    (OUTPUT_DIR / "tarot").mkdir(parents=True, exist_ok=True)
+    pexel = Pexels(PEXELS_API_KEY)
 
-    generated = 0
-    total = 17
+    for name, config in IMAGES_CONFIG.items():
+        fetch_image(pexel, name, config)
+        time.sleep(DELAY)
 
-    # 1. Welcome screen
-    print(f"\n[{generated+1}/{total}] Generating welcome screen...")
-    generate_image(
-        client,
-        "Large golden zodiac wheel with all 12 signs, cosmic portal, mystical gateway, centered composition",
-        OUTPUT_DIR / "welcome.png",
-    )
-    generated += 1
-    time.sleep(DELAY_SECONDS)
-
-    # 2. Zodiac signs (12 images)
-    for sign, prompt in ZODIAC_PROMPTS.items():
-        print(f"\n[{generated+1}/{total}] Generating {sign}...")
-        generate_image(
-            client,
-            prompt,
-            OUTPUT_DIR / "zodiac" / f"{sign}.png",
-        )
-        generated += 1
-        time.sleep(DELAY_SECONDS)
-
-    # 3. Tarot spreads
-    print(f"\n[{generated+1}/{total}] Generating three card spread...")
-    generate_image(
-        client,
-        "Three tarot cards face down in a row, golden ornate back design on black, mystical arrangement",
-        OUTPUT_DIR / "tarot" / "three_card.png",
-    )
-    generated += 1
-    time.sleep(DELAY_SECONDS)
-
-    print(f"\n[{generated+1}/{total}] Generating Celtic Cross spread...")
-    generate_image(
-        client,
-        "Celtic Cross tarot spread, ten cards face down, golden ornate backs on black, mystical cross pattern",
-        OUTPUT_DIR / "tarot" / "celtic_cross.png",
-    )
-    generated += 1
-    time.sleep(DELAY_SECONDS)
-
-    # 4. Natal chart
-    print(f"\n[{generated+1}/{total}] Generating natal chart...")
-    generate_image(
-        client,
-        "Astrological birth chart wheel, golden lines and symbols, planets and houses marked, cosmic background",
-        OUTPUT_DIR / "natal_chart.png",
-    )
-    generated += 1
-    time.sleep(DELAY_SECONDS)
-
-    # 5. Paywall
-    print(f"\n[{generated+1}/{total}] Generating paywall...")
-    generate_image(
-        client,
-        "Golden ornate lock with keyhole, premium access symbol, magical glow, unlock concept",
-        OUTPUT_DIR / "paywall.png",
-    )
-    generated += 1
-
-    print(f"\n{'='*50}")
-    print(f"All {total} images generated successfully!")
-    print(f"Output directory: {OUTPUT_DIR.absolute()}")
+    print(f"\nAll images downloaded to: {RAW_DIR.absolute()}")
 
 
 if __name__ == "__main__":
     main()
 ```
 
-### Environment Setup
-```bash
-# .env file (add to existing)
-GOOGLE_API_KEY=your_gemini_api_key_here
+### Complete Processing Script
+```python
+#!/usr/bin/env python3
+"""Process raw images for unified mystical style."""
+# Source: Pillow documentation
+
+from PIL import Image, ImageEnhance, ImageOps, ImageFilter
+from pathlib import Path
+
+RAW_DIR = Path("assets/images/raw")
+OUTPUT_DIR = Path("assets/images/processed")
+SIZE = (1024, 1024)
+
+# Style parameters
+BRIGHTNESS = 0.65      # Darken to 65%
+CONTRAST = 1.2         # Boost contrast 20%
+PURPLE_TINT = 0.15     # 15% purple overlay
+PURPLE_COLOR = (75, 0, 130)  # Indigo
+
+
+def apply_mystical_style(input_path: Path, output_path: Path):
+    """Apply unified mystical style."""
+    img = Image.open(input_path)
+
+    # 1. Resize and crop to square
+    img = ImageOps.fit(img, SIZE, method=Image.Resampling.LANCZOS)
+
+    # 2. Ensure RGB mode
+    if img.mode != 'RGB':
+        img = img.convert('RGB')
+
+    # 3. Darken
+    img = ImageEnhance.Brightness(img).enhance(BRIGHTNESS)
+
+    # 4. Boost contrast
+    img = ImageEnhance.Contrast(img).enhance(CONTRAST)
+
+    # 5. Purple tint overlay
+    purple = Image.new('RGB', SIZE, PURPLE_COLOR)
+    img = Image.blend(img, purple, alpha=PURPLE_TINT)
+
+    # 6. Final contrast adjustment
+    img = ImageEnhance.Contrast(img).enhance(1.1)
+
+    # 7. Save
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    img.save(output_path, "PNG", optimize=True)
+    print(f"Processed: {output_path.name}")
+
+
+def main():
+    # Find all raw images
+    raw_files = list(RAW_DIR.rglob("*_raw.jpg"))
+
+    if not raw_files:
+        print(f"No raw images found in {RAW_DIR}")
+        return
+
+    for raw_path in raw_files:
+        # Construct output path: remove _raw suffix, change extension
+        relative = raw_path.relative_to(RAW_DIR)
+        output_name = relative.stem.replace("_raw", "") + ".png"
+        output_path = OUTPUT_DIR / relative.parent / output_name
+
+        apply_mystical_style(raw_path, output_path)
+
+    print(f"\nAll images processed to: {OUTPUT_DIR.absolute()}")
+
+
+if __name__ == "__main__":
+    main()
 ```
 
-### Getting API Key
-1. Перейти на https://aistudio.google.com/
-2. Войти с Google аккаунтом (БЕЗ КАРТЫ)
-3. Settings -> API Keys -> Create API Key
-4. Скопировать ключ в .env
-
-### Running the Script
+### Getting Pexels API Key
 ```bash
-# Install dependency
-pip install google-genai
+# 1. Go to https://www.pexels.com/api/
+# 2. Click "Get Started" and create account (FREE)
+# 3. Request API access (instant approval)
+# 4. Copy API key
 
-# Run generation (takes ~10 minutes with rate limiting)
-python scripts/generate_images.py
+# Add to .env:
+echo "PEXELS_API_KEY=your_key_here" >> .env
 ```
 
 ### Estimated Time
-- 17 изображений x 35 секунд delay = ~10 минут
-- Можно запустить и заняться другим
+- Скачивание: 17 images x 2s delay = ~35 секунд
+- Обработка: 17 images x ~1s = ~20 секунд
+- **Итого: < 1 минута** (vs 10 минут для AI генерации)
 
-## State of the Art
+## Ручной подход (Backup)
 
-| Old Approach | Current Approach | When Changed | Impact |
-|--------------|------------------|--------------|--------|
-| Together.ai free | Together.ai PAID ($5 min) | July 2025 | Больше не бесплатно |
-| Stable Diffusion | Gemini 2.5 Flash Image | 2025 | Лучшее качество, проще API |
-| Multiple API calls | Single generate_content | Gemini SDK | Упрощенный код |
-| Manual image decode | `part.as_image()` | Gemini SDK | Автоматическая обработка |
+Если автоматизация не найдет подходящие изображения:
 
-**Deprecated/outdated:**
-- Together.ai free tier: Отменен, теперь требует $5 минимум
-- Gemini 2.0 Flash: Deprecated, shutdown March 2026
-- Stable Diffusion API (бесплатный): Лимиты слишком низкие
+### Шаг 1: Ручной поиск
+1. Открыть https://www.pexels.com/
+2. Искать по ключевым словам из таблицы выше
+3. Скачать понравившиеся изображения
+4. Сохранить в `assets/images/raw/`
 
-## Telegram-Specific Considerations
+### Шаг 2: Обработка
+Запустить только `process_images.py` — он обработает все raw файлы.
 
-### Image Formats
-| Format | Use Case | Notes |
-|--------|----------|-------|
-| PNG | Best for graphics | Lossless, transparency support, рекомендуется |
-| JPG | Photos | Smaller size, no transparency |
-| WebP | Modern bots | 30% smaller, good support |
-
-**Recommendation:** Использовать PNG для всех изображений (лучшее качество для графики с золотыми элементами).
-
-### Image Sizes
-| Size | Use Case | Telegram Behavior |
-|------|----------|-------------------|
-| 1024x1024 | Universal | Отображается полностью, автомасштабируется |
-| 1280x720 | Landscape | Хорошо для карточек |
-| 2560x2560 | Max API | Telegram сжимает до 1280 |
-
-**Recommendation:** 1024x1024 (1K) — Gemini default, оптимально для Telegram.
-
-### File Size Limits
-- Photo: до 10 MB
-- Document: до 50 MB
-- PNG 1024x1024: ~500KB-2MB, в пределах лимита
+### Шаг 3: Ревью
+Проверить результаты, при необходимости заменить неудачные исходники.
 
 ## Open Questions
 
-### 1. Точная стилизация символов зодиака
-- **What we know:** Нужны классические глифы в золотом стиле
-- **What's unclear:** Gemini может интерпретировать "glyph" по-разному
-- **Recommendation:** Провести тестовую генерацию 2-3 знаков, уточнить промпты итеративно
+### 1. Наличие качественных zodiac symbol изображений
+- **What we know:** Pexels имеет категорию astrology
+- **What's unclear:** Есть ли 12 отдельных изображений символов знаков
+- **Recommendation:** Сначала выполнить тестовый поиск для 2-3 знаков
 
-### 2. Rate Limit Stability
-- **What we know:** Документация говорит 2 IPM для free tier
-- **What's unclear:** Точные лимиты могут меняться (Google менял в Dec 2025)
-- **Recommendation:** Использовать 35-секундный delay, retry при failures
+### 2. Единообразие результатов обработки
+- **What we know:** Pillow применяет идентичные фильтры
+- **What's unclear:** Как разные исходники будут выглядеть после обработки
+- **Recommendation:** Тестировать на небольшом batch, корректировать параметры
 
-### 3. Альтернатива если Gemini не подойдет
-- **What we know:** Hugging Face дает $0.10/месяц бесплатно
-- **What's unclear:** Хватит ли для итераций
-- **Recommendation:** Backup план — ручная генерация через Leonardo.ai web (150 токенов/день)
+### 3. Fallback на AI если stock не подойдет
+- **What we know:** Gemini 2.5 Flash Image работает (предыдущее исследование)
+- **What's unclear:** Потребуется ли fallback
+- **Recommendation:** Попробовать stock подход первым, AI как backup
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- [Google Gemini API Image Generation](https://ai.google.dev/gemini-api/docs/image-generation) - Official docs, Python examples
-- [Gemini API Pricing](https://ai.google.dev/gemini-api/docs/pricing) - Free tier info
-- [Google Developers Blog - Gemini 2.5 Flash Image](https://developers.googleblog.com/introducing-gemini-2-5-flash-image/) - Model capabilities
+- [Unsplash License](https://unsplash.com/license) - Лицензионные условия
+- [Pexels License](https://help.pexels.com/hc/en-us/articles/360042295174) - Коммерческое использование
+- [Pillow ImageEnhance](https://pillow.readthedocs.io/en/stable/reference/ImageEnhance.html) - Официальная документация
+- [Pillow Image](https://pillow.readthedocs.io/en/stable/reference/Image.html) - blend, composite, resize
 
 ### Secondary (MEDIUM confidence)
-- [Together.ai Billing Docs](https://docs.together.ai/docs/billing) - Confirms $5 minimum requirement
-- [Hugging Face Pricing](https://huggingface.co/docs/inference-providers/en/pricing) - Free tier: $0.10/month
-- [Telegram Image Size Guide](https://limits.tginfo.me/en) - Telegram specifications
+- [pexels-api-py GitHub](https://github.com/meetsohail/pexels-api-py) - Python SDK
+- [Pexels API Rate Limits](https://help.pexels.com/hc/en-us/articles/900005852323) - 200 req/hour
+- [Unsplash API Docs](https://unsplash.com/documentation) - 50 req/hour demo
 
 ### Tertiary (LOW confidence)
-- WebSearch results about Gemini rate limits in 2026 - May change
-- WebSearch results about alternative generators - Community reports
+- WebSearch results about Pexels/Unsplash image availability for zodiac themes
 
 ## Metadata
 
 **Confidence breakdown:**
-- Standard stack: HIGH - Официальная документация Google
-- Architecture: HIGH - Простой скрипт, SDK примеры из docs
-- Pitfalls: MEDIUM - Основано на rate limit documentation + community reports
-- Prompts: MEDIUM - Требует итеративное тестирование
+- Лицензирование: HIGH - Официальные страницы лицензий
+- API доступ: HIGH - Официальная документация
+- Pillow обработка: HIGH - Официальная документация, уже установлен
+- Наличие изображений: MEDIUM - Зависит от качества поиска
+- Единый стиль: MEDIUM - Требует тестирования
 
 **Research date:** 2026-01-24
-**Valid until:** 30 дней (Google может менять лимиты, проверять актуальность)
+**Valid until:** 60 дней (лицензии стабильны, API редко меняются)
+
+---
+
+## Сравнение подходов
+
+| Аспект | Stock Images (NEW) | AI Generation (OLD) |
+|--------|-------------------|---------------------|
+| Стоимость | Бесплатно | Бесплатно (Gemini) |
+| Время генерации | < 1 минуты | ~10 минут |
+| Качество | Зависит от поиска | Стабильно хорошее |
+| Единообразие | Через обработку | Через промпты |
+| Лицензия | Четкая (Pexels/Unsplash) | Gemini ToS |
+| Контроль | Выбор из существующих | Генерация по описанию |
+| Fallback | AI generation | Ручной дизайн |
+
+**Рекомендация:** Попробовать stock подход — быстрее, проще, лицензионно чище. При неудаче — вернуться к AI.
