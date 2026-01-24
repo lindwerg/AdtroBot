@@ -17,8 +17,6 @@ from aiogram.types import (
 from sqlalchemy import desc, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-logger = structlog.get_logger()
-
 from src.bot.callbacks.tarot import (
     HistoryAction,
     HistoryCallback,
@@ -36,6 +34,7 @@ from src.bot.keyboards.tarot import (
     get_tarot_menu_keyboard,
 )
 from src.bot.states.tarot import TarotStates
+from src.bot.utils.progress import generate_with_feedback
 from src.bot.utils.tarot_cards import (
     get_card_by_id,
     get_card_image,
@@ -44,7 +43,6 @@ from src.bot.utils.tarot_cards import (
     get_ten_cards,
     get_three_cards,
 )
-from src.bot.utils.progress import generate_with_feedback
 from src.bot.utils.tarot_formatting import (
     format_card_of_day_with_ai,
     format_celtic_cross_with_ai,
@@ -57,6 +55,8 @@ from src.db.models.tarot_spread import TarotSpread
 from src.db.models.user import User
 from src.services.ai import get_ai_service
 from src.services.telegraph import get_telegraph_service
+
+logger = structlog.get_logger()
 
 router = Router(name="tarot")
 
@@ -452,7 +452,6 @@ async def tarot_draw_three_cards(
 
     # Send interpretation (AI or fallback to static meanings)
     content = format_three_card_spread_with_ai(cards, question, interpretation)
-    daily_limit = DAILY_SPREAD_LIMIT_PREMIUM if is_premium else DAILY_SPREAD_LIMIT_FREE
     limit_text = format_limit_message(remaining, is_premium)
 
     await callback.message.answer(
@@ -781,7 +780,7 @@ async def show_history_page(
     await callback.message.edit_text(
         f"История раскладов ({total_count} всего)\n"
         f"Страница {page + 1}/{total_pages}",
-        reply_markup=get_history_keyboard(list(spreads), page, total_pages),
+        reply_markup=get_history_keyboard(list(spreads), page, total_pages, offset),
     )
 
 

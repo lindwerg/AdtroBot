@@ -1,6 +1,5 @@
 """Tarot message formatting with entity-based approach."""
 
-from datetime import datetime
 
 from aiogram.utils.formatting import BlockQuote, Bold, Text
 

@@ -18,7 +18,6 @@ from src.bot.callbacks.natal import NatalAction, NatalCallback
 from src.bot.keyboards.main_menu import get_main_menu_keyboard
 from src.bot.keyboards.natal import (
     get_free_natal_keyboard,
-    get_natal_menu_keyboard,
     get_natal_setup_keyboard,
     get_natal_teaser_keyboard,
     get_natal_with_buy_keyboard,
@@ -95,7 +94,6 @@ async def show_natal_chart(
         )
 
         # Try to publish to Telegraph if interpretation exists
-        telegraph_url = None
         if interpretation:
             try:
                 telegraph_service = get_telegraph_service()
@@ -103,7 +101,7 @@ async def show_natal_chart(
                 if user.birth_city:
                     title += f", {user.birth_city}"
 
-                telegraph_url = await asyncio.wait_for(
+                await asyncio.wait_for(
                     telegraph_service.publish_article(title, interpretation),
                     timeout=TELEGRAPH_TIMEOUT,
                 )

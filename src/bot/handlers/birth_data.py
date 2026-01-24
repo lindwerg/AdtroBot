@@ -20,7 +20,7 @@ from src.bot.keyboards.birth_data import (
 from src.bot.keyboards.main_menu import get_main_menu_keyboard
 from src.bot.states.birth_data import BirthDataStates
 from src.db.models.user import User
-from src.services.astrology.geocoding import CityResult, search_city
+from src.services.astrology.geocoding import search_city
 
 logger = structlog.get_logger()
 

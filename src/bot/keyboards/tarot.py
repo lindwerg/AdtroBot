@@ -75,7 +75,7 @@ def get_draw_celtic_keyboard():
     return builder.as_markup()
 
 
-def get_history_keyboard(spreads: list, page: int, total_pages: int):
+def get_history_keyboard(spreads: list, page: int, total_pages: int, offset: int = 0):
     """
     Keyboard for spread history list.
 
@@ -83,6 +83,7 @@ def get_history_keyboard(spreads: list, page: int, total_pages: int):
         spreads: List of TarotSpread objects for current page
         page: Current page number (0-indexed)
         total_pages: Total number of pages
+        offset: Offset for numbering (page * page_size)
     """
     builder = InlineKeyboardBuilder()
 

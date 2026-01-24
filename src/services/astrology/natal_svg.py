@@ -9,7 +9,6 @@ Creates visual representation of natal chart with:
 
 import asyncio
 import math
-from io import BytesIO
 
 import cairosvg
 import svgwrite

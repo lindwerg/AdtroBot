@@ -1,6 +1,5 @@
 """AI cost tracking utilities."""
 
-import time
 from typing import Any
 
 import structlog

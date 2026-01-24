@@ -8,7 +8,6 @@ Create Date: 2026-01-23 11:58:29.322697
 from typing import Sequence, Union
 
 from alembic import op
-import sqlalchemy as sa
 import bcrypt
 
 

@@ -1,6 +1,5 @@
 """Tests for AI output validators."""
 
-import pytest
 
 from src.services.ai.validators import validate_natal_chart
 
