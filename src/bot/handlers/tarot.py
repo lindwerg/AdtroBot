@@ -45,7 +45,6 @@ from src.bot.utils.tarot_cards import (
 )
 from src.bot.utils.tarot_formatting import (
     format_card_of_day_with_ai,
-    format_celtic_cross_with_ai,
     format_limit_exceeded,
     format_limit_message,
     format_spread_detail,
@@ -617,17 +616,26 @@ async def tarot_draw_celtic_cards(
 
     await callback.message.answer_media_group(media_group)
 
-    # Get AI interpretation with typing indicator
+    # Get AI interpretation with typing indicator (returns tuple)
     ai = get_ai_service()
     cards_data = [card for card, _ in cards]
     is_reversed_list = [reversed_flag for _, reversed_flag in cards]
-    interpretation = await generate_with_feedback(
+    result = await generate_with_feedback(
         message=callback.message,
         operation_type="tarot",
         ai_coro=ai.generate_celtic_cross(question, cards_data, is_reversed_list),
     )
 
-    # Save to history
+    if not result:
+        await callback.message.answer(
+            "Не удалось создать интерпретацию. Попробуй позже.",
+            reply_markup=get_tarot_menu_keyboard(),
+        )
+        return
+
+    short_summary, full_interpretation = result  # Unpack tuple
+
+    # Save FULL interpretation to history
     if user_db_id:
         await save_spread_to_history(
             session=session,
@@ -635,48 +643,54 @@ async def tarot_draw_celtic_cards(
             spread_type="celtic_cross",
             question=question,
             cards=cards,
-            interpretation=interpretation,
+            interpretation=full_interpretation,  # Сохраняем полную версию
         )
 
-    # Try to publish to Telegraph if interpretation exists
+    # Publish FULL interpretation to Telegraph (always, not fallback)
     telegraph_url = None
-    if interpretation:
-        try:
-            telegraph_service = get_telegraph_service()
-            # Truncate question for title if too long
-            question_short = question[:50] + "..." if len(question) > 50 else question
-            title = f"Кельтский крест — {question_short}"
+    try:
+        telegraph_service = get_telegraph_service()
+        # Truncate question for title if too long
+        question_short = question[:50] + "..." if len(question) > 50 else question
+        title = f"Кельтский крест — {question_short}"
 
-            telegraph_url = await asyncio.wait_for(
-                telegraph_service.publish_article(title, interpretation),
-                timeout=TELEGRAPH_TIMEOUT,
-            )
-        except asyncio.TimeoutError:
-            logger.warning("telegraph_celtic_timeout")
-        except Exception as e:
-            logger.error("telegraph_celtic_error", error=str(e))
+        telegraph_url = await asyncio.wait_for(
+            telegraph_service.publish_article(title, full_interpretation),
+            timeout=TELEGRAPH_TIMEOUT,
+        )
+    except asyncio.TimeoutError:
+        logger.warning("telegraph_celtic_timeout", question=question[:30])
+    except Exception as e:
+        logger.error("telegraph_celtic_error", error=str(e))
 
-    # Send result based on Telegraph success/failure
+    # Show SHORT summary in Telegram + Telegraph link
     if telegraph_url:
-        # Success: send message with button to Telegraph article
+        # Success: show short summary + button to full interpretation
         keyboard = InlineKeyboardMarkup(
             inline_keyboard=[
                 [
                     InlineKeyboardButton(
-                        text="Посмотреть интерпретацию",
+                        text="📖 Открыть полное толкование",
                         url=telegraph_url,
                     )
                 ]
             ]
         )
         await callback.message.answer(
-            "Твой расклад готов!",
+            short_summary,  # Краткое резюме вместо generic сообщения
             reply_markup=keyboard,
         )
     else:
-        # Fallback: send interpretation directly using existing formatter
-        content = format_celtic_cross_with_ai(cards, question, interpretation)
-        await callback.message.answer(**content.as_kwargs())
+        # Telegraph failed - show short summary + full in chunks
+        await callback.message.answer(short_summary)
+
+        # Send full interpretation in chunks (Telegram 4096 char limit)
+        chunks = [
+            full_interpretation[i : i + 4000]
+            for i in range(0, len(full_interpretation), 4000)
+        ]
+        for chunk in chunks:
+            await callback.message.answer(chunk)
 
     # Show limit
     limit_text = format_limit_message(remaining, is_premium)

@@ -84,6 +84,45 @@ def _clean_markdown(text: str) -> str:
     return text.strip()
 
 
+def _parse_celtic_response(text: str) -> tuple[str | None, str | None]:
+    """Parse Celtic Cross response into short and full parts.
+
+    Expected format:
+    ===КРАТКИЙ===
+    [short summary]
+
+    ===ПОЛНЫЙ===
+    [full interpretation]
+
+    Args:
+        text: AI response text with structured markers
+
+    Returns:
+        (short_summary, full_interpretation) or (None, None) if parsing fails
+    """
+    import re
+
+    # Find markers
+    short_match = re.search(r'===КРАТКИЙ===\s*\n(.*?)\n\s*===ПОЛНЫЙ===', text, re.DOTALL)
+    full_match = re.search(r'===ПОЛНЫЙ===\s*\n(.*)', text, re.DOTALL)
+
+    if not short_match or not full_match:
+        return (None, None)
+
+    short = short_match.group(1).strip()
+    full = full_match.group(1).strip()
+
+    # Validation: краткий не должен быть слишком длинным
+    if len(short) > 1000:  # Max ~150 words
+        return (None, None)
+
+    # Валидация: полный не должен быть слишком коротким
+    if len(full) < 500:  # Min ~100 words
+        return (None, None)
+
+    return (short, full)
+
+
 class AIService:
     """AI service for generating horoscopes and tarot interpretations.
 
@@ -463,9 +502,10 @@ class AIService:
         cards: list[dict],
         is_reversed: list[bool],
         user_id: int | None = None,
-    ) -> str | None:
+    ) -> tuple[str, str] | None:
         """Generate Celtic Cross 10-card spread interpretation.
 
+        Returns both short summary (3-5 sentences) and full interpretation (800-1200 words).
         No caching - each spread is unique based on question.
 
         Args:
@@ -475,13 +515,13 @@ class AIService:
             user_id: User ID for cost tracking
 
         Returns:
-            Interpretation text (800-1200 words) or None if all retries fail
+            Tuple of (short_summary, full_interpretation) or None if all retries fail
         """
         for attempt in range(self.MAX_VALIDATION_RETRIES + 1):
             text = await self._generate(
                 system_prompt=CelticCrossPrompt.SYSTEM,
                 user_prompt=CelticCrossPrompt.user(question, cards, is_reversed),
-                max_tokens=4000,  # Larger for 800-1200 word response
+                max_tokens=4000,  # Larger for both responses
                 operation="celtic_cross",
                 user_id=user_id,
             )
@@ -489,14 +529,28 @@ class AIService:
             if text is None:
                 return None
 
-            is_valid, error = validate_tarot(text)
+            # Parse structured output
+            short, full = _parse_celtic_response(text)
+
+            if not short or not full:
+                logger.warning(
+                    "celtic_cross_parse_failed",
+                    attempt=attempt + 1,
+                    has_short=bool(short),
+                    has_full=bool(full),
+                )
+                continue  # Retry
+
+            # Validate full interpretation (краткий не валидируем)
+            is_valid, error = validate_tarot(full)
             if is_valid:
                 logger.info(
                     "celtic_cross_generated",
                     cards=[c.get("name") for c in cards],
-                    chars=len(text),
+                    short_chars=len(short),
+                    full_chars=len(full),
                 )
-                return text
+                return (short, full)
 
             logger.warning(
                 "celtic_cross_validation_failed",
