@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-23)
 ## Current Position
 
 Phase: 15 of 16 (Monitoring & Observability)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-01-24 — Phase 14 complete (2 plans, verified with human needed)
+Plan: 1 of 3 in current phase
+Status: In progress
+Last activity: 2026-01-24 — Completed 15-01-PLAN.md (Monitoring Infrastructure)
 
-Progress: [████████░░] 67% (v2.0: 4/6 phases complete)
+Progress: [████████░░] 72% (v2.0: Phase 15 started)
 
 ## Performance Metrics
 
@@ -48,7 +48,9 @@ Recent decisions affecting current work:
 - [13-01]: 43 космических изображения для рандомной отправки вместо 17 специфических
 - [14-01]: file_id caching в PostgreSQL, asset_key формат "cosmic/{filename}"
 - [14-02]: callback.bot для callback handlers, bot: Bot injection для message handlers
-- [14-02]: callback.bot для callback handlers, bot: Bot для message handlers
+- [15-01]: AIUsage.user_id nullable для system operations (scheduled horoscope generation)
+- [15-01]: Health checks run in parallel via asyncio.gather
+- [15-01]: /health returns 503 if any check fails (load balancer integration)
 
 ### Pending Todos
 
@@ -65,7 +67,7 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-24
-Stopped at: Phase 14 complete and verified (human verification needed), ready for Phase 15
+Stopped at: Completed 15-01-PLAN.md (Monitoring Infrastructure)
 Resume file: None
 
 ## v1.0 Reference
