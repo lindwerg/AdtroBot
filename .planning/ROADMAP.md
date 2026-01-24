@@ -102,9 +102,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 15-01-PLAN.md — AIUsage model + Prometheus metrics + расширенный /health endpoint
-- [ ] 15-02-PLAN.md — Cost tracking интеграция в AIService + admin /monitoring API
-- [ ] 15-03-PLAN.md — Monitoring.tsx dashboard в админке с графиками и фильтрами
+- [x] 15-01-PLAN.md — AIUsage model + Prometheus metrics + расширенный /health endpoint
+- [x] 15-02-PLAN.md — Cost tracking интеграция в AIService + admin /monitoring API
+- [x] 15-03-PLAN.md — Monitoring.tsx dashboard в админке с графиками и фильтрами
 
 ### Phase 16: Testing & Polish
 **Goal**: Автоматизированные тесты покрывают критические flows, найденные баги исправлены
@@ -134,7 +134,7 @@ Phases execute in numeric order: 11 -> 11.1 -> 11.2 -> 12 -> ... -> 16
 | 12. Caching & Background Jobs | v2.0 | 3/3 | Complete | 2026-01-23 |
 | 13. Image Generation | v2.0 | 1/1 | Complete | 2026-01-24 |
 | 14. Visual Integration | v2.0 | 2/2 | Complete | 2026-01-24 |
-| 15. Monitoring & Observability | v2.0 | 0/3 | Planned | - |
+| 15. Monitoring & Observability | v2.0 | 3/3 | Gap found | 2026-01-24 |
 | 16. Testing & Polish | v2.0 | 0/TBD | Not started | - |
 
 ---
