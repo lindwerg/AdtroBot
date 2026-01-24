@@ -355,12 +355,17 @@ async def generate_transit_forecasts_for_premium() -> None:
     Background job: pre-generate transit forecasts for all premium users.
     Runs daily at 01:00 Moscow time (after horoscopes at 00:00).
 
+    Uses asyncio.gather() for PARALLEL generation (much faster than sequential).
+    Semaphore limits concurrent API requests to avoid rate limits.
+
     Steps:
     1. Find all premium users with birth data (birth_lat, birth_lon, birth_date)
-    2. For each user, generate transit forecast for TODAY
-    3. Cache result with 24-hour TTL
+    2. Generate ALL forecasts in parallel (with semaphore for rate limiting)
+    3. Cache results with 24-hour TTL
     4. Log success/failure for monitoring
     """
+    import asyncio
+
     from src.db.engine import async_session_maker
     from src.db.models.user import User
     from src.services.ai import get_ai_service
@@ -369,25 +374,13 @@ async def generate_transit_forecasts_for_premium() -> None:
     today = date.today()
     ai_service = get_ai_service()
 
-    async with async_session_maker() as session:
-        # Find premium users with birth data
-        stmt = select(User).where(
-            and_(
-                User.is_premium.is_(True),
-                User.birth_date.isnot(None),
-                User.birth_lat.isnot(None),
-                User.birth_lon.isnot(None),
-            )
-        )
-        result = await session.execute(stmt)
-        users = result.scalars().all()
+    # Semaphore to limit concurrent API requests (avoid rate limits)
+    # 20 concurrent requests = good balance between speed and API limits
+    semaphore = asyncio.Semaphore(20)
 
-        await logger.ainfo("Starting transit forecast generation", user_count=len(users))
-
-        success_count = 0
-        error_count = 0
-
-        for user in users:
+    async def generate_for_user(user: User) -> tuple[bool, int]:
+        """Generate forecast for a single user (with semaphore)."""
+        async with semaphore:
             try:
                 # Calculate natal chart
                 natal_data = calculate_full_natal_chart(
@@ -406,20 +399,45 @@ async def generate_transit_forecasts_for_premium() -> None:
                     timezone_str=user.timezone or "Europe/Moscow",
                 )
 
-                success_count += 1
                 await logger.adebug(
                     "Transit forecast cached",
                     user_id=user.telegram_id,
                     has_telegraph=bool(telegraph_url),
                 )
+                return (True, user.telegram_id)
 
             except Exception as e:
-                error_count += 1
                 await logger.aerror(
                     "Failed to generate transit forecast",
                     user_id=user.telegram_id,
                     error=str(e),
                 )
+                return (False, user.telegram_id)
+
+    async with async_session_maker() as session:
+        # Find premium users with birth data
+        stmt = select(User).where(
+            and_(
+                User.is_premium.is_(True),
+                User.birth_date.isnot(None),
+                User.birth_lat.isnot(None),
+                User.birth_lon.isnot(None),
+            )
+        )
+        result = await session.execute(stmt)
+        users = result.scalars().all()
+
+        await logger.ainfo("Starting transit forecast generation", user_count=len(users))
+
+        # Generate ALL forecasts in parallel (asyncio.gather)
+        results = await asyncio.gather(
+            *[generate_for_user(user) for user in users],
+            return_exceptions=False,
+        )
+
+        # Count successes and errors
+        success_count = sum(1 for success, _ in results if success)
+        error_count = sum(1 for success, _ in results if not success)
 
         await logger.ainfo(
             "Transit forecast generation complete",
