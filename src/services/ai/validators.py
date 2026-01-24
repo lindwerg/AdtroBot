@@ -175,6 +175,59 @@ def validate_card_of_day(text: str) -> tuple[bool, str | None]:
         return False, "Validation failed"
 
 
+class GeneralHoroscopeOutput(BaseModel):
+    """Validation for general horoscope without sections.
+
+    Used for onboarding to show difference between general and premium horoscopes.
+    """
+
+    text: str
+
+    @field_validator("text")
+    @classmethod
+    def validate_structure(cls, v: str) -> str:
+        """Validate general horoscope text structure and content."""
+        # Check minimum length (200 words ~ 500 chars in Russian)
+        if len(v) < 500:
+            raise ValueError("Гороскоп слишком короткий")
+
+        # Check maximum length
+        if len(v) > 2000:
+            raise ValueError("Гороскоп слишком длинный")
+
+        # Check NO sections present (forbidden sections)
+        forbidden_sections = ["[ЛЮБОВЬ]", "[КАРЬЕРА]", "[ЗДОРОВЬЕ]", "[ФИНАНСЫ]"]
+        for section in forbidden_sections:
+            if section in v:
+                raise ValueError(f"Обнаружена секция {section}")
+
+        # Check for forbidden AI self-references
+        error = _check_forbidden_patterns(v)
+        if error:
+            raise ValueError(error)
+
+        return v
+
+
+def validate_general_horoscope(text: str) -> tuple[bool, str | None]:
+    """Validate general horoscope output.
+
+    Args:
+        text: The generated general horoscope text
+
+    Returns:
+        Tuple of (is_valid, error_message or None)
+    """
+    try:
+        GeneralHoroscopeOutput(text=text)
+        return True, None
+    except ValidationError as e:
+        errors = e.errors()
+        if errors:
+            return False, str(errors[0].get("msg", "Validation failed"))
+        return False, "Validation failed"
+
+
 class NatalChartOutput(BaseModel):
     """Validation for natal chart interpretation output."""
 

@@ -17,6 +17,7 @@ class MenuAction(str, Enum):
 
     # Onboarding actions
     GET_FIRST_FORECAST = "first"
+    GET_FIRST_HOROSCOPE = "first_horo"
     ONBOARDING_NOTIF_YES = "n_yes"
     ONBOARDING_NOTIF_NO = "n_no"
 

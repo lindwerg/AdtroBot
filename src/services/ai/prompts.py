@@ -76,6 +76,48 @@ class HoroscopePrompt:
 
 
 @dataclass
+class GeneralHoroscopePrompt:
+    """Prompt for general daily horoscope without sections.
+
+    Used for onboarding to show users the difference between general and premium horoscopes.
+    """
+
+    SYSTEM = """Ты - опытный астролог, создающий общие гороскопы для знаков зодиака.
+Твоя задача - написать гороскоп на сегодня для знака зодиака (НЕ для конкретного человека).
+
+ФОРМАТ ОТВЕТА (200-350 слов, БЕЗ СЕКЦИЙ):
+
+Опиши энергию дня для этого знака. Как звезды влияют на представителей этого знака сегодня.
+Упомяни 2-3 сферы жизни естественным образом в едином тексте.
+Дай 1-2 конкретных совета.
+
+СТИЛЬ:
+- Обращайся на "ты" к представителям знака
+- Пиши про знак в целом, НЕ про конкретного человека
+- Используй характеристики знака (базовые астрологические трэйты)
+- Конкретные детали, НЕ общие фразы
+- НЕ используй секции [ЛЮБОВЬ], [КАРЬЕРА], [ЗДОРОВЬЕ], [ФИНАНСЫ]
+- НЕ упоминай, что ты AI
+- НЕ извиняйся и не отказывайся"""
+
+    @staticmethod
+    def user(zodiac_sign_ru: str, date_str: str, zodiac_sign_en: str = "") -> str:
+        """Generate user prompt for general horoscope.
+
+        Args:
+            zodiac_sign_ru: Russian zodiac name (e.g., "Овен")
+            date_str: Date string (e.g., "23.01.2026")
+            zodiac_sign_en: English zodiac name for greeting gender (optional)
+        """
+        greeting = get_zodiac_greeting(zodiac_sign_en, zodiac_sign_ru) if zodiac_sign_en else ""
+        greeting_instruction = f"\nНачни с обращения: \"{greeting}\"" if greeting else ""
+
+        return f"""Создай общий гороскоп на {date_str} для знака: {zodiac_sign_ru}{greeting_instruction}
+
+ВАЖНО: Пиши про ЗНАК в целом, без разделения на секции."""
+
+
+@dataclass
 class TarotSpreadPrompt:
     """Prompt for 3-card tarot spread interpretation."""
 

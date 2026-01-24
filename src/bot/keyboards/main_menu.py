@@ -41,3 +41,20 @@ def get_start_keyboard() -> InlineKeyboardMarkup:
             ]
         ]
     )
+
+
+def get_first_horoscope_keyboard() -> InlineKeyboardMarkup:
+    """Build keyboard for first horoscope after onboarding.
+
+    Returns inline keyboard with "Получить первый гороскоп ✨" button.
+    """
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="Получить первый гороскоп ✨",
+                    callback_data=MenuCallback(action=MenuAction.GET_FIRST_HOROSCOPE).pack(),
+                )
+            ]
+        ]
+    )

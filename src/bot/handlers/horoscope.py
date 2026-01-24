@@ -130,6 +130,7 @@ async def show_horoscope_message(
     user_sign: str | None = None,
     session: AsyncSession | None = None,
     bot: Bot | None = None,
+    is_onboarding: bool = False,
 ) -> None:
     """Send formatted horoscope message with inline keyboard.
 
@@ -139,6 +140,7 @@ async def show_horoscope_message(
         user_sign: User's own sign for highlighting in keyboard (optional)
         session: Database session for premium check (optional)
         bot: Bot instance for sending images (optional)
+        is_onboarding: If True, use general horoscope without sections (for first horoscope)
     """
     zodiac = ZODIAC_SIGNS.get(sign_name)
     if not zodiac:
@@ -193,10 +195,29 @@ async def show_horoscope_message(
             text = await get_horoscope_text(sign_name, zodiac.name_ru)
             text = f"{text}\n\n{SETUP_NATAL_PROMPT}"
     else:
-        # Free user or no session - basic + teaser
-        text = await get_horoscope_text(sign_name, zodiac.name_ru)
-        if session:  # Only add teaser if we checked user status
-            text = f"{text}\n\n{PREMIUM_TEASER}"
+        # Free user or no session
+        if is_onboarding and session and message.from_user:
+            # Onboarding: generate general horoscope (no sections)
+            ai_service = get_ai_service()
+            text = await generate_with_feedback(
+                message=message,
+                operation_type="horoscope",
+                ai_coro=ai_service.generate_general_horoscope(
+                    zodiac_sign=sign_name,
+                    zodiac_sign_ru=zodiac.name_ru,
+                    date_str=date_str,
+                    user_id=message.from_user.id,
+                ),
+            )
+            if text is None:
+                # Fallback
+                text = "Сервис временно недоступен. Попробуй через несколько минут."
+            header = f"{zodiac.emoji} Общий гороскоп для {zodiac.name_ru}"
+        else:
+            # Regular free user - cached horoscope + teaser
+            text = await get_horoscope_text(sign_name, zodiac.name_ru)
+            if session:  # Only add teaser if we checked user status
+                text = f"{text}\n\n{PREMIUM_TEASER}"
 
     # Format message with header and AI text
     content = Text(

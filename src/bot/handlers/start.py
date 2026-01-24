@@ -8,7 +8,11 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bot.callbacks.menu import MenuAction, MenuCallback
-from src.bot.keyboards.main_menu import get_main_menu_keyboard, get_start_keyboard
+from src.bot.keyboards.main_menu import (
+    get_first_horoscope_keyboard,
+    get_main_menu_keyboard,
+    get_start_keyboard,
+)
 from src.bot.keyboards.profile import (
     build_notification_time_keyboard,
     build_onboarding_notifications_keyboard,
@@ -37,6 +41,22 @@ WELCOME_MESSAGE = """✨ Привет! Я твой персональный ас
 • Кельтский крест (10 карт)
 
 Готов начать? Нажми кнопку ниже 👇"""
+
+ONBOARDING_EXPLANATION = """Теперь ты можешь получать гороскопы!
+
+📊 Чем отличается общий гороскоп от персонального?
+
+🆓 Общий гороскоп (бесплатно):
+• Прогноз для всех представителей твоего знака
+• Основан только на дате рождения
+• Обновляется каждый день
+
+⭐ Персональный гороскоп (Premium):
+• Составлен по ТВОЕЙ натальной карте
+• Учитывает дату, время и место рождения
+• Детальные прогнозы: любовь, карьера, финансы, здоровье
+
+Нажми кнопку, чтобы увидеть свой первый общий гороскоп 👇"""
 
 
 @router.message(Command("start"))
@@ -109,24 +129,49 @@ async def process_birthdate(
     await state.clear()
 
     # Show zodiac
-    await message.answer(f"✨ Твой знак: {zodiac.emoji} {zodiac.name_ru}")
+    await message.answer(f"✨ Отлично, ты {zodiac.emoji} {zodiac.name_ru}!")
 
-    # Explain general vs personal horoscope
+    # Explain general vs premium BEFORE showing horoscope
     await message.answer(
-        "Вот твой первый гороскоп!\n\n"
-        "💡 Сейчас ты видишь общий гороскоп для всех представителей твоего знака.\n"
-        "С Premium подпиской ты получишь персональный прогноз, "
-        "составленный по твоей натальной карте."
+        ONBOARDING_EXPLANATION,
+        reply_markup=get_first_horoscope_keyboard(),
     )
 
-    # Show real horoscope
-    await show_horoscope_message(message, zodiac.name, zodiac.name, session, bot)
 
-    # Offer to enable notifications (onboarding step)
-    await message.answer(
-        "Хотите получать ежедневный гороскоп каждое утро?",
+@router.callback_query(MenuCallback.filter(F.action == MenuAction.GET_FIRST_HOROSCOPE))
+async def show_first_horoscope(
+    callback: CallbackQuery,
+    session: AsyncSession,
+    bot: Bot,
+) -> None:
+    """Show first general horoscope after onboarding."""
+    # Get user from DB
+    stmt = select(User).where(User.telegram_id == callback.from_user.id)
+    result = await session.execute(stmt)
+    user = result.scalar_one_or_none()
+
+    if not user or not user.zodiac_sign:
+        await callback.answer("Ошибка: знак не найден", show_alert=True)
+        return
+
+    # Show general horoscope (no sections)
+    await callback.message.delete()  # Remove button message
+    await show_horoscope_message(
+        message=callback.message,
+        sign_name=user.zodiac_sign,
+        user_sign=user.zodiac_sign,
+        session=session,
+        bot=bot,
+        is_onboarding=True,  # NEW parameter
+    )
+
+    # Offer notifications AFTER horoscope
+    await callback.message.answer(
+        "Хочешь получать ежедневный гороскоп каждое утро?",
         reply_markup=build_onboarding_notifications_keyboard(),
     )
+
+    await callback.answer()
 
 
 @router.callback_query(MenuCallback.filter(F.action == MenuAction.ONBOARDING_NOTIF_YES))

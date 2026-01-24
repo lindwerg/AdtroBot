@@ -23,6 +23,7 @@ from src.services.ai.prompts import (
     CardOfDayPrompt,
     CelticCrossPrompt,
     DetailedNatalPrompt,
+    GeneralHoroscopePrompt,
     HoroscopePrompt,
     NatalChartPrompt,
     PremiumHoroscopePrompt,
@@ -31,6 +32,7 @@ from src.services.ai.prompts import (
 from src.services.ai.validators import (
     validate_card_of_day,
     validate_detailed_natal_section,
+    validate_general_horoscope,
     validate_horoscope,
     validate_natal_chart,
     validate_tarot,
@@ -186,6 +188,63 @@ class AIService:
             )
 
         logger.error("horoscope_validation_exhausted", zodiac=zodiac_sign)
+        return None
+
+    async def generate_general_horoscope(
+        self,
+        zodiac_sign: str,
+        zodiac_sign_ru: str,
+        date_str: str,
+        user_id: int | None = None,
+    ) -> str | None:
+        """Generate general horoscope without sections for onboarding.
+
+        Used for onboarding to show users the difference between general and premium horoscopes.
+        NO CACHING - one-time operation per user.
+
+        Args:
+            zodiac_sign: English zodiac sign (e.g., "aries")
+            zodiac_sign_ru: Russian zodiac sign (e.g., "Овен")
+            date_str: Date string (e.g., "23.01.2026")
+            user_id: User ID for cost tracking
+
+        Returns:
+            General horoscope text or None if all retries fail
+        """
+        # Generate with validation retry
+        for attempt in range(self.MAX_VALIDATION_RETRIES + 1):
+            text = await self._generate(
+                system_prompt=GeneralHoroscopePrompt.SYSTEM,
+                user_prompt=GeneralHoroscopePrompt.user(
+                    zodiac_sign_ru=zodiac_sign_ru,
+                    date_str=date_str,
+                    zodiac_sign_en=zodiac_sign,
+                ),
+                max_tokens=1000,
+                operation="general_horoscope",
+                user_id=user_id,
+            )
+
+            if text is None:
+                return None  # API error, already logged
+
+            is_valid, error = validate_general_horoscope(text)
+            if is_valid:
+                logger.info(
+                    "general_horoscope_generated",
+                    zodiac=zodiac_sign,
+                    chars=len(text),
+                )
+                return text
+
+            logger.warning(
+                "general_horoscope_validation_failed",
+                error=error,
+                attempt=attempt + 1,
+                zodiac=zodiac_sign,
+            )
+
+        logger.error("general_horoscope_validation_exhausted", zodiac=zodiac_sign)
         return None
 
     async def generate_tarot_interpretation(
