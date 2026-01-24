@@ -302,9 +302,13 @@ async def send_card_of_day(
     photo = get_card_image(card["name_short"], reversed_flag)
     await message.answer_photo(photo)
 
-    # Get AI interpretation (with caching)
+    # Get AI interpretation (with caching and progress indicator)
     ai = get_ai_service()
-    interpretation = await ai.generate_card_of_day(user_id, card, reversed_flag)
+    interpretation = await generate_with_feedback(
+        message=message,
+        operation_type="card_of_day",
+        ai_coro=ai.generate_card_of_day(user_id, card, reversed_flag),
+    )
 
     # Send formatted message (AI or fallback to static meaning)
     content = format_card_of_day_with_ai(card, reversed_flag, interpretation)

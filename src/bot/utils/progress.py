@@ -12,6 +12,7 @@ from aiogram.utils.chat_action import ChatActionSender
 PROGRESS_MESSAGES: dict[str, str] = {
     "horoscope": "Генерирую гороскоп...",
     "tarot": "Создаю расклад таро...",
+    "card_of_day": "Генерирую карту дня...",
     "natal": "Анализирую натальную карту...",
     "default": "Обработка...",
 }
