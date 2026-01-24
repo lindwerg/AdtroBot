@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-23)
 ## Current Position
 
 Phase: 16 of 16 (Testing & Polish)
-Plan: 4 of 5 in current phase
+Plan: 4 of 5 in current phase (16-01, 16-02, 16-03, 16-04 complete)
 Status: In progress
-Last activity: 2026-01-24 — Completed 16-04-PLAN.md (Load Testing)
+Last activity: 2026-01-24 — Completed 16-02-PLAN.md (Admin E2E Tests)
 
-Progress: [█████████░] 90% (v2.0: 5/6 phases, 4/5 plans in phase 16)
+Progress: [█████████░] 92% (v2.0: 5/6 phases, 4/5 plans in phase 16)
 
 ## Performance Metrics
 
@@ -62,6 +62,8 @@ Recent decisions affecting current work:
 - [16-03]: 45 E2E tests for bot flows (start, horoscope, tarot, natal, subscription)
 - [16-04]: SLA targets: /health <1s (P0), admin API <2s (P1), export <5s (P2)
 - [16-04]: Horoscope cache tested via /health DB latency (no direct HTTP endpoint)
+- [16-02]: No storageState for login tests (direct auth flow testing)
+- [16-02]: Accessibility-first selectors (getByRole, getByPlaceholder)
 
 ### Pending Todos
 
@@ -78,7 +80,7 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-24
-Stopped at: Completed 16-04-PLAN.md (Load Testing)
+Stopped at: Completed 16-02-PLAN.md (Admin E2E Tests)
 Resume file: None
 
 ## v1.0 Reference
