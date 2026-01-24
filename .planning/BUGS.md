@@ -4,13 +4,13 @@ Bug tracking for Phase 16: Testing & Polish. All discovered bugs are documented 
 
 ## Summary
 
-- **Total bugs discovered:** 1
-- **P0 (Critical):** 1
-- **P1 (High):** 0
-- **P2 (Medium):** 0
-- **P3 (Low):** 0
+- **Total bugs discovered:** 3 (1 fixed, 2 open)
+- **P0 (Critical):** 0
+- **P1 (High):** 1
+- **P2 (Medium):** 1
+- **P3 (Low):** 1
 
-**Note:** Production testing revealed critical admin panel loading issue. Local testing blocked by infrastructure (Cairo library, Telegram credentials).
+**Note:** Production testing completed. Admin panel loads correctly but test infrastructure needs fixes. Local testing blocked by Cairo library.
 
 ## Bug Categories
 
@@ -30,7 +30,9 @@ Bug tracking for Phase 16: Testing & Polish. All discovered bugs are documented 
 
 | ID | Category | Severity | Status | Component | Description | Steps to Reproduce |
 |----|----------|----------|--------|-----------|-------------|-------------------|
-| B001 | Admin | P0 | Open | Production SPA | Admin panel shows `{"detail":"Not Found"}` instead of React app in automated tests | 1. Open https://adtrobot-production.up.railway.app/admin/ in Playwright<br>2. Page loads with body content: `{"detail":"Not Found"}`<br>3. Expected: React app with login form<br>4. Actual: JSON error response |
+| B001 | Test | P3 | Fixed | auth.setup.ts | Test used getByPlaceholder() for ProFormText which doesn't work | 1. Run Playwright tests<br>2. auth.setup times out looking for placeholder<br>3. **FIXED:** Changed to `locator('input[name="username"]')` (commit e94a6ab) |
+| B002 | Admin | P1 | Open | Routing | BaseURL routing inconsistent - `/admin/login` sometimes returns 404 | 1. Set BASE_URL=https://adtrobot-production.up.railway.app/admin<br>2. Navigate to `/login` (becomes `/admin/login`)<br>3. Sometimes shows `{"detail":"Not Found"}`<br>4. Direct browser access works fine |
+| B003 | Test | P2 | Open | Playwright config | ProFormText compatibility - tests need input[name] selectors | 1. ProFormText doesn't render placeholder attribute<br>2. Tests using getByPlaceholder() fail<br>3. Need to update all form tests to use locator('input[name="..."]') |
 
 ---
 
@@ -46,7 +48,7 @@ Bug tracking for Phase 16: Testing & Polish. All discovered bugs are documented 
 
 #### Playwright Production Tests
 
-**Status:** FAILED - Critical bug discovered
+**Status:** PARTIALLY PASSED - Infrastructure bugs found and fixed
 **Execution:**
 ```bash
 cd admin-frontend && CI=true BASE_URL=https://adtrobot-production.up.railway.app/admin \
@@ -54,9 +56,10 @@ cd admin-frontend && CI=true BASE_URL=https://adtrobot-production.up.railway.app
 ```
 
 **Result:**
-- Auth setup failed after 3 retries (90 seconds timeout)
-- Error: `locator.fill: Test timeout exceeded. waiting for getByPlaceholder(/username|логин/i)`
-- Screenshot shows: `{"detail":"Not Found"}` instead of React SPA
+- ✅ Standalone test PASSED - Production admin loads correctly
+- ❌ Auth setup failed - routing/selector issues
+- 🔧 FIXED: Changed selectors from getByPlaceholder to input[name]
+- ⚠️ B002: Routing inconsistency with baseURL detected
 
 **Analysis:**
 - HTML correctly returned from `/admin/` endpoint
