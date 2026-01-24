@@ -21,54 +21,42 @@ depends_on: str | Sequence[str] | None = None
 
 def upgrade() -> None:
     """Create horoscope_cache and horoscope_views tables."""
-    # Create horoscope_cache table
-    op.create_table(
-        "horoscope_cache",
-        sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("zodiac_sign", sa.String(length=20), nullable=False),
-        sa.Column("horoscope_date", sa.Date(), nullable=False),
-        sa.Column("content", sa.Text(), nullable=False),
-        sa.Column(
-            "generated_at",
-            sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
-            nullable=False,
-        ),
-        sa.PrimaryKeyConstraint("id", name=op.f("pk_horoscope_cache")),
-        sa.UniqueConstraint(
-            "zodiac_sign", "horoscope_date", name="uq_horoscope_cache_sign_date"
-        ),
-    )
-    op.create_index(
-        "ix_horoscope_cache_date",
-        "horoscope_cache",
-        ["horoscope_date"],
-        unique=False,
-    )
-    op.create_index(
-        op.f("ix_zodiac_sign"),
-        "horoscope_cache",
-        ["zodiac_sign"],
-        unique=False,
-    )
+    # Create horoscope_cache table (IF NOT EXISTS через raw SQL для безопасности)
+    op.execute("""
+        CREATE TABLE IF NOT EXISTS horoscope_cache (
+            id SERIAL PRIMARY KEY,
+            zodiac_sign VARCHAR(20) NOT NULL,
+            horoscope_date DATE NOT NULL,
+            content TEXT NOT NULL,
+            generated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+            CONSTRAINT uq_horoscope_cache_sign_date UNIQUE (zodiac_sign, horoscope_date)
+        )
+    """)
 
-    # Create horoscope_views table
-    op.create_table(
-        "horoscope_views",
-        sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("zodiac_sign", sa.String(length=20), nullable=False),
-        sa.Column("view_date", sa.Date(), nullable=False),
-        sa.Column("view_count", sa.Integer(), server_default="0", nullable=False),
-        sa.PrimaryKeyConstraint("id", name=op.f("pk_horoscope_views")),
-        sa.UniqueConstraint(
-            "zodiac_sign", "view_date", name="uq_horoscope_views_sign_date"
-        ),
-    )
+    # Create indexes (IF NOT EXISTS для идемпотентности)
+    op.execute("""
+        CREATE INDEX IF NOT EXISTS ix_horoscope_cache_date
+        ON horoscope_cache (horoscope_date)
+    """)
+    op.execute("""
+        CREATE INDEX IF NOT EXISTS ix_horoscope_cache_zodiac_sign
+        ON horoscope_cache (zodiac_sign)
+    """)
+
+    # Create horoscope_views table (IF NOT EXISTS)
+    op.execute("""
+        CREATE TABLE IF NOT EXISTS horoscope_views (
+            id SERIAL PRIMARY KEY,
+            zodiac_sign VARCHAR(20) NOT NULL,
+            view_date DATE NOT NULL,
+            view_count INTEGER NOT NULL DEFAULT 0,
+            CONSTRAINT uq_horoscope_views_sign_date UNIQUE (zodiac_sign, view_date)
+        )
+    """)
 
 
 def downgrade() -> None:
     """Drop horoscope_views and horoscope_cache tables."""
-    op.drop_table("horoscope_views")
-    op.drop_index(op.f("ix_zodiac_sign"), table_name="horoscope_cache")
-    op.drop_index("ix_horoscope_cache_date", table_name="horoscope_cache")
-    op.drop_table("horoscope_cache")
+    # Drop tables (CASCADE для удаления связанных индексов)
+    op.execute("DROP TABLE IF EXISTS horoscope_views CASCADE")
+    op.execute("DROP TABLE IF EXISTS horoscope_cache CASCADE")
