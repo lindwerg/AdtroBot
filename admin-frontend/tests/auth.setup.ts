@@ -20,9 +20,9 @@ setup('authenticate', async ({ page }) => {
   // Navigate to login page
   await page.goto('/login');
 
-  // Fill in credentials
-  await page.getByPlaceholder(/username|логин/i).fill(username);
-  await page.getByPlaceholder(/password|пароль/i).fill(password);
+  // ProFormText renders as input with name attribute
+  await page.locator('input[name="username"]').fill(username);
+  await page.locator('input[name="password"]').fill(password);
 
   // Submit login form
   await page.getByRole('button', { name: /войти|login|sign in/i }).click();
