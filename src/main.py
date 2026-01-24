@@ -3,9 +3,10 @@ from pathlib import Path
 
 import structlog
 from aiogram.types import Update
-from fastapi import BackgroundTasks, FastAPI, Request, Response
+from fastapi import BackgroundTasks, Depends, FastAPI, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
+from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.staticfiles import StaticFiles
 from prometheus_client import make_asgi_app
 from prometheus_fastapi_instrumentator import Instrumentator
@@ -16,7 +17,8 @@ from src.bot.middlewares.db import DbSessionMiddleware
 from src.bot.utils.zodiac import ZODIAC_SIGNS
 from src.config import settings
 from src.core.logging import configure_logging
-from src.db.engine import AsyncSessionLocal, engine
+from src.db.engine import AsyncSessionLocal, engine, get_session
+from src.monitoring.health import run_all_checks
 from src.services.horoscope_cache import get_horoscope_cache_service
 from src.services.payment.service import is_yookassa_ip, process_webhook_event
 from src.services.scheduler import get_scheduler
@@ -157,9 +159,31 @@ else:
 
 
 @app.get("/health")
-async def health():
-    """Health check endpoint."""
-    return {"status": "ok"}
+async def health_check(
+    session: AsyncSession = Depends(get_session),
+) -> JSONResponse:
+    """
+    Comprehensive health check endpoint.
+    Returns 200 if all checks pass, 503 if any fails.
+    """
+    all_healthy, checks = await run_all_checks(session)
+
+    response_data = {
+        "status": "healthy" if all_healthy else "unhealthy",
+        "checks": {
+            c.name: {
+                "healthy": c.healthy,
+                "message": c.message,
+                "latency_ms": c.latency_ms,
+            }
+            for c in checks
+        },
+    }
+
+    return JSONResponse(
+        content=response_data,
+        status_code=status.HTTP_200_OK if all_healthy else status.HTTP_503_SERVICE_UNAVAILABLE,
+    )
 
 
 @app.post("/webhook")
