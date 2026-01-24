@@ -46,6 +46,44 @@ _detailed_natal_cache: dict[int, tuple[str, float]] = {}
 DETAILED_NATAL_CACHE_TTL = 604800  # 7 days
 
 
+def _clean_markdown(text: str) -> str:
+    """Remove markdown formatting from text.
+
+    Removes: **, ***, *, _, `, ##, ###, ####, [], ||
+    Preserves: emoji, newlines, normal text
+
+    Args:
+        text: Text potentially containing markdown
+
+    Returns:
+        Clean text without markdown symbols
+    """
+    import re
+
+    # Remove bold (** or ***)
+    text = re.sub(r'\*{2,3}([^*]+)\*{2,3}', r'\1', text)
+
+    # Remove italic (single *)
+    text = re.sub(r'(?<!\*)\*(?!\*)([^*]+)\*(?!\*)', r'\1', text)
+
+    # Remove underscores (italic)
+    text = re.sub(r'_([^_]+)_', r'\1', text)
+
+    # Remove code blocks (`)
+    text = re.sub(r'`([^`]+)`', r'\1', text)
+
+    # Remove headers (##, ###, ####)
+    text = re.sub(r'^#{1,6}\s+', '', text, flags=re.MULTILINE)
+
+    # Remove links [text](url) -> text
+    text = re.sub(r'\[([^\]]+)\]\([^)]+\)', r'\1', text)
+
+    # Remove spoilers (||)
+    text = re.sub(r'\|\|([^|]+)\|\|', r'\1', text)
+
+    return text.strip()
+
+
 class AIService:
     """AI service for generating horoscopes and tarot interpretations.
 
@@ -793,6 +831,10 @@ class AIService:
 
             content = response.choices[0].message.content
 
+            # Clean markdown formatting
+            if content:
+                content = _clean_markdown(content)
+
             # Basic validation
             if not content or len(content) < 50:
                 logger.warning(
@@ -849,6 +891,10 @@ class AIService:
                     logger.warning("cost_tracking_failed", error=str(e))
 
                 content = response.choices[0].message.content
+
+                # Clean markdown formatting
+                if content:
+                    content = _clean_markdown(content)
 
                 if not content or len(content) < 50:
                     return None
