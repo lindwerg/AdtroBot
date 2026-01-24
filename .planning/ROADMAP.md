@@ -19,7 +19,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 11: Performance & UX Quick Wins** - Критические UX-фиксы без новых зависимостей
 - [x] **Phase 12: Caching & Background Jobs** - PostgreSQL cache + фоновая генерация гороскопов
-- [ ] **Phase 13: Image Generation** - AI генерация всех изображений (Together.ai)
+- [x] **Phase 13: Image Generation** - Pexels stock images для рандомной отправки
 - [ ] **Phase 14: Visual Integration** - Интеграция изображений в бот + onboarding
 - [ ] **Phase 15: Monitoring & Observability** - Prometheus metrics + health checks + dashboard
 - [ ] **Phase 16: Testing & Polish** - Playwright + Telethon тесты + admin improvements
@@ -61,37 +61,33 @@ Plans:
 - [x] 12-03-PLAN.md — Интеграция в handlers + admin dashboard
 
 ### Phase 13: Image Generation
-**Goal**: Все изображения сгенерированы в едином стиле и готовы к интеграции
+**Goal**: Все изображения скачаны из Pexels и готовы к интеграции
 **Depends on**: Phase 11 (независимо от Phase 12, но логически после UX fixes)
 **Requirements**: IMG-01, IMG-02, IMG-03, IMG-04, IMG-05, IMG-06, IMG-07
 **Success Criteria** (what must be TRUE):
-  1. Выбран AI генератор (Together.ai/альтернатива) и протестирован
-  2. Welcome screen изображение готово (1 шт)
-  3. 12 изображений знаков зодиака готовы в едином стиле
-  4. Изображения для таро раскладов готовы (3-карты, Celtic Cross)
-  5. Изображения для натальной карты и paywall готовы
-**Plans**: 2 plans
+  1. Выбран источник изображений (Pexels stock) и скачаны
+  2. 43 космических изображения готовы для рандомной отправки
+  3. Изображения в assets/images/cosmic/
+**Plans**: 1 plan
 
 Plans:
-- [ ] 13-01-PLAN.md — Setup Together SDK + скрипт генерации с промптами
-- [ ] 13-02-PLAN.md — Генерация 17 изображений + визуальная верификация
+- [x] 13-01-PLAN.md — Скачивание 43 космических изображений с Pexels
 
 ### Phase 14: Visual Integration
 **Goal**: Пользователи видят красивые изображения во всех ключевых моментах бота
 **Depends on**: Phase 12, Phase 13 (нужен кэш + готовые изображения)
 **Requirements**: VIS-01, VIS-02, VIS-03, VIS-04, VIS-05, VIS-06, VIS-07, PERF-05, WEL-03
 **Success Criteria** (what must be TRUE):
-  1. /start показывает welcome изображение
-  2. Гороскоп для каждого знака зодиака сопровождается соответствующим изображением
-  3. Расклады таро показывают изображение расклада
-  4. Натальная карта и paywall имеют свои изображения
-  5. Изображения отправляются по file_id (мгновенно, без повторной загрузки)
-  6. Onboarding tutorial доступен для новых пользователей
-**Plans**: TBD
+  1. /start показывает космическое изображение
+  2. Гороскоп сопровождается космическим изображением
+  3. Расклады таро показывают космическое изображение перед раскладом
+  4. Изображения отправляются по file_id (мгновенно, без повторной загрузки)
+  5. ImageAsset model хранит file_id в PostgreSQL
+**Plans**: 2 plans
 
 Plans:
-- [ ] 14-01: TBD
-- [ ] 14-02: TBD
+- [ ] 14-01-PLAN.md — ImageAsset model + ImageAssetService с file_id кэшированием
+- [ ] 14-02-PLAN.md — Интеграция изображений в handlers (start, horoscope, tarot)
 
 ### Phase 15: Monitoring & Observability
 **Goal**: Полная видимость состояния бота, затрат и метрик в реальном времени
@@ -135,11 +131,11 @@ Phases execute in numeric order: 11 -> 11.1 -> 11.2 -> 12 -> ... -> 16
 |-------|-----------|----------------|--------|-----------|
 | 11. Performance & UX Quick Wins | v2.0 | 3/3 | Complete | 2026-01-23 |
 | 12. Caching & Background Jobs | v2.0 | 3/3 | Complete | 2026-01-23 |
-| 13. Image Generation | v2.0 | 0/2 | Planned | - |
-| 14. Visual Integration | v2.0 | 0/TBD | Not started | - |
+| 13. Image Generation | v2.0 | 1/1 | Complete | 2026-01-24 |
+| 14. Visual Integration | v2.0 | 0/2 | Not started | - |
 | 15. Monitoring & Observability | v2.0 | 0/TBD | Not started | - |
 | 16. Testing & Polish | v2.0 | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-01-23*
-*Last updated: 2026-01-24 (Phase 13 planned)*
+*Last updated: 2026-01-24 (Phase 14 planned)*
