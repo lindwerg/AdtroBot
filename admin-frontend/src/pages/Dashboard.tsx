@@ -1,5 +1,5 @@
-import { Row, Col, Typography, Segmented, Space, Alert, Button } from 'antd'
-import { ExportOutlined } from '@ant-design/icons'
+import { Row, Col, Typography, Segmented, Space, Alert, Button, Spin } from 'antd'
+import { ExportOutlined, ReloadOutlined } from '@ant-design/icons'
 import { useState } from 'react'
 import { KPICard, ConversionFunnel } from '@/components/charts'
 import { useDashboardMetrics, useFunnelData } from '@/hooks/useDashboard'
@@ -7,16 +7,49 @@ import { useDashboardMetrics, useFunnelData } from '@/hooks/useDashboard'
 export default function Dashboard() {
   const [funnelPeriod, setFunnelPeriod] = useState<number>(30)
 
-  const { data: metrics, isLoading: metricsLoading, error: metricsError } = useDashboardMetrics()
-  const { data: funnel, isLoading: funnelLoading } = useFunnelData(funnelPeriod)
+  const { data: metrics, isLoading: metricsLoading, error: metricsError, refetch: refetchMetrics } = useDashboardMetrics()
+  const { data: funnel, isLoading: funnelLoading, refetch: refetchFunnel } = useFunnelData(funnelPeriod)
+
+  const isInitialLoading = metricsLoading && !metrics
 
   if (metricsError) {
-    return <Alert type="error" message="Ошибка загрузки данных" showIcon />
+    return (
+      <Alert
+        type="error"
+        message="Ошибка загрузки данных"
+        description="Не удалось загрузить метрики dashboard. Проверьте подключение к серверу."
+        showIcon
+        action={
+          <Button size="small" icon={<ReloadOutlined />} onClick={() => refetchMetrics()}>
+            Повторить
+          </Button>
+        }
+      />
+    )
+  }
+
+  const handleRefresh = () => {
+    refetchMetrics()
+    refetchFunnel()
   }
 
   return (
-    <div>
-      <Typography.Title level={4}>Dashboard</Typography.Title>
+    <Spin spinning={isInitialLoading} tip="Загрузка метрик...">
+      <div>
+        <Row justify="space-between" align="middle" style={{ marginBottom: 16 }}>
+          <Col>
+            <Typography.Title level={4} style={{ margin: 0 }}>Dashboard</Typography.Title>
+          </Col>
+          <Col>
+            <Button
+              icon={<ReloadOutlined spin={metricsLoading && !!metrics} />}
+              onClick={handleRefresh}
+              disabled={metricsLoading}
+            >
+              Обновить
+            </Button>
+          </Col>
+        </Row>
 
       {/* Growth & Activity */}
       <Typography.Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
@@ -149,6 +182,7 @@ export default function Dashboard() {
         stages={funnel?.stages ?? []}
         loading={funnelLoading}
       />
-    </div>
+      </div>
+    </Spin>
   )
 }

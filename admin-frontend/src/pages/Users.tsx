@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { ProTable } from '@ant-design/pro-components'
-import type { ProColumns } from '@ant-design/pro-components'
-import { Button, Tag, Space, message, Modal, InputNumber } from 'antd'
-import { UserOutlined, GiftOutlined, ExportOutlined } from '@ant-design/icons'
+import type { ProColumns, ActionType } from '@ant-design/pro-components'
+import { Button, Tag, Space, message, Modal, InputNumber, Empty, Alert } from 'antd'
+import { UserOutlined, GiftOutlined, ExportOutlined, SearchOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { getUsers, bulkAction } from '@/api/endpoints/users'
 import type { UserListItem } from '@/api/endpoints/users'
+import { useRef } from 'react'
 
 const ZODIAC_SIGNS = [
   { value: 'aries', label: 'Овен' },
@@ -115,6 +116,9 @@ export default function UsersPage() {
   const navigate = useNavigate()
   const [selectedRowKeys, setSelectedRowKeys] = useState<number[]>([])
   const [actionKey, setActionKey] = useState(0)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [hasSearched, setHasSearched] = useState(false)
+  const actionRef = useRef<ActionType>(null)
 
   const handleBulkAction = async (action: string, value?: number) => {
     if (selectedRowKeys.length === 0) {
@@ -136,9 +140,27 @@ export default function UsersPage() {
     }
   }
 
+  if (loadError) {
+    return (
+      <Alert
+        type="error"
+        message="Ошибка загрузки пользователей"
+        description={loadError}
+        showIcon
+        action={
+          <Button size="small" onClick={() => { setLoadError(null); actionRef.current?.reload() }}>
+            Повторить
+          </Button>
+        }
+        style={{ marginBottom: 16 }}
+      />
+    )
+  }
+
   return (
     <ProTable<UserListItem>
       key={actionKey}
+      actionRef={actionRef}
       columns={columns}
       request={async (params, sort) => {
         const { current, pageSize, keyword, ...filters } = params
@@ -149,7 +171,12 @@ export default function UsersPage() {
             : 'asc'
           : undefined
 
+        // Track if user has applied any filters/search
+        const hasFilters = keyword || filters.zodiac_sign || filters.is_premium || filters.detailed_natal_purchased_at
+        if (hasFilters) setHasSearched(true)
+
         try {
+          setLoadError(null)
           const data = await getUsers({
             page: current,
             page_size: pageSize,
@@ -175,9 +202,28 @@ export default function UsersPage() {
             total: data.total,
             success: true,
           }
-        } catch {
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Неизвестная ошибка'
+          setLoadError(errorMessage)
           return { data: [], total: 0, success: false }
         }
+      }}
+      locale={{
+        emptyText: hasSearched ? (
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description="Пользователи не найдены"
+          >
+            <Button type="link" icon={<SearchOutlined />} onClick={() => actionRef.current?.reset?.()}>
+              Сбросить фильтры
+            </Button>
+          </Empty>
+        ) : (
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description="Нет пользователей"
+          />
+        ),
       }}
       rowKey="id"
       pagination={{ pageSize: 20, showSizeChanger: true }}

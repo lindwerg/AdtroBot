@@ -8,12 +8,16 @@ import {
   Statistic,
   Table,
   Alert,
+  Spin,
+  Button,
+  Space,
 } from 'antd'
 import {
   UserOutlined,
   DollarOutlined,
   ApiOutlined,
   ThunderboltOutlined,
+  ReloadOutlined,
 } from '@ant-design/icons'
 import {
   AreaChart,
@@ -45,10 +49,26 @@ const operationNames: Record<string, string> = {
 
 export default function Monitoring() {
   const [range, setRange] = useState<TimeRange>('7d')
-  const { data, isLoading, error } = useMonitoringData(range)
+  const { data, isLoading, error, refetch } = useMonitoringData(range)
+
+  const isInitialLoading = isLoading && !data
+  const hasNoData = !isLoading && data &&
+    (data.api_costs?.total_requests === 0 || !data.api_costs?.by_day?.length)
 
   if (error) {
-    return <Alert type="error" message="Ошибка загрузки данных мониторинга" showIcon />
+    return (
+      <Alert
+        type="error"
+        message="Ошибка загрузки данных мониторинга"
+        description="Не удалось получить данные мониторинга. Проверьте подключение к серверу."
+        showIcon
+        action={
+          <Button size="small" icon={<ReloadOutlined />} onClick={() => refetch()}>
+            Повторить
+          </Button>
+        }
+      />
+    )
   }
 
   const costColumns = [
@@ -87,24 +107,46 @@ export default function Monitoring() {
   const costPerPayingUser = data?.unit_economics?.cost_per_paying_user ?? 0
 
   return (
-    <div>
-      {/* Header with time filter */}
-      <Row justify="space-between" align="middle" style={{ marginBottom: 24 }}>
-        <Col>
-          <Title level={4} style={{ margin: 0 }}>Мониторинг</Title>
-        </Col>
-        <Col>
-          <Segmented
-            value={range}
-            onChange={(v) => setRange(v as TimeRange)}
-            options={[
-              { label: '24 часа', value: '24h' },
-              { label: '7 дней', value: '7d' },
-              { label: '30 дней', value: '30d' },
-            ]}
+    <Spin spinning={isInitialLoading} tip="Загрузка данных мониторинга...">
+      <div>
+        {/* Header with time filter */}
+        <Row justify="space-between" align="middle" style={{ marginBottom: 24 }}>
+          <Col>
+            <Title level={4} style={{ margin: 0 }}>Мониторинг</Title>
+          </Col>
+          <Col>
+            <Space>
+              <Segmented
+                value={range}
+                onChange={(v) => setRange(v as TimeRange)}
+                options={[
+                  { label: '24 часа', value: '24h' },
+                  { label: '7 дней', value: '7d' },
+                  { label: '30 дней', value: '30d' },
+                ]}
+                disabled={isLoading}
+              />
+              <Button
+                icon={<ReloadOutlined spin={isLoading && !!data} />}
+                onClick={() => refetch()}
+                disabled={isLoading}
+              >
+                Обновить
+              </Button>
+            </Space>
+          </Col>
+        </Row>
+
+        {/* Empty state for no data in period */}
+        {hasNoData && (
+          <Alert
+            type="info"
+            message="Нет данных за выбранный период"
+            description="API запросы не выполнялись за выбранный временной диапазон. Попробуйте выбрать другой период."
+            showIcon
+            style={{ marginBottom: 24 }}
           />
-        </Col>
-      </Row>
+        )}
 
       {/* Active Users Section */}
       <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
@@ -291,16 +333,17 @@ export default function Monitoring() {
         </Col>
       </Row>
 
-      {/* Budget Alert (example - shows if cost exceeds threshold) */}
-      {totalCost > 10 && (
-        <Alert
-          type="warning"
-          message="Внимание: превышен бюджет"
-          description={`Общая стоимость API ($${totalCost.toFixed(2)}) превысила $10 за выбранный период.`}
-          showIcon
-          style={{ marginBottom: 24 }}
-        />
-      )}
-    </div>
+        {/* Budget Alert (example - shows if cost exceeds threshold) */}
+        {totalCost > 10 && (
+          <Alert
+            type="warning"
+            message="Внимание: превышен бюджет"
+            description={`Общая стоимость API ($${totalCost.toFixed(2)}) превысила $10 за выбранный период.`}
+            showIcon
+            style={{ marginBottom: 24 }}
+          />
+        )}
+      </div>
+    </Spin>
   )
 }
