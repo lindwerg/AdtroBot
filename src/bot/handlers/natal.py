@@ -62,8 +62,10 @@ async def show_natal_chart(
     # Get timezone (use saved or default to Europe/Moscow)
     timezone_str = user.timezone or "Europe/Moscow"
 
-    async def _generate_natal() -> tuple[dict, bytes, str | None]:
+    async def _generate_natal() -> tuple[dict, bytes, tuple[str, str | None]]:
         """Inner function to generate all natal data with typing indicator."""
+        from datetime import date
+
         # Calculate full natal chart
         natal_data = calculate_full_natal_chart(
             birth_date=user.birth_date,
@@ -76,41 +78,31 @@ async def show_natal_chart(
         # Generate PNG visualization
         png_bytes = await generate_natal_png(natal_data)
 
-        # Generate AI interpretation
+        # Generate DAILY TRANSIT FORECAST (not static interpretation)
+        today = date.today()
         ai_service = get_ai_service()
-        interpretation = await ai_service.generate_natal_interpretation(
+        forecast_result = await ai_service.generate_daily_transit_forecast(
             user_id=user.telegram_id,
             natal_data=natal_data,
+            forecast_date=today,
+            timezone_str=timezone_str,
         )
 
-        return natal_data, png_bytes, interpretation
+        return natal_data, png_bytes, forecast_result
 
     try:
         # Generate natal data with typing indicator and progress message
-        natal_data, png_bytes, interpretation = await generate_with_feedback(
+        natal_data, png_bytes, forecast_result = await generate_with_feedback(
             message=message,
-            operation_type="natal",
+            operation_type="transit_forecast",
             ai_coro=_generate_natal(),
         )
 
-        # Try to publish to Telegraph if interpretation exists
-        if interpretation:
-            try:
-                telegraph_service = get_telegraph_service()
-                title = f"Натальная карта — {user.birth_date.strftime('%d.%m.%Y')}"
-                if user.birth_city:
-                    title += f", {user.birth_city}"
+        forecast_text, telegraph_url = forecast_result
+        from datetime import date
 
-                await asyncio.wait_for(
-                    telegraph_service.publish_article(title, interpretation),
-                    timeout=TELEGRAPH_TIMEOUT,
-                )
-            except asyncio.TimeoutError:
-                logger.warning("telegraph_timeout", user_id=user.telegram_id)
-            except Exception as e:
-                logger.error(
-                    "telegraph_error", user_id=user.telegram_id, error=str(e)
-                )
+        today = date.today()
+        date_str = today.strftime("%d.%m.%Y")
 
         # Determine keyboard based on user status
         if user.detailed_natal_purchased_at:
@@ -125,21 +117,32 @@ async def show_natal_chart(
 
         # Send chart image WITH KEYBOARD (button under photo)
         photo = BufferedInputFile(png_bytes, filename="natal_chart.png")
+        caption = f"Твой ежедневный прогноз на {date_str}"
+
         await message.answer_photo(
             photo=photo,
-            caption="Твоя натальная карта",
+            caption=caption,
             reply_markup=keyboard,
         )
 
-        # Send brief interpretation as separate message (no buttons)
-        if interpretation:
-            chunks = _split_text(interpretation, MAX_MESSAGE_LENGTH)
-            for chunk in chunks:
-                await message.answer(chunk)
-        else:
+        # Send Telegraph link (NO text chunks)
+        if telegraph_url:
             await message.answer(
-                "Не удалось создать интерпретацию. Попробуй позже."
+                "📖 Полный прогноз опубликован в Telegraph:",
+                reply_markup=InlineKeyboardMarkup(
+                    inline_keyboard=[
+                        [
+                            InlineKeyboardButton(
+                                text="Открыть прогноз",
+                                url=telegraph_url,
+                            )
+                        ]
+                    ]
+                ),
             )
+        else:
+            # Fallback ONLY if Telegraph failed
+            await message.answer("Не удалось опубликовать прогноз. Попробуй позже.")
 
         logger.info(
             "natal_chart_shown",

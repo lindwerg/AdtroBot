@@ -39,6 +39,12 @@ PREMIUM_HOROSCOPE_TTL = 3600  # 1 hour
 _natal_interpretation_cache: dict[int, tuple[str, float]] = {}
 NATAL_INTERPRETATION_TTL = 86400  # 24 hours
 
+# Transit forecast cache (by "user_id:YYYY-MM-DD", 24 hour TTL)
+# Key format: f"{user_id}:{date_str}" where date_str is "YYYY-MM-DD"
+# Value: tuple of (forecast_text, telegraph_url, cached_timestamp)
+_transit_forecast_cache: dict[str, tuple[str, str, float]] = {}
+TRANSIT_FORECAST_TTL = 86400  # 24 hours
+
 
 def _is_expired(expires_date: date) -> bool:
     """Check if cache entry is expired (new day)."""
@@ -212,6 +218,14 @@ def clear_expired_cache() -> None:
     for k in expired_natal_keys:
         del _natal_interpretation_cache[k]
 
+    # Clear expired transit forecast entries (TTL-based)
+    expired_transit_keys = [
+        k for k, v in _transit_forecast_cache.items()
+        if now - v[2] >= TRANSIT_FORECAST_TTL
+    ]
+    for k in expired_transit_keys:
+        del _transit_forecast_cache[k]
+
 
 def get_cache_stats() -> dict:
     """Get cache statistics (for debugging/monitoring).
@@ -240,4 +254,51 @@ def get_cache_stats() -> dict:
             1 for v in _natal_interpretation_cache.values()
             if now - v[1] < NATAL_INTERPRETATION_TTL
         ),
+        "transit_forecast_total": len(_transit_forecast_cache),
+        "transit_forecast_active": sum(
+            1 for v in _transit_forecast_cache.values()
+            if now - v[2] < TRANSIT_FORECAST_TTL
+        ),
     }
+
+
+async def get_cached_transit_forecast(
+    user_id: int, forecast_date: date
+) -> tuple[str, str] | None:
+    """Get cached transit forecast (text, telegraph_url).
+
+    Args:
+        user_id: User ID
+        forecast_date: Date of forecast
+
+    Returns:
+        Tuple of (forecast_text, telegraph_url) or None if not cached/expired
+    """
+    cache_key = f"{user_id}:{forecast_date.isoformat()}"
+    entry = _transit_forecast_cache.get(cache_key)
+
+    if not entry:
+        return None
+
+    # Check if expired (24 hours)
+    cached_at = entry[2]
+    if time.time() - cached_at >= TRANSIT_FORECAST_TTL:
+        del _transit_forecast_cache[cache_key]
+        return None
+
+    return (entry[0], entry[1])
+
+
+async def set_cached_transit_forecast(
+    user_id: int, forecast_date: date, text: str, telegraph_url: str
+) -> None:
+    """Cache transit forecast for 24 hours.
+
+    Args:
+        user_id: User ID
+        forecast_date: Date of forecast
+        text: Forecast text
+        telegraph_url: Telegraph URL for the forecast
+    """
+    cache_key = f"{user_id}:{forecast_date.isoformat()}"
+    _transit_forecast_cache[cache_key] = (text, telegraph_url, time.time())

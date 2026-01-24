@@ -1,6 +1,7 @@
 """AI service client for OpenRouter API."""
 
 import time
+from datetime import date
 
 import structlog
 from openai import APIError, AsyncOpenAI
@@ -608,6 +609,119 @@ class AIService:
         )
 
         return full_text
+
+    async def generate_daily_transit_forecast(
+        self,
+        user_id: int,
+        natal_data: dict,
+        forecast_date: date,
+        timezone_str: str,
+    ) -> tuple[str, str | None]:
+        """Generate daily transit forecast and publish to Telegraph.
+
+        Args:
+            user_id: User ID for caching and cost tracking
+            natal_data: User's natal chart (FullNatalChartResult)
+            forecast_date: Date to forecast (usually today)
+            timezone_str: User's timezone (e.g., "Europe/Moscow")
+
+        Returns:
+            Tuple of (forecast_text, telegraph_url)
+
+        Process:
+            1. Check cache (key: transit_forecast:{user_id}:{YYYY-MM-DD})
+            2. Calculate transits for forecast_date
+            3. Generate AI interpretation with DailyTransitPrompt
+            4. Publish to Telegraph with title "Транзитный прогноз на {date}"
+            5. Cache result for 24 hours
+            6. Return text + Telegraph URL
+        """
+        from src.services.ai.cache import (
+            get_cached_transit_forecast,
+            set_cached_transit_forecast,
+        )
+        from src.services.ai.prompts import DailyTransitPrompt
+        from src.services.astrology.transits import calculate_daily_transits
+        from src.services.telegraph import get_telegraph_service
+
+        # Check cache first
+        cached = await get_cached_transit_forecast(user_id, forecast_date)
+        if cached:
+            logger.debug(
+                "transit_forecast_cache_hit",
+                user_id=user_id,
+                date=str(forecast_date),
+            )
+            return cached
+
+        # Calculate transits
+        transit_data = calculate_daily_transits(
+            natal_data=natal_data,
+            forecast_date=forecast_date,
+            timezone_str=timezone_str,
+        )
+
+        # Format date for prompt
+        date_str = forecast_date.strftime("%d.%m.%Y")
+
+        # Generate AI forecast
+        text = await self._generate(
+            system_prompt=DailyTransitPrompt.SYSTEM,
+            user_prompt=DailyTransitPrompt.user(
+                natal_data=natal_data,
+                transit_data=transit_data,
+                date_str=date_str,
+            ),
+            max_tokens=4000,  # For 1500-2500 words
+            operation="transit_forecast",
+            user_id=user_id,
+        )
+
+        if not text:
+            return ("", None)  # API error, already logged
+
+        # Publish to Telegraph
+        telegraph_url = None
+        try:
+            import asyncio
+
+            telegraph_service = get_telegraph_service()
+            title = f"Транзитный прогноз на {date_str}"
+
+            telegraph_url = await asyncio.wait_for(
+                telegraph_service.publish_article(title, text),
+                timeout=15.0,  # Longer timeout for long content
+            )
+
+            if telegraph_url:
+                logger.info(
+                    "transit_forecast_published",
+                    user_id=user_id,
+                    date=str(forecast_date),
+                    chars=len(text),
+                    url=telegraph_url,
+                )
+        except Exception as e:
+            logger.error(
+                "transit_forecast_telegraph_error",
+                user_id=user_id,
+                error=str(e),
+            )
+
+        # Cache result (even if Telegraph failed, cache the text)
+        await set_cached_transit_forecast(
+            user_id, forecast_date, text, telegraph_url or ""
+        )
+
+        logger.info(
+            "transit_forecast_generated",
+            user_id=user_id,
+            date=str(forecast_date),
+            chars=len(text),
+            has_telegraph=telegraph_url is not None,
+        )
+
+        return (text, telegraph_url)
 
 
 # Singleton instance
