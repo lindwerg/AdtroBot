@@ -62,62 +62,98 @@ def get_natal_teaser_keyboard() -> InlineKeyboardMarkup:
     )
 
 
-def get_natal_with_buy_keyboard() -> InlineKeyboardMarkup:
+def get_natal_with_buy_keyboard(telegraph_url: str | None = None) -> InlineKeyboardMarkup:
     """Get keyboard for premium users who haven't purchased detailed."""
+    buttons = []
+
+    # 1️⃣ Кнопка "Открыть прогноз" (если есть)
+    if telegraph_url:
+        buttons.append([
+            InlineKeyboardButton(
+                text="📖 Открыть прогноз",
+                url=telegraph_url,
+            )
+        ])
+
+    # 2️⃣ Кнопка "Детальный разбор"
     price = PLAN_PRICES_STR[PaymentPlan.DETAILED_NATAL]
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text=f"Детальный разбор личности - {price} руб.",
-                    callback_data=NatalCallback(action=NatalAction.BUY_DETAILED).pack(),
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    text="🏠 Главное меню",
-                    callback_data=MenuCallback(action=MenuAction.BACK_TO_MAIN_MENU).pack(),
-                )
-            ],
-        ]
-    )
+    buttons.append([
+        InlineKeyboardButton(
+            text=f"Детальный разбор личности - {price} руб.",
+            callback_data=NatalCallback(action=NatalAction.BUY_DETAILED).pack(),
+        )
+    ])
+
+    # 3️⃣ Кнопка "Главное меню"
+    buttons.append([
+        InlineKeyboardButton(
+            text="🏠 Главное меню",
+            callback_data=MenuCallback(action=MenuAction.BACK_TO_MAIN_MENU).pack(),
+        )
+    ])
+
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 
-def get_natal_with_open_keyboard() -> InlineKeyboardMarkup:
+def get_natal_with_open_keyboard(telegraph_url: str | None = None) -> InlineKeyboardMarkup:
     """Get keyboard for users who purchased detailed interpretation."""
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text="Открыть детальный разбор",
-                    callback_data=NatalCallback(action=NatalAction.SHOW_DETAILED).pack(),
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    text="🏠 Главное меню",
-                    callback_data=MenuCallback(action=MenuAction.BACK_TO_MAIN_MENU).pack(),
-                )
-            ],
-        ]
-    )
+    buttons = []
+
+    # 1️⃣ Кнопка "Открыть прогноз"
+    if telegraph_url:
+        buttons.append([
+            InlineKeyboardButton(
+                text="📖 Открыть прогноз",
+                url=telegraph_url,
+            )
+        ])
+
+    # 2️⃣ Кнопка "Открыть детальный разбор"
+    buttons.append([
+        InlineKeyboardButton(
+            text="Открыть детальный разбор",
+            callback_data=NatalCallback(action=NatalAction.SHOW_DETAILED).pack(),
+        )
+    ])
+
+    # 3️⃣ Кнопка "Главное меню"
+    buttons.append([
+        InlineKeyboardButton(
+            text="🏠 Главное меню",
+            callback_data=MenuCallback(action=MenuAction.BACK_TO_MAIN_MENU).pack(),
+        )
+    ])
+
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 
-def get_free_natal_keyboard() -> InlineKeyboardMarkup:
+def get_free_natal_keyboard(telegraph_url: str | None = None) -> InlineKeyboardMarkup:
     """Get keyboard for free users viewing natal chart."""
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text="Получить полный разбор",
-                    callback_data=MenuCallback(action=MenuAction.MENU_SUBSCRIPTION).pack(),
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    text="🏠 Главное меню",
-                    callback_data=MenuCallback(action=MenuAction.BACK_TO_MAIN_MENU).pack(),
-                )
-            ],
-        ]
-    )
+    buttons = []
+
+    # 1️⃣ Кнопка "Открыть прогноз"
+    if telegraph_url:
+        buttons.append([
+            InlineKeyboardButton(
+                text="📖 Открыть прогноз",
+                url=telegraph_url,
+            )
+        ])
+
+    # 2️⃣ Кнопка "Получить полный разбор"
+    buttons.append([
+        InlineKeyboardButton(
+            text="Получить полный разбор",
+            callback_data=MenuCallback(action=MenuAction.MENU_SUBSCRIPTION).pack(),
+        )
+    ])
+
+    # 3️⃣ Кнопка "Главное меню"
+    buttons.append([
+        InlineKeyboardButton(
+            text="🏠 Главное меню",
+            callback_data=MenuCallback(action=MenuAction.BACK_TO_MAIN_MENU).pack(),
+        )
+    ])
+
+    return InlineKeyboardMarkup(inline_keyboard=buttons)

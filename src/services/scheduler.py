@@ -55,6 +55,15 @@ def get_scheduler() -> AsyncIOScheduler:
             misfire_grace_time=3600,  # 1 hour grace
         )
 
+        # Add daily transit forecast generation job at 01:00 Moscow time
+        _scheduler.add_job(
+            generate_transit_forecasts_for_premium,
+            CronTrigger(hour=1, minute=0, timezone="Europe/Moscow"),
+            id="generate_transit_forecasts",
+            replace_existing=True,
+            misfire_grace_time=3600,  # 1 hour grace
+        )
+
     return _scheduler
 
 
@@ -336,3 +345,84 @@ async def generate_daily_horoscopes() -> None:
                 logger.info("Horoscope generated", sign=sign_en)
             else:
                 logger.error("Failed to generate horoscope", sign=sign_en)
+
+
+# ============== Transit Forecast Generation Jobs ==============
+
+
+async def generate_transit_forecasts_for_premium() -> None:
+    """
+    Background job: pre-generate transit forecasts for all premium users.
+    Runs daily at 01:00 Moscow time (after horoscopes at 00:00).
+
+    Steps:
+    1. Find all premium users with birth data (birth_lat, birth_lon, birth_date)
+    2. For each user, generate transit forecast for TODAY
+    3. Cache result with 24-hour TTL
+    4. Log success/failure for monitoring
+    """
+    from src.db.engine import async_session_maker
+    from src.db.models.user import User
+    from src.services.ai import get_ai_service
+    from src.services.astrology.natal_chart import calculate_full_natal_chart
+
+    today = date.today()
+    ai_service = get_ai_service()
+
+    async with async_session_maker() as session:
+        # Find premium users with birth data
+        stmt = select(User).where(
+            and_(
+                User.is_premium.is_(True),
+                User.birth_date.isnot(None),
+                User.birth_lat.isnot(None),
+                User.birth_lon.isnot(None),
+            )
+        )
+        result = await session.execute(stmt)
+        users = result.scalars().all()
+
+        await logger.ainfo("Starting transit forecast generation", user_count=len(users))
+
+        success_count = 0
+        error_count = 0
+
+        for user in users:
+            try:
+                # Calculate natal chart
+                natal_data = calculate_full_natal_chart(
+                    birth_date=user.birth_date,
+                    birth_time=user.birth_time,
+                    latitude=user.birth_lat,
+                    longitude=user.birth_lon,
+                    timezone_str=user.timezone or "Europe/Moscow",
+                )
+
+                # Generate forecast (will cache automatically)
+                _, telegraph_url = await ai_service.generate_daily_transit_forecast(
+                    user_id=user.telegram_id,
+                    natal_data=natal_data,
+                    forecast_date=today,
+                    timezone_str=user.timezone or "Europe/Moscow",
+                )
+
+                success_count += 1
+                await logger.adebug(
+                    "Transit forecast cached",
+                    user_id=user.telegram_id,
+                    has_telegraph=bool(telegraph_url),
+                )
+
+            except Exception as e:
+                error_count += 1
+                await logger.aerror(
+                    "Failed to generate transit forecast",
+                    user_id=user.telegram_id,
+                    error=str(e),
+                )
+
+        await logger.ainfo(
+            "Transit forecast generation complete",
+            success=success_count,
+            errors=error_count,
+        )

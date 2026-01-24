@@ -104,18 +104,18 @@ async def show_natal_chart(
         today = date.today()
         date_str = today.strftime("%d.%m.%Y")
 
-        # Determine keyboard based on user status
+        # Determine keyboard based on user status (pass telegraph_url!)
         if user.detailed_natal_purchased_at:
             # Already purchased - show "Open detailed" button
-            keyboard = get_natal_with_open_keyboard()
+            keyboard = get_natal_with_open_keyboard(telegraph_url)
         elif user.is_premium:
             # Premium but not purchased - show "Buy detailed" button
-            keyboard = get_natal_with_buy_keyboard()
+            keyboard = get_natal_with_buy_keyboard(telegraph_url)
         else:
             # Free user - show subscription teaser
-            keyboard = get_free_natal_keyboard()
+            keyboard = get_free_natal_keyboard(telegraph_url)
 
-        # Send chart image WITH KEYBOARD (button under photo)
+        # Send chart image WITH ALL BUTTONS under photo
         photo = BufferedInputFile(png_bytes, filename="natal_chart.png")
         caption = f"Твой ежедневный прогноз на {date_str}"
 
@@ -125,24 +125,7 @@ async def show_natal_chart(
             reply_markup=keyboard,
         )
 
-        # Send Telegraph link (NO text chunks)
-        if telegraph_url:
-            await message.answer(
-                "📖 Полный прогноз опубликован в Telegraph:",
-                reply_markup=InlineKeyboardMarkup(
-                    inline_keyboard=[
-                        [
-                            InlineKeyboardButton(
-                                text="Открыть прогноз",
-                                url=telegraph_url,
-                            )
-                        ]
-                    ]
-                ),
-            )
-        else:
-            # Fallback ONLY if Telegraph failed
-            await message.answer("Не удалось опубликовать прогноз. Попробуй позже.")
+        # NO separate Telegraph link message - it's already in keyboard!
 
         logger.info(
             "natal_chart_shown",
