@@ -1,54 +1,72 @@
 # Phase 13: Image Generation - Research
 
-**Researched:** 2026-01-24
-**Domain:** AI image generation via Together.ai API, FLUX.1 schnell model, prompt engineering для мистического стиля
+**Researched:** 2026-01-24 (Updated)
+**Domain:** AI image generation, бесплатные API без карты, Gemini 2.5 Flash Image
 **Confidence:** HIGH
 
 ## Summary
 
-Исследование подтвердило, что Together.ai + FLUX.1 schnell — оптимальный выбор для генерации изображений. FLUX.1 schnell (12B параметров) генерирует качественные изображения за 1-4 шага, бесплатно на Together.ai. Together Python SDK v1.5.35 полностью поддерживает async через `AsyncTogether`. Проект уже использует `openai` и `httpx` для async запросов — паттерн легко переносится.
+**КРИТИЧНО:** Together.ai теперь требует карту ($5 минимум) — исключен из рассмотрения.
+
+Исследование выявило **Google Gemini 2.5 Flash Image** как оптимальный бесплатный генератор изображений. Free tier включает до 500 запросов в день без кредитной карты. Модель gemini-2.5-flash-image (кодовое имя "Nano Banana") поддерживает высококачественную генерацию 1024x1024, различные aspect ratios, и имеет официальный Python SDK `google-genai`.
 
 **Ключевые находки:**
-- Together.ai API: `https://api.together.xyz/v1/images/generations`
-- Model ID: `black-forest-labs/FLUX.1-schnell-Free`
-- Оптимальные параметры: steps=4, размеры до 1024x1024
-- Telegram: оптимальный размер 1024x1024 (или 1280x720 для landscape)
-- FLUX не поддерживает negative prompts — использовать positive framing
-- Для consistency: фиксировать seed, повторять style phrases
+- Gemini API: бесплатно до 500 req/day, регистрация через Google аккаунт
+- Model ID: `gemini-2.5-flash-image`
+- Размеры: 1024x1024 (1K), 2048x2048 (2K), aspect ratios 1:1, 16:9, 9:16, 3:4, 4:3
+- Telegram: оптимальный размер 1024x1024 (автомасштабирование)
+- Для consistency: использовать идентичные style prompts, одинаковые настройки
+- Изображения получают невидимый SynthID watermark (не влияет на визуал)
 
-**Primary recommendation:** Использовать Together Python SDK с AsyncTogether для генерации. Создать скрипт генерации в `scripts/generate_images.py`, сохранять в `assets/images/`. Фиксировать seed для единообразия всех 17 изображений.
+**Primary recommendation:** Использовать Google Gemini 2.5 Flash Image API с Python SDK `google-genai`. Создать скрипт `scripts/generate_images.py`, сохранять в `assets/images/`. Единый стиль через repeated style phrases в каждом промпте.
 
 ## Standard Stack
 
 ### Core
 | Library | Version | Purpose | Why Standard |
 |---------|---------|---------|--------------|
-| together | 1.5.35 | Together.ai Python SDK | Официальный SDK, async support, простой API |
-| httpx | (installed) | HTTP клиент | Уже используется в проекте через aiogram |
-| Pillow | 12.1.0 | Image processing | Уже установлен, для resize/convert |
+| google-genai | latest | Google Gemini Python SDK | Официальный SDK, простой API, бесплатный tier |
+| Pillow | 12.1.0 | Image processing | Уже установлен в проекте, для save/convert |
+| python-dotenv | (installed) | Env variables | Уже используется в проекте |
 
 ### Supporting
 | Library | Version | Purpose | When to Use |
 |---------|---------|---------|-------------|
-| base64 | stdlib | Decode base64 images | Response format b64_json |
 | pathlib | stdlib | Path management | Организация assets/ |
+| io | stdlib | BytesIO для images | Промежуточная обработка |
 
 ### Alternatives Considered
 | Instead of | Could Use | Tradeoff |
 |------------|-----------|----------|
-| Together.ai | Replicate | Платный, но больше моделей |
-| Together.ai | fal.ai | Быстрее, но требует отдельный аккаунт |
-| FLUX.1 schnell | FLUX.1 pro | Качественнее, но платный |
+| Gemini | Hugging Face | $0.10/месяц (8-80 изображений), меньше лимит |
+| Gemini | Replicate | 50 генераций/месяц, недостаточно для итераций |
+| Gemini | Leonardo.ai | API платный ($9/мес), web 150 токенов/день |
+| Gemini | Ideogram.ai | API требует карту, web 10 кредитов/неделю |
+| Gemini | Together.ai | Теперь требует карту ($5 минимум) |
 
 **Installation:**
 ```bash
-pip install together>=1.5.0
+pip install google-genai pillow
 ```
 
 Или добавить в `pyproject.toml`:
 ```toml
-"together (>=1.5.0,<2.0.0)",
+dependencies = [
+    "google-genai",
+    # ... existing deps
+]
 ```
+
+## Сравнение бесплатных генераторов (без карты)
+
+| Сервис | Бесплатный лимит | API доступ | Карта нужна | Рекомендация |
+|--------|------------------|------------|-------------|--------------|
+| **Gemini 2.5 Flash Image** | 500 req/day | Да (Python SDK) | Нет | РЕКОМЕНДУЕТСЯ |
+| Hugging Face | $0.10/месяц (~8-80 img) | Да | Нет | Backup вариант |
+| Replicate | 50 img/месяц | Да | Нет | Слишком мало |
+| Leonardo.ai web | 150 токенов/день | Нет (API платный) | Нет | Только ручная работа |
+| Ideogram.ai web | 10 кредитов/неделю | Нет (API платный) | Нет | Только ручная работа |
+| Together.ai | НЕТ БЕСПЛАТНОГО | Да | ДА ($5 min) | ИСКЛЮЧЕН |
 
 ## Architecture Patterns
 
@@ -75,11 +93,11 @@ scripts/
 **When to use:** Для каждого изображения
 **Example:**
 ```python
-# Source: CONTEXT.md decisions + Black Forest Labs prompting guide
+# Source: CONTEXT.md decisions + Gemini best practices
 BASE_STYLE = """
 Mystical cosmic art style, dark background with deep purple and black tones,
 golden and white accents, high detail, starfield with nebulae,
-magical atmosphere, elegant composition, no text
+magical atmosphere, elegant composition, no text, no watermarks
 """
 
 def zodiac_prompt(sign_name: str, glyph_description: str) -> str:
@@ -91,163 +109,203 @@ def zodiac_prompt(sign_name: str, glyph_description: str) -> str:
     """
 ```
 
-### Pattern 2: Seed-Based Consistency
-**What:** Фиксированный seed для воспроизводимости стиля
-**When to use:** Для всех изображений в серии
+### Pattern 2: Gemini Image Generation
+**What:** Генерация через Gemini API с правильной конфигурацией
+**When to use:** Для каждого изображения
 **Example:**
 ```python
-# Source: Together.ai docs + FLUX consistency best practices
-MASTER_SEED = 42  # Фиксированный seed для всей серии
+# Source: Google Gemini API docs
+from google import genai
+from google.genai import types
+from PIL import Image
+from io import BytesIO
 
-response = client.images.generate(
-    model="black-forest-labs/FLUX.1-schnell-Free",
-    prompt=zodiac_prompt("Aries", "ram horns symbol"),
-    width=1024,
-    height=1024,
-    steps=4,
-    seed=MASTER_SEED,
-    response_format="base64",
+client = genai.Client(api_key="YOUR_API_KEY")  # или из env
+
+response = client.models.generate_content(
+    model="gemini-2.5-flash-image",
+    contents=[zodiac_prompt("Aries", "ram horns symbol")],
+    config=types.GenerateContentConfig(
+        response_modalities=["IMAGE"],
+        image_config=types.ImageConfig(
+            aspect_ratio="1:1",  # квадрат для zodiac
+        )
+    )
 )
+
+# Извлечение изображения
+for part in response.parts:
+    if part.inline_data is not None:
+        image = part.as_image()
+        image.save("aries.png")
 ```
 
-### Pattern 3: Async Batch Generation
-**What:** Асинхронная генерация нескольких изображений
-**When to use:** Для batch генерации 12 знаков зодиака
+### Pattern 3: Batch Generation with Rate Limiting
+**What:** Последовательная генерация с паузами
+**When to use:** Для batch генерации 17 изображений
 **Example:**
 ```python
-# Source: Together Python SDK + asyncio patterns
-import asyncio
-from together import AsyncTogether
+import time
+from pathlib import Path
 
-async def generate_zodiac_images():
-    client = AsyncTogether()
-
+def generate_all_zodiac(client, output_dir: Path):
     zodiac_signs = [
-        ("aries", "ram horns symbol ♈"),
-        ("taurus", "bull head symbol ♉"),
-        # ... остальные знаки
+        ("aries", "ram horns symbol"),
+        ("taurus", "bull head symbol"),
+        ("gemini", "twins symbol"),
+        ("cancer", "crab claws symbol"),
+        ("leo", "lion mane symbol"),
+        ("virgo", "maiden symbol"),
+        ("libra", "balanced scales symbol"),
+        ("scorpio", "scorpion tail symbol"),
+        ("sagittarius", "archer bow symbol"),
+        ("capricorn", "sea-goat symbol"),
+        ("aquarius", "water bearer waves symbol"),
+        ("pisces", "twin fish symbol"),
     ]
 
-    tasks = [
-        generate_single_zodiac(client, name, glyph)
-        for name, glyph in zodiac_signs
-    ]
+    for sign_name, glyph in zodiac_signs:
+        prompt = zodiac_prompt(sign_name.capitalize(), glyph)
 
-    results = await asyncio.gather(*tasks)
-    return results
+        response = client.models.generate_content(
+            model="gemini-2.5-flash-image",
+            contents=[prompt],
+            config=types.GenerateContentConfig(
+                response_modalities=["IMAGE"],
+            )
+        )
+
+        for part in response.parts:
+            if part.inline_data is not None:
+                image = part.as_image()
+                output_path = output_dir / f"{sign_name}.png"
+                image.save(output_path)
+                print(f"Generated: {output_path}")
+
+        time.sleep(2)  # Rate limit protection (IPM = 2 for free tier)
 ```
 
 ### Anti-Patterns to Avoid
-- **Negative prompts:** FLUX.1 НЕ поддерживает negative prompts. Вместо "no text" использовать "clean image without any text or typography"
-- **Prompt weights:** FLUX.1 НЕ поддерживает синтаксис `(word:1.5)`. Использовать "with emphasis on" или "featuring prominently"
-- **Слишком длинные промпты:** Оптимально 30-80 слов. Более 100 слов снижают качество
-- **Разные seeds:** Использование разных seeds нарушает визуальную консистентность
+- **Слишком быстрая генерация:** Free tier ограничен 2 images/minute. Добавлять паузы 30-60 секунд между генерациями
+- **Слишком длинные промпты:** Оптимально 50-100 слов. Более 200 снижает качество
+- **Отсутствие style consistency:** Каждый промпт должен содержать BASE_STYLE
+- **Игнорирование errors:** Всегда обрабатывать исключения, retry при failures
 
 ## Don't Hand-Roll
 
 | Problem | Don't Build | Use Instead | Why |
 |---------|-------------|-------------|-----|
-| Image decoding | Custom base64 parser | `base64.b64decode()` + Pillow | Edge cases, memory |
-| Retry logic | Manual while loops | `tenacity` decorator | Backoff, jitter |
-| Prompt templating | String concatenation | F-strings with constants | Maintainability |
+| Image decoding | Custom parsers | `part.as_image()` + Pillow | SDK делает это автоматически |
+| Retry logic | Manual while loops | `tenacity` или простой try/except | Backoff, jitter |
+| Prompt templating | String concatenation | F-strings с constants | Maintainability |
 | File organization | Ad-hoc paths | `pathlib.Path` | Cross-platform |
+| API key management | Hardcoded | `python-dotenv` + env vars | Security |
 
-**Key insight:** Генерация изображений — это одноразовый процесс (17 файлов). Не нужна сложная инфраструктура. Простой скрипт с proper error handling достаточен.
+**Key insight:** Генерация 17 изображений — одноразовый процесс. Простой скрипт с proper error handling достаточен. Не overengineer.
 
 ## Common Pitfalls
 
-### Pitfall 1: Rate Limiting
-**What goes wrong:** Together.ai может ограничить запросы при быстрой batch генерации
-**Why it happens:** Free tier имеет rate limits
-**How to avoid:** Добавить delay между запросами (1-2 секунды), использовать retry с backoff
-**Warning signs:** 429 Too Many Requests, временные таймауты
+### Pitfall 1: Rate Limiting (IPM = 2)
+**What goes wrong:** Gemini блокирует запросы при быстрой генерации
+**Why it happens:** Free tier ограничен 2 images per minute
+**How to avoid:** Добавить `time.sleep(30)` между генерациями (или 60 для безопасности)
+**Warning signs:** 429 Too Many Requests, ResourceExhausted errors
 
 ### Pitfall 2: Inconsistent Style
-**What goes wrong:** Изображения выглядят по-разному несмотря на похожие промпты
-**Why it happens:** Разные seeds, вариации в промптах, отсутствие style anchors
+**What goes wrong:** Изображения выглядят по-разному
+**Why it happens:** Вариации в промптах, отсутствие style anchors
 **How to avoid:**
-- Фиксировать seed для всей серии
-- Повторять 2-3 ключевых style phrases в каждом промпте
-- Генерировать test batch перед финальной генерацией
-**Warning signs:** Visual inconsistency при preview
+- Повторять BASE_STYLE в каждом промпте
+- Использовать одинаковый aspect_ratio для всей серии
+- Генерировать test batch (2-3 изображения) перед полной генерацией
+**Warning signs:** Визуальная несогласованность при preview
 
-### Pitfall 3: Wrong Image Dimensions
-**What goes wrong:** Изображения обрезаются или растягиваются в Telegram
-**Why it happens:** Неправильный aspect ratio, слишком большой размер
-**How to avoid:** Использовать 1024x1024 для универсальности, или 1280x720 для landscape
-**Warning signs:** Telegram preview показывает обрезанное изображение
-
-### Pitfall 4: Unicode in Prompts
-**What goes wrong:** Unicode символы (♈, ♉) некорректно обрабатываются
-**Why it happens:** Encoding issues, модель не понимает glyphs
-**How to avoid:** Использовать текстовые описания: "Aries ram horns symbol" вместо "♈"
-**Warning signs:** Странные артефакты или отсутствие символа
-
-### Pitfall 5: API Key Exposure
+### Pitfall 3: API Key Exposure
 **What goes wrong:** API ключ утекает в git
 **Why it happens:** Hardcoded ключ или .env не в .gitignore
-**How to avoid:** Использовать TOGETHER_API_KEY env variable, проверить .gitignore
+**How to avoid:**
+- Использовать `GOOGLE_API_KEY` env variable
+- Проверить .gitignore включает .env
+- Никогда не коммитить ключи
 **Warning signs:** Git history содержит ключи
+
+### Pitfall 4: Wrong Image Format for Telegram
+**What goes wrong:** Изображения слишком большие или неоптимальные
+**Why it happens:** Неправильный формат/размер
+**How to avoid:**
+- Использовать 1024x1024 для универсальности
+- Сохранять как PNG (лучше для графики с золотом)
+- Проверять размер файла < 10MB
+**Warning signs:** Telegram долго загружает или сжимает изображение
+
+### Pitfall 5: SynthID Watermark Concerns
+**What goes wrong:** Беспокойство о водяных знаках
+**Why it happens:** Gemini добавляет невидимый SynthID
+**How to avoid:** Это НЕ проблема — SynthID невидим для пользователей
+**Warning signs:** Нет визуальных признаков (watermark невидим)
 
 ## Code Examples
 
 ### Complete Generation Script
 ```python
 #!/usr/bin/env python3
-"""Generate all images for AdtroBot."""
-# Source: Together.ai docs + project patterns
+"""Generate all images for AdtroBot using Google Gemini."""
+# Source: Google Gemini API docs + project patterns
 
-import asyncio
-import base64
+import os
+import time
 from pathlib import Path
 
-from together import AsyncTogether
-from PIL import Image
-import io
+from google import genai
+from google.genai import types
 
 # Configuration
-MASTER_SEED = 42
-STEPS = 4
-WIDTH = 1024
-HEIGHT = 1024
-MODEL = "black-forest-labs/FLUX.1-schnell-Free"
 OUTPUT_DIR = Path("assets/images")
+MODEL = "gemini-2.5-flash-image"
+DELAY_SECONDS = 35  # Free tier: 2 IPM, safe margin
 
 # Base style for all images (from CONTEXT.md)
 BASE_STYLE = """
 Mystical cosmic art style, dark background with deep purple and black tones,
 golden and white accents, stars and nebulae, magical atmosphere,
-high detail, elegant composition, professional quality, no text
+high detail, elegant composition, professional quality, no text, no watermarks
 """
 
 
-async def generate_image(
-    client: AsyncTogether,
-    prompt: str,
-    output_path: Path,
-    seed: int = MASTER_SEED,
-) -> bool:
+def create_client():
+    """Create Gemini client with API key from environment."""
+    api_key = os.getenv("GOOGLE_API_KEY")
+    if not api_key:
+        raise ValueError("GOOGLE_API_KEY environment variable not set")
+    return genai.Client(api_key=api_key)
+
+
+def generate_image(client, prompt: str, output_path: Path, aspect_ratio: str = "1:1"):
     """Generate single image and save to file."""
+    full_prompt = f"{prompt}, {BASE_STYLE}"
+
     try:
-        response = await client.images.generate(
+        response = client.models.generate_content(
             model=MODEL,
-            prompt=f"{prompt}, {BASE_STYLE}",
-            width=WIDTH,
-            height=HEIGHT,
-            steps=STEPS,
-            seed=seed,
-            response_format="base64",
+            contents=[full_prompt],
+            config=types.GenerateContentConfig(
+                response_modalities=["IMAGE"],
+                image_config=types.ImageConfig(
+                    aspect_ratio=aspect_ratio,
+                )
+            )
         )
 
-        # Decode and save
-        image_data = base64.b64decode(response.data[0].b64_json)
-        image = Image.open(io.BytesIO(image_data))
+        for part in response.parts:
+            if part.inline_data is not None:
+                image = part.as_image()
+                output_path.parent.mkdir(parents=True, exist_ok=True)
+                image.save(output_path, "PNG")
+                print(f"Generated: {output_path}")
+                return True
 
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        image.save(output_path, "PNG", optimize=True)
-
-        print(f"Generated: {output_path}")
-        return True
+        print(f"No image in response for: {output_path}")
+        return False
 
     except Exception as e:
         print(f"Error generating {output_path}: {e}")
@@ -256,117 +314,145 @@ async def generate_image(
 
 # Zodiac signs configuration
 ZODIAC_PROMPTS = {
-    "aries": "Aries zodiac symbol, golden ram horns glyph, centered large symbol",
-    "taurus": "Taurus zodiac symbol, golden bull head glyph, centered large symbol",
-    "gemini": "Gemini zodiac symbol, golden twins glyph, centered large symbol",
-    "cancer": "Cancer zodiac symbol, golden crab claws glyph, centered large symbol",
-    "leo": "Leo zodiac symbol, golden lion mane glyph, centered large symbol",
-    "virgo": "Virgo zodiac symbol, golden maiden glyph, centered large symbol",
-    "libra": "Libra zodiac symbol, golden balanced scales glyph, centered large symbol",
-    "scorpio": "Scorpio zodiac symbol, golden scorpion tail glyph, centered large symbol",
-    "sagittarius": "Sagittarius zodiac symbol, golden archer bow glyph, centered large symbol",
-    "capricorn": "Capricorn zodiac symbol, golden sea-goat glyph, centered large symbol",
-    "aquarius": "Aquarius zodiac symbol, golden water bearer waves glyph, centered large symbol",
-    "pisces": "Pisces zodiac symbol, golden twin fish glyph, centered large symbol",
+    "aries": "Aries zodiac symbol, golden ram horns glyph, centered large glowing symbol",
+    "taurus": "Taurus zodiac symbol, golden bull head glyph, centered large glowing symbol",
+    "gemini": "Gemini zodiac symbol, golden twins glyph, centered large glowing symbol",
+    "cancer": "Cancer zodiac symbol, golden crab claws glyph, centered large glowing symbol",
+    "leo": "Leo zodiac symbol, golden lion mane glyph, centered large glowing symbol",
+    "virgo": "Virgo zodiac symbol, golden maiden glyph, centered large glowing symbol",
+    "libra": "Libra zodiac symbol, golden balanced scales glyph, centered large glowing symbol",
+    "scorpio": "Scorpio zodiac symbol, golden scorpion tail glyph, centered large glowing symbol",
+    "sagittarius": "Sagittarius zodiac symbol, golden archer bow glyph, centered large glowing symbol",
+    "capricorn": "Capricorn zodiac symbol, golden sea-goat glyph, centered large glowing symbol",
+    "aquarius": "Aquarius zodiac symbol, golden water bearer waves glyph, centered large glowing symbol",
+    "pisces": "Pisces zodiac symbol, golden twin fish glyph, centered large glowing symbol",
 }
 
 
-async def main():
+def main():
     """Generate all images."""
-    client = AsyncTogether()
+    client = create_client()
 
     # Create output directories
     (OUTPUT_DIR / "zodiac").mkdir(parents=True, exist_ok=True)
     (OUTPUT_DIR / "tarot").mkdir(parents=True, exist_ok=True)
 
+    generated = 0
+    total = 17
+
     # 1. Welcome screen
-    await generate_image(
+    print(f"\n[{generated+1}/{total}] Generating welcome screen...")
+    generate_image(
         client,
-        "Large golden zodiac wheel with all 12 signs, cosmic portal, mystical gateway",
+        "Large golden zodiac wheel with all 12 signs, cosmic portal, mystical gateway, centered composition",
         OUTPUT_DIR / "welcome.png",
     )
-    await asyncio.sleep(1)  # Rate limit protection
+    generated += 1
+    time.sleep(DELAY_SECONDS)
 
     # 2. Zodiac signs (12 images)
     for sign, prompt in ZODIAC_PROMPTS.items():
-        await generate_image(
+        print(f"\n[{generated+1}/{total}] Generating {sign}...")
+        generate_image(
             client,
             prompt,
             OUTPUT_DIR / "zodiac" / f"{sign}.png",
         )
-        await asyncio.sleep(1)
+        generated += 1
+        time.sleep(DELAY_SECONDS)
 
     # 3. Tarot spreads
-    await generate_image(
+    print(f"\n[{generated+1}/{total}] Generating three card spread...")
+    generate_image(
         client,
         "Three tarot cards face down in a row, golden ornate back design on black, mystical arrangement",
         OUTPUT_DIR / "tarot" / "three_card.png",
     )
-    await asyncio.sleep(1)
+    generated += 1
+    time.sleep(DELAY_SECONDS)
 
-    await generate_image(
+    print(f"\n[{generated+1}/{total}] Generating Celtic Cross spread...")
+    generate_image(
         client,
         "Celtic Cross tarot spread, ten cards face down, golden ornate backs on black, mystical cross pattern",
         OUTPUT_DIR / "tarot" / "celtic_cross.png",
     )
-    await asyncio.sleep(1)
+    generated += 1
+    time.sleep(DELAY_SECONDS)
 
     # 4. Natal chart
-    await generate_image(
+    print(f"\n[{generated+1}/{total}] Generating natal chart...")
+    generate_image(
         client,
         "Astrological birth chart wheel, golden lines and symbols, planets and houses marked, cosmic background",
         OUTPUT_DIR / "natal_chart.png",
     )
-    await asyncio.sleep(1)
+    generated += 1
+    time.sleep(DELAY_SECONDS)
 
     # 5. Paywall
-    await generate_image(
+    print(f"\n[{generated+1}/{total}] Generating paywall...")
+    generate_image(
         client,
         "Golden ornate lock with keyhole, premium access symbol, magical glow, unlock concept",
         OUTPUT_DIR / "paywall.png",
     )
+    generated += 1
 
-    print("\nAll images generated successfully!")
+    print(f"\n{'='*50}")
+    print(f"All {total} images generated successfully!")
+    print(f"Output directory: {OUTPUT_DIR.absolute()}")
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
 ```
 
 ### Environment Setup
 ```bash
-# .env file
-TOGETHER_API_KEY=your_api_key_here
+# .env file (add to existing)
+GOOGLE_API_KEY=your_gemini_api_key_here
 ```
+
+### Getting API Key
+1. Перейти на https://aistudio.google.com/
+2. Войти с Google аккаунтом (БЕЗ КАРТЫ)
+3. Settings -> API Keys -> Create API Key
+4. Скопировать ключ в .env
 
 ### Running the Script
 ```bash
 # Install dependency
-pip install together
+pip install google-genai
 
-# Run generation
-TOGETHER_API_KEY=xxx python scripts/generate_images.py
+# Run generation (takes ~10 minutes with rate limiting)
+python scripts/generate_images.py
 ```
+
+### Estimated Time
+- 17 изображений x 35 секунд delay = ~10 минут
+- Можно запустить и заняться другим
 
 ## State of the Art
 
 | Old Approach | Current Approach | When Changed | Impact |
 |--------------|------------------|--------------|--------|
-| Stable Diffusion | FLUX.1 | August 2024 | Лучшее качество, естественный язык |
-| Many steps (20-50) | Few steps (1-4) | FLUX schnell | Быстрая генерация |
-| Negative prompts | Positive framing | FLUX | Изменение prompting подхода |
-| Keywords | Natural language | FLUX | Более понятные промпты |
+| Together.ai free | Together.ai PAID ($5 min) | July 2025 | Больше не бесплатно |
+| Stable Diffusion | Gemini 2.5 Flash Image | 2025 | Лучшее качество, проще API |
+| Multiple API calls | Single generate_content | Gemini SDK | Упрощенный код |
+| Manual image decode | `part.as_image()` | Gemini SDK | Автоматическая обработка |
 
 **Deprecated/outdated:**
-- Stable Diffusion XL: Всё ещё работает, но FLUX качественнее для мистического стиля
-- Prompt weights `(word:1.5)`: Не поддерживается в FLUX
+- Together.ai free tier: Отменен, теперь требует $5 минимум
+- Gemini 2.0 Flash: Deprecated, shutdown March 2026
+- Stable Diffusion API (бесплатный): Лимиты слишком низкие
 
 ## Telegram-Specific Considerations
 
 ### Image Formats
 | Format | Use Case | Notes |
 |--------|----------|-------|
-| PNG | Best for graphics | Lossless, transparency support |
+| PNG | Best for graphics | Lossless, transparency support, рекомендуется |
 | JPG | Photos | Smaller size, no transparency |
 | WebP | Modern bots | 30% smaller, good support |
 
@@ -375,56 +461,57 @@ TOGETHER_API_KEY=xxx python scripts/generate_images.py
 ### Image Sizes
 | Size | Use Case | Telegram Behavior |
 |------|----------|-------------------|
-| 1024x1024 | Square (zodiac) | Отображается полностью |
+| 1024x1024 | Universal | Отображается полностью, автомасштабируется |
 | 1280x720 | Landscape | Хорошо для карточек |
-| 720x1280 | Portrait | Вертикальные экраны |
+| 2560x2560 | Max API | Telegram сжимает до 1280 |
 
-**Recommendation:** 1024x1024 для универсальности. Telegram автоматически масштабирует.
+**Recommendation:** 1024x1024 (1K) — Gemini default, оптимально для Telegram.
 
 ### File Size Limits
 - Photo: до 10 MB
 - Document: до 50 MB
-- При генерации PNG ~500KB-2MB, в пределах лимита
+- PNG 1024x1024: ~500KB-2MB, в пределах лимита
 
 ## Open Questions
 
 ### 1. Точная стилизация символов зодиака
-- **What we know:** Нужны классические глифы (♈, ♉, etc.) в золотом стиле
-- **What's unclear:** FLUX может интерпретировать "glyph" по-разному
+- **What we know:** Нужны классические глифы в золотом стиле
+- **What's unclear:** Gemini может интерпретировать "glyph" по-разному
 - **Recommendation:** Провести тестовую генерацию 2-3 знаков, уточнить промпты итеративно
 
-### 2. Интеграция в Phase 14
-- **What we know:** Изображения будут отправляться через Telegram Bot API
-- **What's unclear:** Использовать file_id caching или InputFile каждый раз
-- **Recommendation:** Это scope Phase 14, не блокирует Phase 13
+### 2. Rate Limit Stability
+- **What we know:** Документация говорит 2 IPM для free tier
+- **What's unclear:** Точные лимиты могут меняться (Google менял в Dec 2025)
+- **Recommendation:** Использовать 35-секундный delay, retry при failures
 
-### 3. Together.ai Free Tier Limits
-- **What we know:** 3 месяца бесплатно для FLUX.1 schnell
-- **What's unclear:** Точные rate limits, что после 3 месяцев
-- **Recommendation:** Для 17 изображений достаточно, но добавить 1-2 секунды delay
+### 3. Альтернатива если Gemini не подойдет
+- **What we know:** Hugging Face дает $0.10/месяц бесплатно
+- **What's unclear:** Хватит ли для итераций
+- **Recommendation:** Backup план — ручная генерация через Leonardo.ai web (150 токенов/день)
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- [Together.ai Images Overview](https://docs.together.ai/docs/images-overview) - API parameters, code examples
-- [Black Forest Labs Prompting Guide](https://docs.bfl.ml/guides/prompting_summary) - Official FLUX prompting guide
-- [Together Python SDK](https://pypi.org/project/together/) - v1.5.35, async support
+- [Google Gemini API Image Generation](https://ai.google.dev/gemini-api/docs/image-generation) - Official docs, Python examples
+- [Gemini API Pricing](https://ai.google.dev/gemini-api/docs/pricing) - Free tier info
+- [Google Developers Blog - Gemini 2.5 Flash Image](https://developers.googleblog.com/introducing-gemini-2-5-flash-image/) - Model capabilities
 
 ### Secondary (MEDIUM confidence)
-- [FLUX.1 Prompt Guide (giz.ai)](https://www.giz.ai/flux-1-prompt-guide/) - Community best practices
-- [Segmind FLUX Prompting Guide](https://blog.segmind.com/flux-prompting-guide-image-creation/) - Style consistency tips
-- [Telegram Image Size Guide](https://safeimagekit.com/blog/the-definitive-guide-for-image-sizes-for-telegram) - Telegram specifications
+- [Together.ai Billing Docs](https://docs.together.ai/docs/billing) - Confirms $5 minimum requirement
+- [Hugging Face Pricing](https://huggingface.co/docs/inference-providers/en/pricing) - Free tier: $0.10/month
+- [Telegram Image Size Guide](https://limits.tginfo.me/en) - Telegram specifications
 
 ### Tertiary (LOW confidence)
-- WebSearch results about zodiac AI generation - Prompt examples only
+- WebSearch results about Gemini rate limits in 2026 - May change
+- WebSearch results about alternative generators - Community reports
 
 ## Metadata
 
 **Confidence breakdown:**
-- Standard stack: HIGH - Официальная документация Together.ai
-- Architecture: HIGH - Простой скрипт, проверенные паттерны
-- Pitfalls: MEDIUM - Основано на community best practices
+- Standard stack: HIGH - Официальная документация Google
+- Architecture: HIGH - Простой скрипт, SDK примеры из docs
+- Pitfalls: MEDIUM - Основано на rate limit documentation + community reports
 - Prompts: MEDIUM - Требует итеративное тестирование
 
 **Research date:** 2026-01-24
-**Valid until:** 90 дней (AI image generation быстро развивается, но FLUX.1 стабилен)
+**Valid until:** 30 дней (Google может менять лимиты, проверять актуальность)
