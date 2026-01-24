@@ -1,7 +1,7 @@
 """add_horoscope_cache_tables
 
 Revision ID: h8c9d0e1f2g3
-Revises: b1c2d3e4f5a6
+Revises: 4e898b8d0011
 Create Date: 2026-01-23
 
 """
@@ -14,7 +14,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = "h8c9d0e1f2g3"
-down_revision: str | None = "b1c2d3e4f5a6"
+down_revision: str | None = "4e898b8d0011"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
