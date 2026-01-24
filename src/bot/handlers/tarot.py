@@ -56,6 +56,7 @@ from src.bot.utils.tarot_formatting import (
 from src.db.models.tarot_spread import TarotSpread
 from src.db.models.user import User
 from src.services.ai import get_ai_service
+from src.services.image_asset import get_image_asset_service
 from src.services.telegraph import get_telegraph_service
 
 router = Router(name="tarot")
@@ -419,6 +420,14 @@ async def tarot_draw_three_cards(
 
     await callback.message.delete()
 
+    # Send cosmic image before cards
+    image_service = get_image_asset_service()
+    await image_service.send_random_cosmic(
+        bot=callback.bot,
+        chat_id=callback.message.chat.id,
+        session=session,
+    )
+
     # Send cards one by one with delay (dramatic effect)
     positions = ["Прошлое", "Настоящее", "Будущее"]
     for i, (card, reversed_flag) in enumerate(cards):
@@ -601,6 +610,14 @@ async def tarot_draw_celtic_cards(
     cards = get_ten_cards()
 
     await callback.message.delete()
+
+    # Send cosmic image before cards
+    image_service = get_image_asset_service()
+    await image_service.send_random_cosmic(
+        bot=callback.bot,
+        chat_id=callback.message.chat.id,
+        session=session,
+    )
 
     # Send as media group (album) - max 10 photos
     media_group = []
