@@ -16,6 +16,18 @@ import MonitoringPage from '@/pages/Monitoring'
 
 // Auth check loader
 async function requireAuth() {
+  // Wait for zustand to hydrate from localStorage
+  await new Promise<void>((resolve) => {
+    const checkHydration = () => {
+      if (useAuthStore.getState()._hasHydrated) {
+        resolve()
+      } else {
+        setTimeout(checkHydration, 10)
+      }
+    }
+    checkHydration()
+  })
+
   const isAuthenticated = useAuthStore.getState().isAuthenticated()
   if (!isAuthenticated) {
     throw redirect('/login')
@@ -25,6 +37,18 @@ async function requireAuth() {
 
 // Redirect if already logged in
 async function redirectIfAuth() {
+  // Wait for zustand to hydrate from localStorage
+  await new Promise<void>((resolve) => {
+    const checkHydration = () => {
+      if (useAuthStore.getState()._hasHydrated) {
+        resolve()
+      } else {
+        setTimeout(checkHydration, 10)
+      }
+    }
+    checkHydration()
+  })
+
   const isAuthenticated = useAuthStore.getState().isAuthenticated()
   if (isAuthenticated) {
     throw redirect('/')
