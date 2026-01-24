@@ -13,8 +13,10 @@ import {
   Row,
   Col,
   Switch,
+  Empty,
+  Alert,
 } from 'antd'
-import { SendOutlined, ClockCircleOutlined, DeleteOutlined } from '@ant-design/icons'
+import { SendOutlined, ClockCircleOutlined, DeleteOutlined, MailOutlined, ReloadOutlined } from '@ant-design/icons'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import {
@@ -54,7 +56,7 @@ export default function MessagesPage() {
   const [isScheduled, setIsScheduled] = useState(false)
   const queryClient = useQueryClient()
 
-  const { data: history, isLoading } = useQuery({
+  const { data: history, isLoading, error: historyError, refetch: refetchHistory } = useQuery({
     queryKey: ['messages'],
     queryFn: () => getMessageHistory(),
   })
@@ -70,7 +72,9 @@ export default function MessagesPage() {
       form.resetFields()
       queryClient.invalidateQueries({ queryKey: ['messages'] })
     },
-    onError: () => message.error('Ошибка отправки'),
+    onError: (error: Error) => {
+      message.error(`Ошибка отправки: ${error.message || 'Неизвестная ошибка'}`)
+    },
   })
 
   const cancelMutation = useMutation({
@@ -161,9 +165,19 @@ export default function MessagesPage() {
             <Form.Item
               name="text"
               label="Текст сообщения"
-              rules={[{ required: true, message: 'Введите текст' }]}
+              rules={[
+                { required: true, message: 'Введите текст сообщения' },
+                { min: 3, message: 'Минимум 3 символа' },
+                { max: 4096, message: 'Максимум 4096 символов' },
+              ]}
+              validateTrigger={['onChange', 'onBlur']}
             >
-              <Input.TextArea rows={4} placeholder="Текст сообщения..." />
+              <Input.TextArea
+                rows={4}
+                placeholder="Текст сообщения..."
+                showCount
+                maxLength={4096}
+              />
             </Form.Item>
 
             <Space style={{ marginBottom: 16 }}>
@@ -185,9 +199,17 @@ export default function MessagesPage() {
               <Form.Item
                 name="target_user_id"
                 label="ID пользователя"
-                rules={[{ required: true, message: 'Укажите ID' }]}
+                rules={[
+                  { required: true, message: 'Укажите ID пользователя' },
+                  {
+                    type: 'number',
+                    transform: (value) => (value ? Number(value) : undefined),
+                    message: 'ID должен быть числом',
+                  },
+                ]}
+                validateTrigger={['onChange', 'onBlur']}
               >
-                <Input type="number" placeholder="User ID" />
+                <Input type="number" placeholder="Telegram ID или внутренний ID" />
               </Form.Item>
             ) : (
               <>
@@ -206,10 +228,27 @@ export default function MessagesPage() {
             {isScheduled && (
               <Form.Item
                 name="scheduled_at"
-                label="Дата и время"
-                rules={[{ required: true, message: 'Выберите время' }]}
+                label="Дата и время отправки"
+                rules={[
+                  { required: true, message: 'Выберите дату и время отправки' },
+                  {
+                    validator: (_, value) => {
+                      if (value && value.isBefore(dayjs())) {
+                        return Promise.reject(new Error('Выберите время в будущем'))
+                      }
+                      return Promise.resolve()
+                    },
+                  },
+                ]}
+                validateTrigger={['onChange', 'onBlur']}
               >
-                <DatePicker showTime format="DD.MM.YYYY HH:mm" style={{ width: '100%' }} />
+                <DatePicker
+                  showTime
+                  format="DD.MM.YYYY HH:mm"
+                  style={{ width: '100%' }}
+                  placeholder="Выберите дату и время"
+                  disabledDate={(current) => current && current < dayjs().startOf('day')}
+                />
               </Form.Item>
             )}
 
@@ -227,18 +266,56 @@ export default function MessagesPage() {
       </Col>
 
       <Col xs={24} lg={14}>
-        <Card title="История сообщений">
-          <Table
-            dataSource={history?.items}
-            columns={columns}
-            rowKey="id"
-            loading={isLoading}
-            pagination={{
-              total: history?.total,
-              pageSize: 20,
-            }}
-            size="small"
-          />
+        <Card
+          title="История сообщений"
+          extra={
+            <Button
+              icon={<ReloadOutlined spin={isLoading} />}
+              onClick={() => refetchHistory()}
+              disabled={isLoading}
+              size="small"
+            >
+              Обновить
+            </Button>
+          }
+        >
+          {historyError ? (
+            <Alert
+              type="error"
+              message="Ошибка загрузки истории"
+              description="Не удалось загрузить историю сообщений"
+              showIcon
+              action={
+                <Button size="small" onClick={() => refetchHistory()}>
+                  Повторить
+                </Button>
+              }
+            />
+          ) : (
+            <Table
+              dataSource={history?.items}
+              columns={columns}
+              rowKey="id"
+              loading={isLoading}
+              pagination={{
+                total: history?.total,
+                pageSize: 20,
+              }}
+              size="small"
+              locale={{
+                emptyText: (
+                  <Empty
+                    image={<MailOutlined style={{ fontSize: 48, color: '#d9d9d9' }} />}
+                    description="Нет отправленных сообщений"
+                  >
+                    <span style={{ color: '#8c8c8c' }}>
+                      Отправьте первое сообщение пользователям
+                    </span>
+                  </Empty>
+                ),
+              }}
+            />
+          )}
         </Card>
       </Col>
     </Row>
