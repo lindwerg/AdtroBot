@@ -517,3 +517,70 @@ class UTMAnalyticsResponse(BaseModel):
 
     sources: list[UTMSourceStats]
     total_users: int
+
+
+# === Monitoring Schemas ===
+
+
+class ActiveUsersMetrics(BaseModel):
+    """Active users metrics: DAU/WAU/MAU."""
+
+    dau: int
+    wau: int
+    mau: int
+
+
+class CostByOperation(BaseModel):
+    """Cost breakdown by operation type."""
+
+    operation: str
+    cost: float
+    tokens: int
+    requests: int
+
+
+class CostByDay(BaseModel):
+    """Daily cost data for charts."""
+
+    date: str  # YYYY-MM-DD
+    cost: float
+    tokens: int
+
+
+class APICostsData(BaseModel):
+    """API costs breakdown."""
+
+    total_cost: float
+    total_tokens: int
+    total_requests: int
+    by_operation: list[CostByOperation]
+    by_day: list[CostByDay]
+
+
+class UnitEconomicsData(BaseModel):
+    """Unit economics metrics."""
+
+    total_cost: float
+    active_users: int
+    paying_users: int
+    active_paying_users: int
+    cost_per_active_user: float
+    cost_per_paying_user: float
+
+
+class ErrorStatsData(BaseModel):
+    """Error statistics."""
+
+    error_count: int
+    error_rate: float
+    avg_response_time_ms: int
+
+
+class MonitoringResponse(BaseModel):
+    """Full monitoring data response."""
+
+    range: str  # 24h, 7d, 30d
+    active_users: ActiveUsersMetrics
+    api_costs: APICostsData
+    unit_economics: UnitEconomicsData
+    error_stats: ErrorStatsData
