@@ -8,7 +8,6 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bot.keyboards.main_menu import get_main_menu_keyboard, get_start_keyboard
-from src.services.image_asset import get_image_asset_service
 from src.bot.keyboards.profile import (
     build_notification_time_keyboard,
     build_onboarding_notifications_keyboard,
@@ -46,14 +45,6 @@ async def cmd_start(message: Message, session: AsyncSession, bot: Bot) -> None:
     stmt = select(User).where(User.telegram_id == message.from_user.id)
     result = await session.execute(stmt)
     user = result.scalar_one_or_none()
-
-    # Send cosmic image first
-    image_service = get_image_asset_service()
-    await image_service.send_random_cosmic(
-        bot=bot,
-        chat_id=message.chat.id,
-        session=session,
-    )
 
     if user and user.birth_date:
         # Returning user - show menu directly
