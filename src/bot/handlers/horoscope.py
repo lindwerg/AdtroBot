@@ -2,13 +2,14 @@
 
 from datetime import date
 
-from aiogram import Router
+from aiogram import Bot, Router
 from aiogram.types import CallbackQuery, Message
 from aiogram.utils.formatting import Bold, Text
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bot.callbacks.horoscope import ZodiacCallback
+from src.services.image_asset import get_image_asset_service
 from src.bot.keyboards.horoscope import build_zodiac_keyboard
 from src.bot.utils.horoscope import get_horoscope_text
 from src.bot.utils.progress import generate_with_feedback
@@ -113,6 +114,14 @@ async def show_zodiac_horoscope(
     is_premium = user.is_premium if user else False
     has_natal = bool(user and user.birth_lat and user.birth_lon) if user else False
 
+    # Send cosmic image before horoscope (new message, can't edit to add photo)
+    image_service = get_image_asset_service()
+    await image_service.send_random_cosmic(
+        bot=callback.bot,
+        chat_id=callback.message.chat.id,
+        session=session,
+    )
+
     await callback.message.edit_text(
         **content.as_kwargs(),
         reply_markup=build_zodiac_keyboard(
@@ -129,6 +138,7 @@ async def show_horoscope_message(
     sign_name: str,
     user_sign: str | None = None,
     session: AsyncSession | None = None,
+    bot: Bot | None = None,
 ) -> None:
     """Send formatted horoscope message with inline keyboard.
 
@@ -137,6 +147,7 @@ async def show_horoscope_message(
         sign_name: English name of zodiac sign to show (e.g., "Aries")
         user_sign: User's own sign for highlighting in keyboard (optional)
         session: Database session for premium check (optional)
+        bot: Bot instance for sending images (optional)
     """
     zodiac = ZODIAC_SIGNS.get(sign_name)
     if not zodiac:
@@ -204,6 +215,15 @@ async def show_horoscope_message(
         "\n\n",
         text,
     )
+
+    # Send cosmic image before horoscope text
+    if bot and session:
+        image_service = get_image_asset_service()
+        await image_service.send_random_cosmic(
+            bot=bot,
+            chat_id=message.chat.id,
+            session=session,
+        )
 
     await message.answer(
         **content.as_kwargs(),
