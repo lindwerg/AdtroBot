@@ -2,8 +2,8 @@
 
 ## Milestones
 
-- ✅ **v1.0 MVP** - Phases 1-10 (shipped 2026-01-23)
-- 🚧 **v2.0 Production Polish & Visual Enhancement** - Phases 11-16 (in progress)
+- **v1.0 MVP** - Phases 1-10 (shipped 2026-01-23)
+- **v2.0 Production Polish & Visual Enhancement** - Phases 11-16 (in progress)
 
 ## Overview
 
@@ -20,7 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 11: Performance & UX Quick Wins** - Критические UX-фиксы без новых зависимостей
 - [x] **Phase 12: Caching & Background Jobs** - PostgreSQL cache + фоновая генерация гороскопов
 - [x] **Phase 13: Image Generation** - Pexels stock images для рандомной отправки
-- [ ] **Phase 14: Visual Integration** - Интеграция изображений в бот + onboarding
+- [x] **Phase 14: Visual Integration** - Интеграция изображений в бот + onboarding
 - [ ] **Phase 15: Monitoring & Observability** - Prometheus metrics + health checks + dashboard
 - [ ] **Phase 16: Testing & Polish** - Playwright + Telethon тесты + admin improvements
 
@@ -99,11 +99,12 @@ Plans:
   3. Unit economics dashboard показывает cost per user
   4. /health endpoint возвращает статус DB, scheduler, и основных сервисов
   5. Prometheus metrics доступны для внешнего мониторинга
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 15-01: TBD
-- [ ] 15-02: TBD
+- [ ] 15-01-PLAN.md — AIUsage model + Prometheus metrics + расширенный /health endpoint
+- [ ] 15-02-PLAN.md — Cost tracking интеграция в AIService + admin /monitoring API
+- [ ] 15-03-PLAN.md — Monitoring.tsx dashboard в админке с графиками и фильтрами
 
 ### Phase 16: Testing & Polish
 **Goal**: Автоматизированные тесты покрывают критические flows, найденные баги исправлены
@@ -133,9 +134,9 @@ Phases execute in numeric order: 11 -> 11.1 -> 11.2 -> 12 -> ... -> 16
 | 12. Caching & Background Jobs | v2.0 | 3/3 | Complete | 2026-01-23 |
 | 13. Image Generation | v2.0 | 1/1 | Complete | 2026-01-24 |
 | 14. Visual Integration | v2.0 | 2/2 | Complete | 2026-01-24 |
-| 15. Monitoring & Observability | v2.0 | 0/TBD | Not started | - |
+| 15. Monitoring & Observability | v2.0 | 0/3 | Planned | - |
 | 16. Testing & Polish | v2.0 | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-01-23*
-*Last updated: 2026-01-24 (Phase 14 planned)*
+*Last updated: 2026-01-24 (Phase 15 planned)*
