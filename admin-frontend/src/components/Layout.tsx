@@ -9,6 +9,7 @@ import {
   LogoutOutlined,
   StarOutlined,
   FileTextOutlined,
+  MonitorOutlined,
 } from '@ant-design/icons'
 import { Outlet, useNavigate, useLocation } from 'react-router'
 import { useAuthStore } from '@/store/auth'
@@ -23,6 +24,7 @@ const menuItems = [
   { path: '/content', name: 'Контент', icon: <FileTextOutlined /> },
   { path: '/promo-codes', name: 'Промокоды', icon: <GiftOutlined /> },
   { path: '/ab-tests', name: 'A/B тесты', icon: <ExperimentOutlined /> },
+  { path: '/monitoring', name: 'Мониторинг', icon: <MonitorOutlined /> },
 ]
 
 export default function Layout() {
