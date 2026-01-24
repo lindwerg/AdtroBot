@@ -8,9 +8,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bot.callbacks.menu import MenuAction, MenuCallback
+from src.bot.handlers.horoscope import show_horoscope_message
+from src.bot.handlers.main_menu import show_main_menu
 from src.bot.keyboards.main_menu import (
     get_first_horoscope_keyboard,
-    get_main_menu_keyboard,
     get_start_keyboard,
 )
 from src.bot.keyboards.profile import (
@@ -21,7 +22,6 @@ from src.bot.states.onboarding import OnboardingStates
 from src.bot.utils.date_parser import parse_russian_date
 from src.bot.utils.zodiac import get_zodiac_sign
 from src.db.models.user import User
-from src.bot.handlers.horoscope import show_horoscope_message
 
 router = Router(name="start")
 
@@ -68,11 +68,8 @@ async def cmd_start(message: Message, session: AsyncSession, bot: Bot) -> None:
     user = result.scalar_one_or_none()
 
     if user and user.birth_date:
-        # Returning user - show menu directly
-        await message.answer(
-            "Рад тебя видеть! Выбери раздел 👇",
-            reply_markup=get_main_menu_keyboard(),
-        )
+        # Returning user - show menu with informative block
+        await show_main_menu(message, session)
     else:
         # New user - show welcome + onboarding button
         await message.answer(
@@ -195,13 +192,12 @@ async def onboarding_enable_notifications(
 
 
 @router.callback_query(MenuCallback.filter(F.action == MenuAction.ONBOARDING_NOTIF_NO))
-async def onboarding_skip_notifications(callback: CallbackQuery) -> None:
+async def onboarding_skip_notifications(
+    callback: CallbackQuery, session: AsyncSession
+) -> None:
     """User skips notifications - show main menu."""
     await callback.message.edit_text(
         "Хорошо! Вы всегда можете включить уведомления в меню Профиль."
     )
-    await callback.message.answer(
-        "Главное меню:",
-        reply_markup=get_main_menu_keyboard(),
-    )
+    await show_main_menu(callback.message, session)
     await callback.answer()

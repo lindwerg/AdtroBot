@@ -2,6 +2,7 @@
 
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from src.bot.callbacks.menu import MenuAction, MenuCallback
 from src.bot.callbacks.tarot import (
     HistoryAction,
     HistoryCallback,
@@ -18,7 +19,7 @@ def get_tarot_menu_keyboard():
         Row 1: Карта дня
         Row 2: Расклад на 3 карты
         Row 3: Кельтский крест, История
-        Row 4: Назад
+        Row 4: 🏠 Главное меню
     """
     builder = InlineKeyboardBuilder()
     builder.button(
@@ -38,8 +39,8 @@ def get_tarot_menu_keyboard():
         callback_data=TarotCallback(a=TarotAction.HISTORY),
     )
     builder.button(
-        text="Назад",
-        callback_data=TarotCallback(a=TarotAction.BACK_TO_MENU),
+        text="🏠 Главное меню",
+        callback_data=MenuCallback(action=MenuAction.BACK_TO_MAIN_MENU).pack(),
     )
     builder.adjust(1, 1, 2, 1)  # 1, 1, 2 side by side, 1
     return builder.as_markup()

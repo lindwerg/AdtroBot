@@ -21,6 +21,9 @@ class MenuAction(str, Enum):
     ONBOARDING_NOTIF_YES = "n_yes"
     ONBOARDING_NOTIF_NO = "n_no"
 
+    # Navigation actions
+    BACK_TO_MAIN_MENU = "back_to_main"
+
 
 class MenuCallback(CallbackData, prefix="menu"):
     """Callback data for menu actions."""

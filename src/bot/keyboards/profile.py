@@ -1,6 +1,6 @@
 """Profile settings keyboards."""
 
-from aiogram.types import InlineKeyboardMarkup
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.bot.callbacks.menu import MenuAction, MenuCallback
@@ -122,4 +122,13 @@ def build_profile_actions_keyboard(
         )
 
     builder.adjust(1)
+
+    # Back to main menu button
+    builder.row(
+        InlineKeyboardButton(
+            text="🏠 Главное меню",
+            callback_data=MenuCallback(action=MenuAction.BACK_TO_MAIN_MENU).pack(),
+        )
+    )
+
     return builder.as_markup()

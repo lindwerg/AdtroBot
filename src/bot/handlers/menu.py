@@ -1,11 +1,13 @@
 """Menu button handlers."""
 
 from aiogram import F, Router
-from aiogram.types import Message
+from aiogram.types import CallbackQuery, Message
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.bot.callbacks.menu import MenuAction, MenuCallback
 from src.bot.handlers.horoscope import show_horoscope_message
+from src.bot.handlers.main_menu import show_main_menu
 from src.bot.handlers.subscription import show_plans
 from src.bot.keyboards.main_menu import get_main_menu_keyboard
 from src.bot.keyboards.profile import build_profile_actions_keyboard
@@ -108,3 +110,17 @@ async def menu_profile(message: Message, session: AsyncSession) -> None:
     )
 
     await message.answer("\n".join(lines), reply_markup=keyboard)
+
+
+@router.message(F.text == "Главное меню")
+async def menu_main(message: Message, session: AsyncSession) -> None:
+    """Handle 'Главное меню' reply button press."""
+    await show_main_menu(message, session)
+
+
+@router.callback_query(MenuCallback.filter(F.action == MenuAction.BACK_TO_MAIN_MENU))
+async def callback_main_menu(callback: CallbackQuery, session: AsyncSession) -> None:
+    """Handle '🏠 Главное меню' inline button press."""
+    await callback.message.delete()  # Remove previous message
+    await show_main_menu(callback.message, session)
+    await callback.answer()

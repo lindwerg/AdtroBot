@@ -73,4 +73,12 @@ def build_zodiac_keyboard(
             )
         )
 
+    # Add "Back to main menu" button
+    builder.row(
+        InlineKeyboardButton(
+            text="🏠 Главное меню",
+            callback_data=MenuCallback(action=MenuAction.BACK_TO_MAIN_MENU).pack(),
+        )
+    )
+
     return builder.as_markup()

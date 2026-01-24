@@ -11,9 +11,9 @@ def get_main_menu_keyboard():
     Build main menu reply keyboard.
 
     Returns 2x3 grid:
-        Гороскоп       | Таро
+        Гороскоп        | Таро
         Натальная карта | Подписка
-        Профиль
+        Профиль         | Главное меню
     """
     builder = ReplyKeyboardBuilder()
     builder.button(text="Гороскоп")
@@ -21,7 +21,8 @@ def get_main_menu_keyboard():
     builder.button(text="Натальная карта")
     builder.button(text="Подписка")
     builder.button(text="Профиль")
-    builder.adjust(2, 2, 1)  # 2+2+1 = 5 buttons in 3 rows
+    builder.button(text="Главное меню")
+    builder.adjust(2, 2, 2)  # 2+2+2 = 6 buttons in 3 rows
     return builder.as_markup(resize_keyboard=True)
 
 

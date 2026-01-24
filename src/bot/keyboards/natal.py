@@ -13,8 +13,8 @@ def get_natal_menu_keyboard() -> InlineKeyboardMarkup:
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text="Назад в меню",
-                    callback_data=NatalCallback(action=NatalAction.BACK_TO_MENU).pack(),
+                    text="🏠 Главное меню",
+                    callback_data=MenuCallback(action=MenuAction.BACK_TO_MAIN_MENU).pack(),
                 )
             ]
         ]
@@ -34,8 +34,8 @@ def get_natal_setup_keyboard() -> InlineKeyboardMarkup:
             ],
             [
                 InlineKeyboardButton(
-                    text="Назад в меню",
-                    callback_data=NatalCallback(action=NatalAction.BACK_TO_MENU).pack(),
+                    text="🏠 Главное меню",
+                    callback_data=MenuCallback(action=MenuAction.BACK_TO_MAIN_MENU).pack(),
                 )
             ],
         ]
@@ -54,8 +54,8 @@ def get_natal_teaser_keyboard() -> InlineKeyboardMarkup:
             ],
             [
                 InlineKeyboardButton(
-                    text="Назад в меню",
-                    callback_data=NatalCallback(action=NatalAction.BACK_TO_MENU).pack(),
+                    text="🏠 Главное меню",
+                    callback_data=MenuCallback(action=MenuAction.BACK_TO_MAIN_MENU).pack(),
                 )
             ],
         ]
@@ -75,8 +75,8 @@ def get_natal_with_buy_keyboard() -> InlineKeyboardMarkup:
             ],
             [
                 InlineKeyboardButton(
-                    text="Назад в меню",
-                    callback_data=NatalCallback(action=NatalAction.BACK_TO_MENU).pack(),
+                    text="🏠 Главное меню",
+                    callback_data=MenuCallback(action=MenuAction.BACK_TO_MAIN_MENU).pack(),
                 )
             ],
         ]
@@ -95,8 +95,8 @@ def get_natal_with_open_keyboard() -> InlineKeyboardMarkup:
             ],
             [
                 InlineKeyboardButton(
-                    text="Назад в меню",
-                    callback_data=NatalCallback(action=NatalAction.BACK_TO_MENU).pack(),
+                    text="🏠 Главное меню",
+                    callback_data=MenuCallback(action=MenuAction.BACK_TO_MAIN_MENU).pack(),
                 )
             ],
         ]
@@ -115,8 +115,8 @@ def get_free_natal_keyboard() -> InlineKeyboardMarkup:
             ],
             [
                 InlineKeyboardButton(
-                    text="Назад в меню",
-                    callback_data=NatalCallback(action=NatalAction.BACK_TO_MENU).pack(),
+                    text="🏠 Главное меню",
+                    callback_data=MenuCallback(action=MenuAction.BACK_TO_MAIN_MENU).pack(),
                 )
             ],
         ]
