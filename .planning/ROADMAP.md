@@ -70,11 +70,11 @@ Plans:
   3. 12 изображений знаков зодиака готовы в едином стиле
   4. Изображения для таро раскладов готовы (3-карты, Celtic Cross)
   5. Изображения для натальной карты и paywall готовы
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 13-01: TBD
-- [ ] 13-02: TBD
+- [ ] 13-01-PLAN.md — Setup Together SDK + скрипт генерации с промптами
+- [ ] 13-02-PLAN.md — Генерация 17 изображений + визуальная верификация
 
 ### Phase 14: Visual Integration
 **Goal**: Пользователи видят красивые изображения во всех ключевых моментах бота
@@ -135,11 +135,11 @@ Phases execute in numeric order: 11 -> 11.1 -> 11.2 -> 12 -> ... -> 16
 |-------|-----------|----------------|--------|-----------|
 | 11. Performance & UX Quick Wins | v2.0 | 3/3 | Complete | 2026-01-23 |
 | 12. Caching & Background Jobs | v2.0 | 3/3 | Complete | 2026-01-23 |
-| 13. Image Generation | v2.0 | 0/TBD | Not started | - |
+| 13. Image Generation | v2.0 | 0/2 | Planned | - |
 | 14. Visual Integration | v2.0 | 0/TBD | Not started | - |
 | 15. Monitoring & Observability | v2.0 | 0/TBD | Not started | - |
 | 16. Testing & Polish | v2.0 | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-01-23*
-*Last updated: 2026-01-23 (Phase 12 complete)*
+*Last updated: 2026-01-24 (Phase 13 planned)*
