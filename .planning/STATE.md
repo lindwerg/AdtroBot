@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-23)
 
 **Core value:** Качественная AI интерпретация астрологии и таро, которая конвертирует бесплатных пользователей в платных подписчиков
-**Current focus:** Phase 13 - Image Generation
+**Current focus:** Phase 14 - Visual Integration
 
 ## Current Position
 
-Phase: 13 of 16 (Image Generation)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-01-23 — Phase 12 complete (3 plans, 6/6 verified)
+Phase: 14 of 16 (Visual Integration)
+Plan: 1 of 3 in current phase
+Status: In progress
+Last activity: 2026-01-24 — Completed 14-01-PLAN.md (ImageAsset model + service)
 
-Progress: [████░░░░░░] 33% (v2.0: 2/6 phases complete)
+Progress: [█████░░░░░] 52% (v2.0: 4/6 phases in progress)
 
 ## Performance Metrics
 
@@ -41,10 +41,12 @@ Decisions logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
 - [v2.0 Research]: PostgreSQL для кэша вместо Redis (достаточная скорость, persistence, дешевле)
-- [v2.0 Research]: Together.ai + FLUX.1 для изображений (бесплатно 3 месяца unlimited)
+- [v2.0 Research]: Pexels stock images вместо AI-генерации (бесплатно, легально, разнообразие)
 - [v2.0 Research]: Telethon для Telegram API тестов (активная разработка, StringSession для CI)
 - [v2.0 Research]: Prometheus metrics + custom counters (не Sentry - свой стек)
 - [12-02]: Fixed dict of 12 asyncio.Lock (no defaultdict) для per-key locking
+- [13-01]: 43 космических изображения для рандомной отправки вместо 17 специфических
+- [14-01]: file_id caching в PostgreSQL, asset_key формат "cosmic/{filename}"
 
 ### Pending Todos
 
@@ -60,8 +62,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-23
-Stopped at: Phase 12 complete and verified, ready for Phase 13
+Last session: 2026-01-24
+Stopped at: Completed 14-01-PLAN.md
 Resume file: None
 
 ## v1.0 Reference
