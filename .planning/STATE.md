@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-23)
 
 **Core value:** Качественная AI интерпретация астрологии и таро, которая конвертирует бесплатных пользователей в платных подписчиков
-**Current focus:** Phase 15 - Monitoring & Observability
+**Current focus:** Phase 16 - Testing & Polish
 
 ## Current Position
 
-Phase: 15 of 16 (Monitoring & Observability)
-Plan: 3 of 3 in current phase
-Status: Complete (gap fixed)
-Last activity: 2026-01-24 — Phase 15 complete and verified
+Phase: 16 of 16 (Testing & Polish)
+Plan: 1 of 5 in current phase
+Status: In progress
+Last activity: 2026-01-24 — Completed 16-01-PLAN.md
 
-Progress: [█████████░] 83% (v2.0: 5/6 phases complete)
+Progress: [█████████░] 83% (v2.0: 5/6 phases in progress)
 
 ## Performance Metrics
 
@@ -55,6 +55,9 @@ Recent decisions affecting current work:
 - [15-02]: DAU/WAU/MAU from TarotSpread (not ai_usage) - active intent signal
 - [15-03]: Recharts for dashboard charts (AreaChart, BarChart)
 - [15-03]: 60s auto-refresh for near real-time monitoring
+- [16-01]: StringSession for Telethon (CI-friendly authentication)
+- [16-01]: Page Object Model for Playwright (maintainable selectors)
+- [16-01]: Faker ru_RU locale for realistic Russian test data
 
 ### Pending Todos
 
@@ -71,7 +74,7 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-24
-Stopped at: Completed 15-03-PLAN.md (Admin Monitoring Dashboard) - Phase 15 complete
+Stopped at: Completed 16-01-PLAN.md (Test Infrastructure Setup)
 Resume file: None
 
 ## v1.0 Reference
