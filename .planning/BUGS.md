@@ -2,6 +2,16 @@
 
 Bug tracking for Phase 16: Testing & Polish. All discovered bugs are documented here for later fixing.
 
+## Summary
+
+- **Total bugs discovered:** 0
+- **P0 (Critical):** 0
+- **P1 (High):** 0
+- **P2 (Medium):** 0
+- **P3 (Low):** 0
+
+**Note:** All test suites were executed but couldn't discover runtime bugs due to infrastructure blockers (Cairo library, Telegram credentials). Tests compile and are ready for execution in proper environment.
+
 ## Bug Categories
 
 - **Bot** - Telegram bot issues
@@ -20,145 +30,169 @@ Bug tracking for Phase 16: Testing & Polish. All discovered bugs are documented 
 
 | ID | Category | Severity | Status | Component | Description | Steps to Reproduce |
 |----|----------|----------|--------|-----------|-------------|-------------------|
-| - | - | - | - | - | No bugs discovered yet (E2E tests pending infrastructure) | - |
+| - | - | - | - | - | No runtime bugs discovered (tests blocked by infrastructure) | - |
 
 ---
 
-## E2E Testing Results (16-02)
+## Test Execution Results (16-05)
 
 **Date:** 2026-01-24
-**Tool:** Playwright 1.x
+**Executed by:** Automated test runner
 
-### Test Coverage
+### 1. Playwright E2E Tests (Admin Frontend)
 
-**Total:** 51 tests in 6 files
+**Status:** BLOCKED
+**Reason:** Backend server cannot start without Cairo library
 
-| File | Tests | Coverage |
-|------|-------|----------|
-| auth.setup.ts | 1 | Authentication setup |
-| login.spec.ts | 5 | Login flow, validation, errors |
-| dashboard.spec.ts | 10 | Metrics, navigation, loading |
-| messaging.spec.ts | 10 | Broadcast, scheduling, history |
-| monitoring.spec.ts | 12 | Charts, filters, unit economics |
-| users.spec.ts | 13 | Search, pagination, bulk actions |
-
-### Page Object Models
-
-6 Page Objects created:
-- LoginPage (from 16-01)
-- DashboardPage (from 16-01)
-- MessagesPage
-- MonitoringPage
-- UsersPage
-- PaymentsPage
-
-### Test Execution Status
-
-**Status:** Configuration complete, tests validated (TypeScript compiles)
-
-**Local execution blocked by:**
-- Backend server not running (requires PostgreSQL)
-- No docker-compose setup for local development
-- Cairo library required for natal chart generation
-
-**To run tests:**
+**Execution attempt:**
 ```bash
-# 1. Start PostgreSQL
-# 2. Run migrations: alembic upgrade head
-# 3. Create admin user in database
-# 4. Start backend: uvicorn src.main:app --port 8000
-# 5. Run tests:
-ADMIN_USERNAME=admin ADMIN_PASSWORD=password \
-npx playwright test --reporter=html
+cd admin-frontend && ADMIN_USERNAME=admin ADMIN_PASSWORD=password npx playwright test --reporter=list
 ```
 
-### Bugs Found During E2E
+**Result:**
+```
+Error: Timed out waiting 120000ms from config.webServer.
+```
 
-None yet - tests require running infrastructure to discover runtime bugs.
+**Blocker details:**
+- Cairo library required for natal chart SVG generation
+- Server import chain: main.py -> admin/router.py -> bot/handlers/natal.py -> services/astrology/natal_svg.py -> cairosvg
+- Error: `OSError: no library called "cairo-2" was found`
+
+**TypeScript compilation:** PASS (npx tsc --noEmit)
+
+**Test coverage prepared:**
+- 51 tests in 6 files
+- 6 Page Object Models
+- Full admin panel coverage
+
+### 2. Telethon E2E Tests (Bot)
+
+**Status:** SKIPPED
+**Reason:** Missing Telegram API credentials
+
+**Execution attempt:**
+```bash
+poetry run pytest tests/e2e/ -v --tb=short
+```
+
+**Result:**
+```
+4 skipped in 0.06s
+SKIPPED (TELEGRAM_API_ID and TELEGRAM_API_HASH must be set for Telegram E2E tests)
+```
+
+**Required credentials:**
+- TELEGRAM_API_ID
+- TELEGRAM_API_HASH
+- TELETHON_SESSION (StringSession for headless execution)
+- BOT_USERNAME
+
+**Test coverage prepared:**
+- 45 tests in 6 files
+- Covers: start, horoscope, tarot, natal, profile, subscription flows
+
+### 3. Locust Load Tests
+
+**Status:** EXECUTED (no server)
+**Reason:** Server not running, all requests failed with connection refused
+
+**Execution attempt:**
+```bash
+ADMIN_USERNAME=admin ADMIN_PASSWORD=password poetry run locust -f tests/load/locustfile.py \
+  --host=http://localhost:8000 --headless -u 5 -r 1 --run-time 10s
+```
+
+**Result:**
+```
+Total requests: 98
+Failed requests: 98
+Failure rate: 100.00%
+Median response time: 1.1ms
+95th percentile: 6ms
+
+Error report:
+- 97x GET /health: Health check failed: 0
+- 1x POST /admin/api/token: ConnectionRefusedError(61, 'Connection refused')
+```
+
+**Note:** Locust framework works correctly. Response times (1-7ms) are connection refused latencies, not server response times.
+
+**Test scenarios prepared:**
+- locustfile.py (HealthCheckUser, AdminAPIUser)
+- scenarios/api_health.py (4 SLA test users)
+- scenarios/horoscope_cache.py (cache monitoring)
+- scenarios/admin_api.py (dashboard, lists, export)
 
 ---
 
-## Load Testing Results (16-04)
+## Infrastructure Blockers
 
-**Date:** 2026-01-24
-**Tool:** Locust 2.43.1
+### Cairo Library (P0 Blocker)
 
-### Test Configuration
+**Impact:** Blocks all Playwright and Locust tests
+**Component:** src/services/astrology/natal_svg.py
 
-Locust scenarios created and verified:
-
-1. **locustfile.py** - Main scenarios
-   - HealthCheckUser (weight: 5)
-   - AdminAPIUser (weight: 2)
-
-2. **scenarios/api_health.py** - Health endpoint tests
-   - HealthEndpointUser
-   - HealthSLAUser
-   - HealthBurstUser
-   - HealthComponentsUser
-
-3. **scenarios/horoscope_cache.py** - Cache monitoring
-   - HoroscopeCacheMonitorUser
-   - HoroscopeAdminContentUser
-
-4. **scenarios/admin_api.py** - Admin API tests
-   - AdminDashboardUser
-   - AdminListsUser
-   - AdminExportUser
-
-### SLA Targets Defined
-
-| Endpoint | SLA | Severity if Violated |
-|----------|-----|----------------------|
-| /health | <1s | P0 |
-| /admin/api/dashboard | <2s | P1 |
-| /admin/api/users | <2s | P1 |
-| /admin/api/monitoring | <2s | P1 |
-| /admin/api/export/* | <5s | P2 |
-| Cache-related checks | <500ms | P1 |
-
-### Test Execution Status
-
-**Status:** Configuration verified, scenarios validated
-
-**Local execution blocked by:**
-- Cairo library not installed (required for natal chart SVG generation)
-- Server cannot start without Cairo
-
-**Recommended for CI/production testing:**
+**Solution:**
 ```bash
-# Start server (in Docker or environment with Cairo)
-uvicorn src.main:app --port 8000
+# macOS
+brew install cairo
 
-# Run load tests
-ADMIN_USERNAME=admin ADMIN_PASSWORD=password \
-poetry run locust -f tests/load/locustfile.py \
-  --host=http://localhost:8000 \
-  --headless -u 10 -r 2 --run-time 1m
+# Ubuntu/Debian
+apt-get install libcairo2-dev
+
+# Docker (recommended)
+# Use image with Cairo pre-installed
 ```
 
-### Performance Issues Found
+### Telegram Credentials (P1 Blocker)
 
-None during configuration validation. Full load testing requires running server.
+**Impact:** Blocks all Telethon bot tests
+**Required:** TELEGRAM_API_ID, TELEGRAM_API_HASH, TELETHON_SESSION
+
+**Solution:**
+1. Get API credentials from https://my.telegram.org
+2. Generate StringSession for CI
 
 ---
 
-## Bug Template
+## UX Polish Completed (16-05)
 
-When adding a new bug, use this format:
+The following UX improvements were made in Tasks 1-2:
 
-```
-| BUG-XXX | Category | PX | Open | Component | Brief description | 1. Step 1, 2. Step 2, 3. Expected vs Actual |
-```
+### Loading States (Task 1)
+- Dashboard: Spin wrapper for metrics loading
+- Users: Table loading state, skeleton rows
+- Monitoring: Chart loading indicators
 
-## Statistics
+**Files modified:**
+- admin-frontend/src/pages/Dashboard.tsx
+- admin-frontend/src/pages/Users.tsx
+- admin-frontend/src/pages/Monitoring.tsx
 
-- **Total:** 0
-- **Open:** 0
-- **Fixed:** 0
-- **Deferred:** 0
+**Commit:** c040842
+
+### Empty States & Error Messages (Task 2)
+- Messages: Empty state with "Нет отправленных сообщений"
+- Error alerts with human-readable messages
+- "Повторить" button for retry functionality
+
+**Files modified:**
+- admin-frontend/src/pages/Messages.tsx
+
+**Commit:** 71e114f
+
+---
+
+## Recommendations for Next Phase
+
+1. **Install Cairo library** in development and CI environments
+2. **Set up Telegram test account** with API credentials for bot E2E
+3. **Create Docker compose** for local development with all dependencies
+4. **Run full test suite** in CI environment after infrastructure setup
 
 ---
 
 *Phase: 16-testing-and-polish*
-*Created: 2026-01-24*
+*Generated: 2026-01-24*
+*Test execution: Automated*
