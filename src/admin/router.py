@@ -22,6 +22,7 @@ from src.admin.schemas import (
     HoroscopeContentItem,
     HoroscopeContentListResponse,
     MessageHistoryResponse,
+    MonitoringResponse,
     PaymentListResponse,
     PromoCodeListItem,
     PromoCodeListResponse,
@@ -39,6 +40,7 @@ from src.admin.schemas import (
     UserListResponse,
     UTMAnalyticsResponse,
 )
+from src.admin.services.monitoring import get_monitoring_data
 from src.admin.services.analytics import get_dashboard_metrics, get_funnel_data
 from src.admin.services.experiments import (
     create_experiment,
@@ -595,3 +597,27 @@ async def utm_analytics(
 ) -> UTMAnalyticsResponse:
     """Get UTM source analytics."""
     return await get_utm_analytics(session)
+
+
+# === Monitoring Endpoints ===
+
+
+@admin_router.get("/monitoring", response_model=MonitoringResponse)
+async def monitoring_dashboard(
+    range: str = Query("7d", pattern="^(24h|7d|30d)$", description="Time range"),
+    session: AsyncSession = Depends(get_session),
+    current_admin: Admin = Depends(get_current_admin),
+) -> MonitoringResponse:
+    """Get monitoring dashboard data.
+
+    Args:
+        range: Time range - 24h, 7d, or 30d
+
+    Returns:
+        Monitoring data with active users, API costs, unit economics
+    """
+    from typing import Literal
+
+    range_type: Literal["24h", "7d", "30d"] = range  # type: ignore
+    data = await get_monitoring_data(session, range_type)
+    return MonitoringResponse(**data)
