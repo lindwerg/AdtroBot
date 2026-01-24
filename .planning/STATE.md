@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-23)
 ## Current Position
 
 Phase: 16 of 16 (Testing & Polish)
-Plan: 1 of 5 in current phase
+Plan: 4 of 5 in current phase
 Status: In progress
-Last activity: 2026-01-24 — Completed 16-01-PLAN.md
+Last activity: 2026-01-24 — Completed 16-04-PLAN.md (Load Testing)
 
-Progress: [█████████░] 83% (v2.0: 5/6 phases in progress)
+Progress: [█████████░] 90% (v2.0: 5/6 phases, 4/5 plans in phase 16)
 
 ## Performance Metrics
 
@@ -58,6 +58,8 @@ Recent decisions affecting current work:
 - [16-01]: StringSession for Telethon (CI-friendly authentication)
 - [16-01]: Page Object Model for Playwright (maintainable selectors)
 - [16-01]: Faker ru_RU locale for realistic Russian test data
+- [16-04]: SLA targets: /health <1s (P0), admin API <2s (P1), export <5s (P2)
+- [16-04]: Horoscope cache tested via /health DB latency (no direct HTTP endpoint)
 
 ### Pending Todos
 
@@ -74,7 +76,7 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-24
-Stopped at: Completed 16-01-PLAN.md (Test Infrastructure Setup)
+Stopped at: Completed 16-04-PLAN.md (Load Testing)
 Resume file: None
 
 ## v1.0 Reference
