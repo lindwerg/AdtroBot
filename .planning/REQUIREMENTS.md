@@ -121,23 +121,23 @@ Which phases cover which requirements.
 | PERF-02 | Phase 12 | Complete |
 | PERF-03 | Phase 12 | Complete |
 | PERF-04 | Phase 11 | Complete |
-| PERF-05 | Phase 14 | Pending |
+| PERF-05 | Phase 14 | Complete |
 | PERF-06 | Phase 12 | Complete |
 | PERF-07 | Phase 12 | Complete |
-| VIS-01 | Phase 14 | Pending |
-| VIS-02 | Phase 14 | Pending |
-| VIS-03 | Phase 14 | Pending |
-| VIS-04 | Phase 14 | Pending |
-| VIS-05 | Phase 14 | Pending |
-| VIS-06 | Phase 14 | Pending |
-| VIS-07 | Phase 14 | Pending |
+| VIS-01 | Phase 14 | Complete |
+| VIS-02 | Phase 14 | Complete |
+| VIS-03 | Phase 14 | Complete |
+| VIS-04 | Phase 14 | Complete |
+| VIS-05 | Phase 14 | Complete |
+| VIS-06 | Phase 14 | Complete |
+| VIS-07 | Phase 14 | Complete |
 | UX-01 | Phase 11 | Complete |
 | UX-02 | Phase 11 | Complete |
 | UX-03 | Phase 11 | Complete |
 | UX-04 | Phase 11 | Complete |
 | WEL-01 | Phase 11 | Complete |
 | WEL-02 | Phase 11 | Complete |
-| WEL-03 | Phase 14 | Pending |
+| WEL-03 | Phase 14 | Complete |
 | WEL-04 | Phase 11 | Complete |
 | MON-01 | Phase 12 | Complete |
 | MON-02 | Phase 15 | Pending |
@@ -155,13 +155,13 @@ Which phases cover which requirements.
 | ADMIN-01 | Phase 16 | Pending |
 | ADMIN-02 | Phase 16 | Pending |
 | ADMIN-03 | Phase 16 | Pending |
-| IMG-01 | Phase 13 | Pending |
-| IMG-02 | Phase 13 | Pending |
-| IMG-03 | Phase 13 | Pending |
-| IMG-04 | Phase 13 | Pending |
-| IMG-05 | Phase 13 | Pending |
-| IMG-06 | Phase 13 | Pending |
-| IMG-07 | Phase 13 | Pending |
+| IMG-01 | Phase 13 | Complete |
+| IMG-02 | Phase 13 | Complete |
+| IMG-03 | Phase 13 | Complete |
+| IMG-04 | Phase 13 | Complete |
+| IMG-05 | Phase 13 | Complete |
+| IMG-06 | Phase 13 | Complete |
+| IMG-07 | Phase 13 | Complete |
 
 **Coverage:**
 - v2.0 requirements: 36 total

@@ -86,8 +86,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 14-01-PLAN.md — ImageAsset model + ImageAssetService с file_id кэшированием
-- [ ] 14-02-PLAN.md — Интеграция изображений в handlers (start, horoscope, tarot)
+- [x] 14-01-PLAN.md — ImageAsset model + ImageAssetService с file_id кэшированием
+- [x] 14-02-PLAN.md — Интеграция изображений в handlers (start, horoscope, tarot)
 
 ### Phase 15: Monitoring & Observability
 **Goal**: Полная видимость состояния бота, затрат и метрик в реальном времени
@@ -132,7 +132,7 @@ Phases execute in numeric order: 11 -> 11.1 -> 11.2 -> 12 -> ... -> 16
 | 11. Performance & UX Quick Wins | v2.0 | 3/3 | Complete | 2026-01-23 |
 | 12. Caching & Background Jobs | v2.0 | 3/3 | Complete | 2026-01-23 |
 | 13. Image Generation | v2.0 | 1/1 | Complete | 2026-01-24 |
-| 14. Visual Integration | v2.0 | 0/2 | Not started | - |
+| 14. Visual Integration | v2.0 | 2/2 | Complete | 2026-01-24 |
 | 15. Monitoring & Observability | v2.0 | 0/TBD | Not started | - |
 | 16. Testing & Polish | v2.0 | 0/TBD | Not started | - |
 
