@@ -619,5 +619,35 @@ async def monitoring_dashboard(
     from typing import Literal
 
     range_type: Literal["24h", "7d", "30d"] = range  # type: ignore
-    data = await get_monitoring_data(session, range_type)
-    return MonitoringResponse(**data)
+
+    try:
+        data = await get_monitoring_data(session, range_type)
+        return MonitoringResponse(**data)
+    except Exception as e:
+        # If ai_usage table doesn't exist or other DB error, return default values
+        import logging
+        logging.error(f"Monitoring data error: {e}")
+        return MonitoringResponse(
+            range=range_type,
+            active_users={"dau": 0, "wau": 0, "mau": 0},
+            api_costs={
+                "total_cost": 0,
+                "total_tokens": 0,
+                "total_requests": 0,
+                "by_operation": [],
+                "by_day": [],
+            },
+            unit_economics={
+                "total_cost": 0,
+                "active_users": 0,
+                "paying_users": 0,
+                "active_paying_users": 0,
+                "cost_per_active_user": 0,
+                "cost_per_paying_user": 0,
+            },
+            error_stats={
+                "error_count": 0,
+                "error_rate": 0.0,
+                "avg_response_time_ms": 0,
+            },
+        )

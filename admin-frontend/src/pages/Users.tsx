@@ -104,7 +104,7 @@ const columns: ProColumns<UserListItem>[] = [
         type="link"
         size="small"
         icon={<UserOutlined />}
-        onClick={() => (window.location.href = `/users/${record.id}`)}
+        onClick={() => (window.location.href = `/admin/users/${record.id}`)}
       >
         Открыть
       </Button>,
@@ -270,7 +270,7 @@ export default function UsersPage() {
         </Space>
       )}
       onRow={(record) => ({
-        onClick: () => navigate(`/users/${record.id}`),
+        onClick: () => navigate(`/admin/users/${record.id}`),
         style: { cursor: 'pointer' },
       })}
       headerTitle="Пользователи"
