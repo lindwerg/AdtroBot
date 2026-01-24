@@ -82,3 +82,24 @@ def build_zodiac_keyboard(
     )
 
     return builder.as_markup()
+
+
+def build_home_menu_keyboard() -> InlineKeyboardMarkup:
+    """Build minimal keyboard with only "Home menu" button.
+
+    Used for personalized horoscope (premium user with natal data).
+    No zodiac switching needed - it's their personal forecast.
+
+    Returns:
+        InlineKeyboardMarkup with single "🏠 Главное меню" button
+    """
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="🏠 Главное меню",
+                    callback_data=MenuCallback(action=MenuAction.BACK_TO_MAIN_MENU).pack(),
+                )
+            ]
+        ]
+    )

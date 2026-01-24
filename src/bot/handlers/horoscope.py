@@ -9,7 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bot.callbacks.horoscope import ZodiacCallback
-from src.bot.keyboards.horoscope import build_zodiac_keyboard
+from src.bot.keyboards.horoscope import build_home_menu_keyboard, build_zodiac_keyboard
 from src.bot.utils.horoscope import get_horoscope_text
 from src.bot.utils.progress import generate_with_feedback
 from src.bot.utils.zodiac import ZODIAC_SIGNS
@@ -114,10 +114,11 @@ async def show_zodiac_horoscope(
     is_premium = user.is_premium if user else False
     has_natal = bool(user and user.birth_lat and user.birth_lon) if user else False
 
-    # Персональный гороскоп (premium + natal) = без переключения знаков
-    keyboard = None
-    if not (is_premium and has_natal):
-        # Только для общих гороскопов показывать кнопки переключения
+    # Персональный гороскоп (premium + natal) = только кнопка "Главное меню"
+    # Общий гороскоп = кнопки переключения знаков
+    if is_premium and has_natal:
+        keyboard = build_home_menu_keyboard()
+    else:
         keyboard = build_zodiac_keyboard(
             current_sign=sign_name,
             is_premium=is_premium,
@@ -241,9 +242,11 @@ async def show_horoscope_message(
     if is_onboarding:
         await message.answer(**content.as_kwargs())
     else:
-        # Персональный гороскоп (premium + natal) = без переключения знаков
-        keyboard = None
-        if not (is_premium and has_natal):
+        # Персональный гороскоп (premium + natal) = только кнопка "Главное меню"
+        # Общий гороскоп = кнопки переключения знаков
+        if is_premium and has_natal:
+            keyboard = build_home_menu_keyboard()
+        else:
             keyboard = build_zodiac_keyboard(
                 current_sign=user_sign or sign_name,
                 is_premium=is_premium,
