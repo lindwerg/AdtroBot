@@ -62,3 +62,6 @@ line-length = 100
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+markers = [
+    "slow: marks tests as slow (run with: pytest -m slow)",
+]
