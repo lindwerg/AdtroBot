@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-23)
 ## Current Position
 
 Phase: 14 of 16 (Visual Integration)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-01-24 — Completed 14-01-PLAN.md (ImageAsset model + service)
+Last activity: 2026-01-24 — Completed 14-02-PLAN.md (Handlers integration)
 
-Progress: [█████░░░░░] 52% (v2.0: 4/6 phases in progress)
+Progress: [█████░░░░░] 55% (v2.0: 5/6 phases in progress)
 
 ## Performance Metrics
 
@@ -47,6 +47,7 @@ Recent decisions affecting current work:
 - [12-02]: Fixed dict of 12 asyncio.Lock (no defaultdict) для per-key locking
 - [13-01]: 43 космических изображения для рандомной отправки вместо 17 специфических
 - [14-01]: file_id caching в PostgreSQL, asset_key формат "cosmic/{filename}"
+- [14-02]: callback.bot для callback handlers, bot: Bot для message handlers
 
 ### Pending Todos
 
@@ -63,7 +64,7 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-24
-Stopped at: Completed 14-01-PLAN.md
+Stopped at: Completed 14-02-PLAN.md
 Resume file: None
 
 ## v1.0 Reference
