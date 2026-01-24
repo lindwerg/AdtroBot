@@ -15,7 +15,7 @@ from src.bot.utils.progress import generate_with_feedback
 from src.bot.utils.zodiac import ZODIAC_SIGNS
 from src.db.models.user import User
 from src.services.ai.client import get_ai_service
-from src.services.astrology import calculate_natal_chart
+from src.services.astrology.natal_chart import calculate_full_natal_chart
 
 router = Router(name="horoscope")
 
@@ -67,11 +67,12 @@ async def show_zodiac_horoscope(
     if user and user.is_premium:
         if user.birth_lat and user.birth_lon and user.birth_date:
             # Premium with natal data - personalized horoscope
-            natal_data = calculate_natal_chart(
+            natal_data = calculate_full_natal_chart(
                 birth_date=user.birth_date,
                 birth_time=user.birth_time,
                 latitude=user.birth_lat,
                 longitude=user.birth_lon,
+                timezone_str=user.timezone or "Europe/Moscow",
             )
             ai_service = get_ai_service()
             text = await generate_with_feedback(
@@ -168,11 +169,12 @@ async def show_horoscope_message(
 
         if has_natal and user.birth_date:
             # Premium with natal data - personalized horoscope
-            natal_data = calculate_natal_chart(
+            natal_data = calculate_full_natal_chart(
                 birth_date=user.birth_date,
                 birth_time=user.birth_time,
                 latitude=user.birth_lat,
                 longitude=user.birth_lon,
+                timezone_str=user.timezone or "Europe/Moscow",
             )
             ai_service = get_ai_service()
             text = await generate_with_feedback(
