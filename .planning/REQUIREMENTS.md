@@ -54,11 +54,10 @@ Requirements для v2.0: Production Polish & Visual Enhancement
 
 - [ ] **TEST-01**: Playwright setup для админки
 - [ ] **TEST-02**: Playwright тесты критических admin flows
-- [ ] **TEST-03**: Playwright setup для бота (через браузер)
 - [ ] **TEST-04**: Telethon setup для Telegram API тестирования
 - [ ] **TEST-05**: Telethon тесты основных bot flows
-- [ ] **TEST-06**: Исправление найденных багов админки
-- [ ] **TEST-07**: Исправление найденных багов бота
+- [ ] **TEST-06**: Документирование найденных багов в BUGS.md (баг фиксы — отдельная фаза)
+- [ ] **TEST-07**: Load testing для SLA verification (cached horoscope <500ms, /start <1s)
 
 ### Admin Panel Improvements
 
@@ -147,14 +146,13 @@ Which phases cover which requirements.
 | MON-06 | Phase 15 | Pending |
 | TEST-01 | Phase 16 | Pending |
 | TEST-02 | Phase 16 | Pending |
-| TEST-03 | Phase 16 | Pending |
 | TEST-04 | Phase 16 | Pending |
 | TEST-05 | Phase 16 | Pending |
 | TEST-06 | Phase 16 | Pending |
 | TEST-07 | Phase 16 | Pending |
 | ADMIN-01 | Phase 16 | Pending |
-| ADMIN-02 | Phase 16 | Pending |
-| ADMIN-03 | Phase 16 | Pending |
+| ADMIN-02 | Future | Deferred |
+| ADMIN-03 | Future | Deferred |
 | IMG-01 | Phase 13 | Complete |
 | IMG-02 | Phase 13 | Complete |
 | IMG-03 | Phase 13 | Complete |
