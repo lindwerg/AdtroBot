@@ -144,13 +144,13 @@ Which phases cover which requirements.
 | MON-04 | Phase 15 | Pending |
 | MON-05 | Phase 15 | Pending |
 | MON-06 | Phase 15 | Pending |
-| TEST-01 | Phase 16 | Pending |
-| TEST-02 | Phase 16 | Pending |
-| TEST-04 | Phase 16 | Pending |
-| TEST-05 | Phase 16 | Pending |
-| TEST-06 | Phase 16 | Pending |
-| TEST-07 | Phase 16 | Pending |
-| ADMIN-01 | Phase 16 | Pending |
+| TEST-01 | Phase 16 | Complete |
+| TEST-02 | Phase 16 | Complete |
+| TEST-04 | Phase 16 | Complete |
+| TEST-05 | Phase 16 | Complete |
+| TEST-06 | Phase 16 | Complete |
+| TEST-07 | Phase 16 | Complete |
+| ADMIN-01 | Phase 16 | Complete |
 | ADMIN-02 | Future | Deferred |
 | ADMIN-03 | Future | Deferred |
 | IMG-01 | Phase 13 | Complete |
