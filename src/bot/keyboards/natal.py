@@ -2,6 +2,7 @@
 
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
+from src.bot.callbacks.menu import MenuAction, MenuCallback
 from src.bot.callbacks.natal import NatalAction, NatalCallback
 from src.services.payment.schemas import PLAN_PRICES_STR, PaymentPlan
 
@@ -28,7 +29,7 @@ def get_natal_setup_keyboard() -> InlineKeyboardMarkup:
                 InlineKeyboardButton(
                     text="Настроить данные рождения",
                     # Use the same callback as birth_data handler
-                    callback_data="setup_birth_data",
+                    callback_data=MenuCallback(action=MenuAction.SETUP_BIRTH_DATA).pack(),
                 )
             ],
             [
@@ -48,7 +49,7 @@ def get_natal_teaser_keyboard() -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton(
                     text="Оформить подписку",
-                    callback_data="menu_subscription",
+                    callback_data=MenuCallback(action=MenuAction.MENU_SUBSCRIPTION).pack(),
                 )
             ],
             [
@@ -109,7 +110,7 @@ def get_free_natal_keyboard() -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton(
                     text="Получить полный разбор",
-                    callback_data="menu_subscription",
+                    callback_data=MenuCallback(action=MenuAction.MENU_SUBSCRIPTION).pack(),
                 )
             ],
             [

@@ -3,6 +3,8 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
+from src.bot.callbacks.menu import MenuAction, MenuCallback
+
 
 def get_main_menu_keyboard():
     """
@@ -34,7 +36,7 @@ def get_start_keyboard() -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton(
                     text="Получить первый прогноз",
-                    callback_data="get_first_forecast",
+                    callback_data=MenuCallback(action=MenuAction.GET_FIRST_FORECAST).pack(),
                 )
             ]
         ]

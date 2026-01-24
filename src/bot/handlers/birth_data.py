@@ -11,6 +11,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bot.callbacks.birth_data import CitySelectCallback, SkipTimeCallback
+from src.bot.callbacks.menu import MenuAction, MenuCallback
 from src.bot.keyboards.birth_data import (
     build_birth_data_complete_keyboard,
     build_city_selection_keyboard,
@@ -29,7 +30,7 @@ router = Router(name="birth_data")
 TIME_PATTERN = re.compile(r"^(\d{1,2}):(\d{2})$")
 
 
-@router.callback_query(F.data == "setup_birth_data")
+@router.callback_query(MenuCallback.filter(F.action == MenuAction.SETUP_BIRTH_DATA))
 async def start_birth_data_setup(
     callback: CallbackQuery,
     session: AsyncSession,

@@ -4,6 +4,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.bot.callbacks.horoscope import ZodiacCallback
+from src.bot.callbacks.menu import MenuAction, MenuCallback
 from src.bot.utils.zodiac import ZODIAC_SIGNS
 
 # Classical zodiac order: Aries -> Pisces
@@ -42,8 +43,10 @@ def build_zodiac_keyboard(
 
     for name in ZODIAC_ORDER:
         zodiac = ZODIAC_SIGNS[name]
-        # Add checkmark if this is user's sign
-        text = f"{'✓ ' if name == current_sign else ''}{zodiac.emoji}"
+        # Format: "♈ Овен" or "✓ ♈ Овен" for current sign
+        text = f"{zodiac.emoji} {zodiac.name_ru}"
+        if name == current_sign:
+            text = f"✓ {text}"
         builder.button(
             text=text,
             callback_data=ZodiacCallback(s=name).pack(),
@@ -57,7 +60,7 @@ def build_zodiac_keyboard(
         builder.row(
             InlineKeyboardButton(
                 text="Настроить натальную карту",
-                callback_data="setup_birth_data",
+                callback_data=MenuCallback(action=MenuAction.SETUP_BIRTH_DATA).pack(),
             )
         )
 
@@ -66,7 +69,7 @@ def build_zodiac_keyboard(
         builder.row(
             InlineKeyboardButton(
                 text="Получить премиум-гороскоп",
-                callback_data="menu_subscription",
+                callback_data=MenuCallback(action=MenuAction.MENU_SUBSCRIPTION).pack(),
             )
         )
 

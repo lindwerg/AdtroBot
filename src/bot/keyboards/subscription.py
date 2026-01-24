@@ -3,6 +3,7 @@
 from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from src.bot.callbacks.menu import MenuAction, MenuCallback
 from src.bot.callbacks.subscription import SubscriptionCallback
 
 
@@ -43,14 +44,13 @@ def get_cancel_confirmation_keyboard() -> InlineKeyboardMarkup:
 def get_subscription_keyboard() -> InlineKeyboardMarkup:
     """Build keyboard to navigate to subscription page.
 
-    Uses menu_subscription callback which is handled in subscription.py.
+    Uses MenuCallback for consistency with other menu actions.
     """
     builder = InlineKeyboardBuilder()
 
-    # Use raw callback_data that matches the existing handler
     builder.button(
         text="Оформить Premium",
-        callback_data="menu_subscription",
+        callback_data=MenuCallback(action=MenuAction.MENU_SUBSCRIPTION).pack(),
     )
 
     return builder.as_markup()

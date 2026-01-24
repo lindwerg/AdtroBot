@@ -6,6 +6,7 @@ from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMar
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.bot.callbacks.menu import MenuAction, MenuCallback
 from src.bot.callbacks.subscription import SubscriptionCallback
 from src.bot.keyboards.subscription import (
     get_cancel_confirmation_keyboard,
@@ -55,7 +56,7 @@ async def show_plans(message: Message, session: AsyncSession) -> None:
     )
 
 
-@router.callback_query(F.data == "menu_subscription")
+@router.callback_query(MenuCallback.filter(F.action == MenuAction.MENU_SUBSCRIPTION))
 async def menu_subscription_callback(
     callback: CallbackQuery,
     session: AsyncSession,

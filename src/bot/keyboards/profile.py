@@ -3,22 +3,23 @@
 from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from src.bot.callbacks.menu import MenuAction, MenuCallback
 from src.bot.callbacks.profile import (
     NotificationTimeCallback,
     NotificationToggleCallback,
     TimezoneCallback,
 )
 
-# Popular Russian timezones
+# Popular Russian timezones (shortened for better mobile UX)
 TIMEZONES = [
-    ("Europe/Kaliningrad", "Калининград (UTC+2)"),
-    ("Europe/Moscow", "Москва (UTC+3)"),
-    ("Europe/Samara", "Самара (UTC+4)"),
-    ("Asia/Yekaterinburg", "Екатеринбург (UTC+5)"),
-    ("Asia/Omsk", "Омск (UTC+6)"),
-    ("Asia/Krasnoyarsk", "Красноярск (UTC+7)"),
-    ("Asia/Irkutsk", "Иркутск (UTC+8)"),
-    ("Asia/Vladivostok", "Владивосток (UTC+10)"),
+    ("Europe/Kaliningrad", "Калининград UTC+2"),
+    ("Europe/Moscow", "Москва UTC+3"),
+    ("Europe/Samara", "Самара UTC+4"),
+    ("Asia/Yekaterinburg", "Екатеринбург UTC+5"),
+    ("Asia/Omsk", "Омск UTC+6"),
+    ("Asia/Krasnoyarsk", "Красноярск UTC+7"),
+    ("Asia/Irkutsk", "Иркутск UTC+8"),
+    ("Asia/Vladivostok", "Владивосток UTC+10"),
 ]
 
 
@@ -27,7 +28,7 @@ def build_timezone_keyboard() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     for zone, label in TIMEZONES:
         builder.button(text=label, callback_data=TimezoneCallback(zone=zone).pack())
-    builder.adjust(1)  # One button per row
+    builder.adjust(2)  # Two buttons per row for better mobile UX
     return builder.as_markup()
 
 
@@ -61,8 +62,14 @@ def build_notifications_toggle_keyboard(currently_enabled: bool) -> InlineKeyboa
 def build_onboarding_notifications_keyboard() -> InlineKeyboardMarkup:
     """Build keyboard for onboarding notification prompt (Yes/No)."""
     builder = InlineKeyboardBuilder()
-    builder.button(text="Да, включить", callback_data="onboarding_notif_yes")
-    builder.button(text="Нет, спасибо", callback_data="onboarding_notif_no")
+    builder.button(
+        text="Да, включить",
+        callback_data=MenuCallback(action=MenuAction.ONBOARDING_NOTIF_YES).pack(),
+    )
+    builder.button(
+        text="Нет, спасибо",
+        callback_data=MenuCallback(action=MenuAction.ONBOARDING_NOTIF_NO).pack(),
+    )
     builder.adjust(2)
     return builder.as_markup()
 
@@ -87,19 +94,22 @@ def build_profile_actions_keyboard(
     builder = InlineKeyboardBuilder()
 
     # Notification settings always available
-    builder.button(text="Настройки уведомлений", callback_data="profile_notifications")
+    builder.button(
+        text="Настройки уведомлений",
+        callback_data=MenuCallback(action=MenuAction.PROFILE_NOTIFICATIONS).pack(),
+    )
 
     # Birth data setup for premium users
     if is_premium:
         if has_birth_data:
             builder.button(
                 text="Изменить данные рождения",
-                callback_data="setup_birth_data",
+                callback_data=MenuCallback(action=MenuAction.SETUP_BIRTH_DATA).pack(),
             )
         else:
             builder.button(
                 text="Настроить натальную карту",
-                callback_data="setup_birth_data",
+                callback_data=MenuCallback(action=MenuAction.SETUP_BIRTH_DATA).pack(),
             )
 
     # Cancel subscription button if active

@@ -5,6 +5,7 @@ from aiogram.types import CallbackQuery
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.bot.callbacks.menu import MenuAction, MenuCallback
 from src.bot.callbacks.profile import (
     NotificationTimeCallback,
     NotificationToggleCallback,
@@ -23,7 +24,7 @@ from src.services.scheduler import remove_user_notification, schedule_user_notif
 router = Router(name="profile_settings")
 
 
-@router.callback_query(F.data == "profile_notifications")
+@router.callback_query(MenuCallback.filter(F.action == MenuAction.PROFILE_NOTIFICATIONS))
 async def settings_notifications_callback(
     callback: CallbackQuery, session: AsyncSession
 ) -> None:

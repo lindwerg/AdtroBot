@@ -7,6 +7,7 @@ from aiogram.types import CallbackQuery, Message
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.bot.callbacks.menu import MenuAction, MenuCallback
 from src.bot.keyboards.main_menu import get_main_menu_keyboard, get_start_keyboard
 from src.bot.keyboards.profile import (
     build_notification_time_keyboard,
@@ -60,7 +61,7 @@ async def cmd_start(message: Message, session: AsyncSession, bot: Bot) -> None:
         )
 
 
-@router.callback_query(F.data == "get_first_forecast")
+@router.callback_query(MenuCallback.filter(F.action == MenuAction.GET_FIRST_FORECAST))
 async def start_onboarding(callback: CallbackQuery, state: FSMContext) -> None:
     """Start birthdate collection."""
     await callback.message.answer(
@@ -128,7 +129,7 @@ async def process_birthdate(
     )
 
 
-@router.callback_query(F.data == "onboarding_notif_yes")
+@router.callback_query(MenuCallback.filter(F.action == MenuAction.ONBOARDING_NOTIF_YES))
 async def onboarding_enable_notifications(
     callback: CallbackQuery, session: AsyncSession
 ) -> None:
@@ -148,7 +149,7 @@ async def onboarding_enable_notifications(
     await callback.answer()
 
 
-@router.callback_query(F.data == "onboarding_notif_no")
+@router.callback_query(MenuCallback.filter(F.action == MenuAction.ONBOARDING_NOTIF_NO))
 async def onboarding_skip_notifications(callback: CallbackQuery) -> None:
     """User skips notifications - show main menu."""
     await callback.message.edit_text(
