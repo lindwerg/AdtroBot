@@ -15,6 +15,8 @@ async def show_main_menu(
     message: Message,
     session: AsyncSession,
     bot: Bot | None = None,
+    user_id: int | None = None,
+    chat_id: int | None = None,
 ) -> None:
     """Показать главное меню с информативным блоком.
 
@@ -28,7 +30,8 @@ async def show_main_menu(
         session: Database session
     """
     # Загрузить пользователя из БД
-    stmt = select(User).where(User.telegram_id == message.from_user.id)
+    telegram_id = user_id if user_id is not None else message.from_user.id
+    stmt = select(User).where(User.telegram_id == telegram_id)
     result = await session.execute(stmt)
     user = result.scalar_one_or_none()
 
@@ -38,7 +41,8 @@ async def show_main_menu(
         keyboard = get_main_menu_keyboard()
 
         if bot:
-            await bot.send_message(chat_id=message.chat.id, text=text, reply_markup=keyboard)
+            send_chat_id = chat_id if chat_id is not None else message.chat.id
+            await bot.send_message(chat_id=send_chat_id, text=text, reply_markup=keyboard)
         else:
             await message.answer(text, reply_markup=keyboard)
         return

@@ -89,7 +89,7 @@ async def show_zodiac_horoscope(
             if text is None:
                 # Fallback to basic horoscope on error
                 text = await get_horoscope_text(sign_name, zodiac.name_ru)
-            header = f"{zodiac.emoji} Персональный гороскоп для {zodiac.name_ru}"
+            header = "Твой персональный гороскоп"
         else:
             # Premium without natal data - basic + setup prompt
             text = await get_horoscope_text(sign_name, zodiac.name_ru)
@@ -198,7 +198,7 @@ async def show_horoscope_message(
             if text is None:
                 # Fallback to basic horoscope on error
                 text = await get_horoscope_text(sign_name, zodiac.name_ru)
-            header = f"{zodiac.emoji} Персональный гороскоп для {zodiac.name_ru}"
+            header = "Твой персональный гороскоп"
         else:
             # Premium without natal data - basic + setup prompt
             text = await get_horoscope_text(sign_name, zodiac.name_ru)

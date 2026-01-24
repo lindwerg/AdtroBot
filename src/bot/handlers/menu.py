@@ -117,10 +117,14 @@ async def callback_main_menu(callback: CallbackQuery, session: AsyncSession) -> 
     """Handle '🏠 Главное меню' inline button press."""
     from src.bot.bot import get_bot
 
+    # Сохранить данные ДО удаления сообщения
+    user_id = callback.from_user.id
+    chat_id = callback.message.chat.id
+
     # Правильный порядок: ответить → удалить → отправить новое
     await callback.answer()
     await callback.message.delete()
 
-    # Передаем bot чтобы отправить новое сообщение после удаления
+    # Передаем bot и сохраненные данные
     bot = get_bot()
-    await show_main_menu(callback.message, session, bot=bot)
+    await show_main_menu(callback.message, session, bot=bot, user_id=user_id, chat_id=chat_id)
