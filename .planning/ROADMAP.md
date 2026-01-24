@@ -21,7 +21,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 12: Caching & Background Jobs** - PostgreSQL cache + фоновая генерация гороскопов
 - [x] **Phase 13: Image Generation** - Pexels stock images для рандомной отправки
 - [x] **Phase 14: Visual Integration** - Интеграция изображений в бот + onboarding
-- [ ] **Phase 15: Monitoring & Observability** - Prometheus metrics + health checks + dashboard
+- [x] **Phase 15: Monitoring & Observability** - Prometheus metrics + health checks + dashboard
 - [ ] **Phase 16: Testing & Polish** - Playwright + Telethon тесты + admin improvements
 
 ## Phase Details
@@ -107,21 +107,23 @@ Plans:
 - [x] 15-03-PLAN.md — Monitoring.tsx dashboard в админке с графиками и фильтрами
 
 ### Phase 16: Testing & Polish
-**Goal**: Автоматизированные тесты покрывают критические flows, найденные баги исправлены
+**Goal**: Автоматизированные тесты покрывают критические flows, баги документированы, UX отполирован
 **Depends on**: Phase 15 (тестирование после всего функционала)
 **Requirements**: TEST-01, TEST-02, TEST-03, TEST-04, TEST-05, TEST-06, TEST-07, ADMIN-01, ADMIN-02, ADMIN-03
 **Success Criteria** (what must be TRUE):
-  1. Playwright тесты проходят для критических admin flows (login, dashboard, messaging)
-  2. Telethon тесты проверяют основные bot flows (/start, гороскоп, таро)
-  3. Все найденные баги в админке исправлены
-  4. Все найденные баги в боте исправлены
-  5. Admin panel UX улучшен на основе findings (навигация, загрузка)
-**Plans**: TBD
+  1. Playwright тесты проходят для критических admin flows (login, dashboard, messaging, monitoring)
+  2. Telethon тесты проверяют основные bot flows (/start, гороскоп, таро, натальная карта)
+  3. Load tests подтверждают SLA (cached horoscope <500ms, /start <1s)
+  4. Все найденные баги документированы в BUGS.md с severity и steps to reproduce
+  5. Admin panel UX улучшен (loading states, empty states, error messages)
+**Plans**: 5 plans
 
 Plans:
-- [ ] 16-01: TBD
-- [ ] 16-02: TBD
-- [ ] 16-03: TBD
+- [ ] 16-01-PLAN.md — Test Infrastructure: Playwright + Telethon + Locust + Faker setup
+- [ ] 16-02-PLAN.md — Playwright E2E тесты админки (login, dashboard, messaging, monitoring, users)
+- [ ] 16-03-PLAN.md — Telethon E2E тесты бота (start, horoscope 12 signs, tarot, natal, subscription)
+- [ ] 16-04-PLAN.md — Load Testing: Locust сценарии для SLA verification
+- [ ] 16-05-PLAN.md — UX Polish: loading states, empty states, error messages, BUGS.md финализация
 
 ## Progress
 
@@ -135,8 +137,8 @@ Phases execute in numeric order: 11 -> 11.1 -> 11.2 -> 12 -> ... -> 16
 | 13. Image Generation | v2.0 | 1/1 | Complete | 2026-01-24 |
 | 14. Visual Integration | v2.0 | 2/2 | Complete | 2026-01-24 |
 | 15. Monitoring & Observability | v2.0 | 3/3 | Complete | 2026-01-24 |
-| 16. Testing & Polish | v2.0 | 0/TBD | Not started | - |
+| 16. Testing & Polish | v2.0 | 0/5 | Planned | - |
 
 ---
 *Roadmap created: 2026-01-23*
-*Last updated: 2026-01-24 (Phase 15 planned)*
+*Last updated: 2026-01-24 (Phase 16 planned)*
