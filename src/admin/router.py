@@ -87,7 +87,7 @@ from src.admin.services.users import (
 from src.config import settings
 from src.db.engine import get_session
 
-admin_router = APIRouter(prefix="/admin", tags=["admin"])
+admin_router = APIRouter(prefix="/admin/api", tags=["admin"])
 
 
 @admin_router.post("/token", response_model=Token)

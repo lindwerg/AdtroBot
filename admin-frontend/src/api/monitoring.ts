@@ -53,6 +53,6 @@ export interface MonitoringData {
 }
 
 export async function getMonitoringData(range: TimeRange = '7d'): Promise<MonitoringData> {
-  const response = await api.get<MonitoringData>(`/admin/monitoring?range=${range}`)
+  const response = await api.get<MonitoringData>(`/monitoring?range=${range}`)
   return response.data
 }
