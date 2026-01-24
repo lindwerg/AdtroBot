@@ -1,6 +1,6 @@
 """Start command and onboarding handlers."""
 
-from aiogram import F, Router
+from aiogram import Bot, F, Router
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bot.keyboards.main_menu import get_main_menu_keyboard, get_start_keyboard
+from src.services.image_asset import get_image_asset_service
 from src.bot.keyboards.profile import (
     build_notification_time_keyboard,
     build_onboarding_notifications_keyboard,
@@ -39,12 +40,20 @@ WELCOME_MESSAGE = """✨ Привет! Я твой персональный ас
 
 
 @router.message(Command("start"))
-async def cmd_start(message: Message, session: AsyncSession) -> None:
+async def cmd_start(message: Message, session: AsyncSession, bot: Bot) -> None:
     """Handle /start command."""
     # Check if user exists and has birth_date
     stmt = select(User).where(User.telegram_id == message.from_user.id)
     result = await session.execute(stmt)
     user = result.scalar_one_or_none()
+
+    # Send cosmic image first
+    image_service = get_image_asset_service()
+    await image_service.send_random_cosmic(
+        bot=bot,
+        chat_id=message.chat.id,
+        session=session,
+    )
 
     if user and user.birth_date:
         # Returning user - show menu directly
@@ -75,6 +84,7 @@ async def process_birthdate(
     message: Message,
     state: FSMContext,
     session: AsyncSession,
+    bot: Bot,
 ) -> None:
     """Process birthdate input."""
     parsed_date = parse_russian_date(message.text)
@@ -118,7 +128,7 @@ async def process_birthdate(
     )
 
     # Show real horoscope
-    await show_horoscope_message(message, zodiac.name, zodiac.name, session)
+    await show_horoscope_message(message, zodiac.name, zodiac.name, session, bot)
 
     # Offer to enable notifications (onboarding step)
     await message.answer(
