@@ -7,6 +7,8 @@ from fastapi import BackgroundTasks, FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from prometheus_client import make_asgi_app
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from src.admin.router import admin_router
 from src.bot.bot import dp, get_bot
@@ -92,6 +94,21 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+# Prometheus instrumentation
+instrumentator = Instrumentator(
+    should_group_status_codes=True,
+    should_ignore_untemplated=True,
+    should_instrument_requests_inprogress=True,
+    excluded_handlers=["/health", "/metrics"],
+    inprogress_name="adtrobot_requests_in_progress",
+    inprogress_labels=True,
+)
+instrumentator.instrument(app)
+
+# Mount /metrics endpoint (no auth - standard Prometheus scraping)
+metrics_app = make_asgi_app()
+app.mount("/metrics", metrics_app)
 
 # CORS middleware for admin panel
 app.add_middleware(
