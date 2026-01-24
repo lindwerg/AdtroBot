@@ -75,7 +75,15 @@ def get_natal_with_buy_keyboard(telegraph_url: str | None = None) -> InlineKeybo
             )
         ])
 
-    # 2️⃣ Кнопка "Детальный разбор"
+    # 2️⃣ Кнопка "Поговорить с астрологом" (NEW!)
+    buttons.append([
+        InlineKeyboardButton(
+            text="💬 Поговорить с астрологом",
+            callback_data=NatalCallback(action=NatalAction.START_CHAT).pack(),
+        )
+    ])
+
+    # 3️⃣ Кнопка "Детальный разбор"
     price = PLAN_PRICES_STR[PaymentPlan.DETAILED_NATAL]
     buttons.append([
         InlineKeyboardButton(
@@ -84,7 +92,7 @@ def get_natal_with_buy_keyboard(telegraph_url: str | None = None) -> InlineKeybo
         )
     ])
 
-    # 3️⃣ Кнопка "Главное меню"
+    # 4️⃣ Кнопка "Главное меню"
     buttons.append([
         InlineKeyboardButton(
             text="🏠 Главное меню",
@@ -108,7 +116,15 @@ def get_natal_with_open_keyboard(telegraph_url: str | None = None) -> InlineKeyb
             )
         ])
 
-    # 2️⃣ Кнопка "Открыть детальный разбор"
+    # 2️⃣ Кнопка "Поговорить с астрологом" (NEW!)
+    buttons.append([
+        InlineKeyboardButton(
+            text="💬 Поговорить с астрологом",
+            callback_data=NatalCallback(action=NatalAction.START_CHAT).pack(),
+        )
+    ])
+
+    # 3️⃣ Кнопка "Открыть детальный разбор"
     buttons.append([
         InlineKeyboardButton(
             text="Открыть детальный разбор",
@@ -116,7 +132,7 @@ def get_natal_with_open_keyboard(telegraph_url: str | None = None) -> InlineKeyb
         )
     ])
 
-    # 3️⃣ Кнопка "Главное меню"
+    # 4️⃣ Кнопка "Главное меню"
     buttons.append([
         InlineKeyboardButton(
             text="🏠 Главное меню",
@@ -140,7 +156,15 @@ def get_free_natal_keyboard(telegraph_url: str | None = None) -> InlineKeyboardM
             )
         ])
 
-    # 2️⃣ Кнопка "Получить полный разбор"
+    # 2️⃣ Кнопка "Поговорить с астрологом" (NEW!)
+    buttons.append([
+        InlineKeyboardButton(
+            text="💬 Поговорить с астрологом",
+            callback_data=NatalCallback(action=NatalAction.START_CHAT).pack(),
+        )
+    ])
+
+    # 3️⃣ Кнопка "Получить полный разбор"
     buttons.append([
         InlineKeyboardButton(
             text="Получить полный разбор",
@@ -148,7 +172,7 @@ def get_free_natal_keyboard(telegraph_url: str | None = None) -> InlineKeyboardM
         )
     ])
 
-    # 3️⃣ Кнопка "Главное меню"
+    # 4️⃣ Кнопка "Главное меню"
     buttons.append([
         InlineKeyboardButton(
             text="🏠 Главное меню",
@@ -157,3 +181,17 @@ def get_free_natal_keyboard(telegraph_url: str | None = None) -> InlineKeyboardM
     ])
 
     return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+
+def get_astrologer_chat_keyboard() -> InlineKeyboardMarkup:
+    """Get keyboard for active astrologer chat conversation."""
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="✅ Завершить диалог",
+                    callback_data=NatalCallback(action=NatalAction.END_CHAT).pack(),
+                )
+            ]
+        ]
+    )

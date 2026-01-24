@@ -789,3 +789,138 @@ def _get_planet_name_ru(planet_key: str) -> str:
         "north_node": "Сев. узел",
     }
     return names.get(planet_key, planet_key)
+
+
+@dataclass
+class AstrologerChatPrompt:
+    """Prompt for conversational AI astrologer chat.
+
+    Used for interactive dialog where user asks questions about their natal chart.
+    Optimized for token efficiency (~600 tokens for chart data).
+    """
+
+    SYSTEM = """Ты - профессиональный астролог с 20-летним опытом.
+Ты ведёшь живой диалог с клиентом о его натальной карте.
+
+СТИЛЬ:
+- Обращайся на "ты", тепло и дружелюбно
+- Краткие ответы (3-7 предложений), НЕ стены текста
+- Всегда ссылайся на КОНКРЕТНЫЕ позиции из карты клиента
+- При вопросе о транзитах используй данные ТРАНЗИТОВ СЕГОДНЯ
+- Используй профессиональные термины, объясняя их простым языком
+- Создавай эффект глубокого понимания и узнавания себя
+- НЕ упоминай что ты AI
+
+ЗАПРЕЩЕНО:
+- Писать "как AI", "я языковая модель", "я не могу"
+- Извиняться или отказываться от ответа
+- Давать медицинские советы (диагнозы, лечение)
+- Давать финансовые советы (инвестиции, конкретные сделки)
+- Предсказывать конкретные события ("ты встретишь любовь 15 марта")
+- Использовать markdown символы (####, **, *, _, `, [], ||)
+
+РАЗРЕШЕНО:
+- Интерпретировать психологические тенденции
+- Объяснять астрологические позиции и их влияние
+- Давать рекомендации по развитию и самопознанию
+- Обсуждать кармические уроки и жизненные задачи
+- Отвечать на вопросы о совместимости (в общих чертах)"""
+
+    @staticmethod
+    def system_with_chart(natal_data: dict, transit_data: dict | None) -> str:
+        """Generate system prompt with compressed natal chart data.
+
+        Compresses full natal chart to ~600 tokens (from ~1500) by:
+        - Planets: only sign + degree (no house duplication)
+        - Houses: only key houses (1, 4, 7, 10)
+        - Aspects: only tight aspects (orb < 3°)
+        - Transits: only through important houses + exact aspects
+
+        Args:
+            natal_data: FullNatalChartResult
+            transit_data: DailyTransitResult (optional)
+
+        Returns:
+            Complete system prompt with chart data
+        """
+        planets = natal_data["planets"]
+        houses = natal_data["houses"]
+        aspects = natal_data["aspects"]
+
+        # Format planets (sign + degree only)
+        planets_lines = []
+        for name, pos in planets.items():
+            planet_ru = _get_planet_name_ru(name)
+            planets_lines.append(
+                f"- {planet_ru}: {pos['sign_ru']} {pos['degree']:.0f}° (дом {pos.get('house', '?')})"
+            )
+
+        # Format key houses (angular houses only: 1, 4, 7, 10)
+        houses_lines = []
+        for house_num in [1, 4, 7, 10]:
+            if house_num in houses:
+                cusp = houses[house_num]
+                houses_lines.append(f"- {house_num} дом: {cusp['sign_ru']}")
+
+        # Format tight aspects (orb < 3°)
+        tight_aspects = [asp for asp in aspects if asp["orb"] < 3.0]
+        aspects_lines = []
+        for asp in tight_aspects[:8]:  # Max 8 aspects
+            aspects_lines.append(
+                f"- {asp['planet1_ru']} {asp['aspect_ru']} {asp['planet2_ru']} "
+                f"(орб {asp['orb']:.1f}°)"
+            )
+
+        # Format transits (if available)
+        transits_text = ""
+        if transit_data:
+            transits = transit_data["transits"]
+            transit_aspects = transit_data["aspects"]
+
+            # Only transits through important houses (1, 4, 7, 10)
+            important_transits = []
+            for name, pos in transits.items():
+                if pos["house"] in [1, 4, 7, 10]:
+                    planet_ru = _get_planet_name_ru(name)
+                    important_transits.append(
+                        f"- {planet_ru}: {pos['sign_ru']} {pos['degree']:.0f}° "
+                        f"(в твоем {pos['house']}-м доме)"
+                    )
+
+            # Only exact aspects (orb < 1°)
+            exact_aspects = [asp for asp in transit_aspects if asp["exact"]]
+            transit_aspects_lines = []
+            for asp in exact_aspects[:5]:  # Max 5 exact aspects
+                transit_aspects_lines.append(
+                    f"- {asp['transit_planet_ru']} {asp['aspect_ru']} "
+                    f"твой {asp['natal_planet_ru']} (ТОЧНЫЙ!)"
+                )
+
+            if important_transits or transit_aspects_lines:
+                transits_text = "\n\nТРАНЗИТЫ СЕГОДНЯ:\n"
+                if important_transits:
+                    transits_text += "Позиции:\n" + "\n".join(important_transits[:6])
+                if transit_aspects_lines:
+                    transits_text += (
+                        "\n\nТочные аспекты:\n" + "\n".join(transit_aspects_lines)
+                    )
+        else:
+            transits_text = "\n\n(транзиты не загружены)"
+
+        # Build full system prompt
+        planets_str = "\n".join(planets_lines)
+        houses_str = "\n".join(houses_lines)
+        aspects_str = "\n".join(aspects_lines) if aspects_lines else "(нет тесных аспектов)"
+
+        return f"""{AstrologerChatPrompt.SYSTEM}
+
+НАТАЛЬНАЯ КАРТА КЛИЕНТА:
+{planets_str}
+
+КЛЮЧЕВЫЕ ДОМА:
+{houses_str}
+
+ТЕСНЫЕ АСПЕКТЫ (орб < 3°):
+{aspects_str}{transits_text}
+
+Отвечай на вопросы клиента кратко (3-7 предложений), используя эти данные."""

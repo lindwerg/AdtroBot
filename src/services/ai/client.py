@@ -67,6 +67,8 @@ class AIService:
             max_retries=3,  # Built-in retry for 429, 5xx, timeouts
         )
         self.model = "openai/gpt-4o-mini"
+        # Model for astrologer chat (free on OpenRouter!)
+        self.chat_model = "google/gemini-2.0-flash-001"
 
     async def _generate(
         self,
@@ -722,6 +724,153 @@ class AIService:
         )
 
         return (text, telegraph_url)
+
+    async def chat_with_astrologer(
+        self,
+        user_id: int,
+        question: str,
+        natal_data: dict,
+        conversation_history: list[dict],
+        transit_data: dict | None = None,
+    ) -> str | None:
+        """Generate AI astrologer response in conversational mode.
+
+        Uses Gemini 2.0 Flash (free on OpenRouter) with fallback to GPT-4o-mini.
+
+        Args:
+            user_id: User ID for cost tracking
+            question: User's question about their natal chart
+            natal_data: FullNatalChartResult
+            conversation_history: Previous messages [{"role": "user"/"assistant", "content": str}, ...]
+            transit_data: DailyTransitResult (optional)
+
+        Returns:
+            AI response or None if all retries fail
+        """
+        from src.services.ai.prompts import AstrologerChatPrompt
+
+        # Build system prompt with natal chart
+        system_prompt = AstrologerChatPrompt.system_with_chart(
+            natal_data=natal_data,
+            transit_data=transit_data,
+        )
+
+        # Build messages array
+        messages = [{"role": "system", "content": system_prompt}]
+        # Add conversation history
+        messages.extend(conversation_history)
+        # Add current question
+        messages.append({"role": "user", "content": question})
+
+        # Try Gemini first (free!)
+        start_time = time.monotonic()
+        try:
+            response = await self.client.chat.completions.create(
+                model=self.chat_model,
+                messages=messages,
+                max_tokens=500,  # 3-7 sentences
+                temperature=0.7,  # Slightly less creative than horoscopes
+                extra_headers={
+                    "HTTP-Referer": "https://t.me/adtrobot",
+                    "X-Title": "AdtroBot - Astrology Chat",
+                },
+            )
+            latency_ms = int((time.monotonic() - start_time) * 1000)
+
+            # Record usage
+            try:
+                async with AsyncSessionLocal() as session:
+                    await record_ai_usage(
+                        session=session,
+                        user_id=user_id,
+                        operation="astrologer_chat",
+                        model=self.chat_model,
+                        response=response,
+                        latency_ms=latency_ms,
+                    )
+            except Exception as e:
+                logger.warning("cost_tracking_failed", error=str(e))
+
+            content = response.choices[0].message.content
+
+            # Basic validation
+            if not content or len(content) < 50:
+                logger.warning(
+                    "astrologer_response_too_short",
+                    user_id=user_id,
+                    length=len(content) if content else 0,
+                )
+                return None
+
+            logger.info(
+                "astrologer_chat_response",
+                user_id=user_id,
+                model=self.chat_model,
+                chars=len(content),
+                latency_ms=latency_ms,
+            )
+            return content
+
+        except APIError as e:
+            # Gemini failed - try GPT-4o-mini fallback
+            logger.warning(
+                "astrologer_gemini_failed",
+                user_id=user_id,
+                error=str(e),
+                status_code=getattr(e, "status_code", None),
+            )
+
+            # Fallback to GPT-4o-mini
+            try:
+                response = await self.client.chat.completions.create(
+                    model=self.model,  # gpt-4o-mini
+                    messages=messages,
+                    max_tokens=500,
+                    temperature=0.7,
+                    extra_headers={
+                        "HTTP-Referer": "https://t.me/adtrobot",
+                        "X-Title": "AdtroBot - Astrology Chat",
+                    },
+                )
+                latency_ms = int((time.monotonic() - start_time) * 1000)
+
+                # Record usage
+                try:
+                    async with AsyncSessionLocal() as session:
+                        await record_ai_usage(
+                            session=session,
+                            user_id=user_id,
+                            operation="astrologer_chat_fallback",
+                            model=self.model,
+                            response=response,
+                            latency_ms=latency_ms,
+                        )
+                except Exception as e:
+                    logger.warning("cost_tracking_failed", error=str(e))
+
+                content = response.choices[0].message.content
+
+                if not content or len(content) < 50:
+                    return None
+
+                logger.info(
+                    "astrologer_chat_fallback_success",
+                    user_id=user_id,
+                    model=self.model,
+                    chars=len(content),
+                )
+                return content
+
+            except APIError as fallback_error:
+                record_ai_error(
+                    "astrologer_chat", self.model, type(fallback_error).__name__
+                )
+                logger.error(
+                    "astrologer_chat_failed",
+                    user_id=user_id,
+                    error=str(fallback_error),
+                )
+                return None
 
 
 # Singleton instance

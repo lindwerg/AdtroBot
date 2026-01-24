@@ -1,5 +1,6 @@
 """Telegram bot handlers."""
 
+from src.bot.handlers.astrologer_chat import router as astrologer_chat_router
 from src.bot.handlers.birth_data import router as birth_data_router
 from src.bot.handlers.common import router as common_router
 from src.bot.handlers.horoscope import router as horoscope_router
@@ -16,6 +17,7 @@ __all__ = [
     "subscription_router",
     "horoscope_router",
     "natal_router",
+    "astrologer_chat_router",  # NEW: AI astrologer chat
     "profile_settings_router",
     "birth_data_router",
     "tarot_router",
