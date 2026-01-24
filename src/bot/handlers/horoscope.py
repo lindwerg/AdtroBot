@@ -228,11 +228,16 @@ async def show_horoscope_message(
         text,
     )
 
-    await message.answer(
-        **content.as_kwargs(),
-        reply_markup=build_zodiac_keyboard(
-            current_sign=user_sign or sign_name,
-            is_premium=is_premium,
-            has_natal_data=has_natal,
-        ),
-    )
+    # Onboarding: no keyboard (only notification question follows)
+    # Regular: show zodiac grid keyboard
+    if is_onboarding:
+        await message.answer(**content.as_kwargs())
+    else:
+        await message.answer(
+            **content.as_kwargs(),
+            reply_markup=build_zodiac_keyboard(
+                current_sign=user_sign or sign_name,
+                is_premium=is_premium,
+                has_natal_data=has_natal,
+            ),
+        )
