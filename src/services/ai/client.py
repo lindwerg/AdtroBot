@@ -1,7 +1,12 @@
 """AI service client for OpenRouter API."""
 
+import time
+
 import structlog
 from openai import APIError, AsyncOpenAI
+
+from src.db.engine import AsyncSessionLocal
+from src.monitoring.cost_tracking import record_ai_error, record_ai_usage
 
 from src.config import settings
 from src.services.ai.cache import (
@@ -65,17 +70,22 @@ class AIService:
         system_prompt: str,
         user_prompt: str,
         max_tokens: int = 1500,
+        operation: str = "unknown",
+        user_id: int | None = None,
     ) -> str | None:
-        """Generate AI response.
+        """Generate AI response with usage tracking.
 
         Args:
             system_prompt: System instructions for the model
             user_prompt: User message/query
             max_tokens: Maximum tokens in response
+            operation: Operation type for cost tracking
+            user_id: User ID for cost attribution
 
         Returns:
             Generated text or None on API error
         """
+        start_time = time.monotonic()
         try:
             response = await self.client.chat.completions.create(
                 model=self.model,
@@ -90,13 +100,31 @@ class AIService:
                     "X-Title": "AdtroBot - Astrology & Tarot",
                 },
             )
+            latency_ms = int((time.monotonic() - start_time) * 1000)
+
+            # Record usage asynchronously (don't block response)
+            try:
+                async with AsyncSessionLocal() as session:
+                    await record_ai_usage(
+                        session=session,
+                        user_id=user_id,
+                        operation=operation,
+                        model=self.model,
+                        response=response,
+                        latency_ms=latency_ms,
+                    )
+            except Exception as e:
+                logger.warning("cost_tracking_failed", error=str(e))
+
             content = response.choices[0].message.content
             return content
         except APIError as e:
+            record_ai_error(operation, self.model, type(e).__name__)
             logger.error(
                 "ai_generation_failed",
                 error=str(e),
                 status_code=getattr(e, "status_code", None),
+                operation=operation,
             )
             return None
 
@@ -105,6 +133,7 @@ class AIService:
         zodiac_sign: str,
         zodiac_sign_ru: str,
         date_str: str,
+        user_id: int | None = None,
     ) -> str | None:
         """Generate daily horoscope with caching.
 
@@ -112,6 +141,7 @@ class AIService:
             zodiac_sign: English zodiac sign (e.g., "aries")
             zodiac_sign_ru: Russian zodiac sign (e.g., "Овен")
             date_str: Date string (e.g., "23.01.2026")
+            user_id: User ID for cost tracking (None for scheduled generation)
 
         Returns:
             Horoscope text or None if all retries fail
@@ -131,6 +161,8 @@ class AIService:
                     date_str=date_str,
                     zodiac_sign_en=zodiac_sign,
                 ),
+                operation="horoscope",
+                user_id=user_id,
             )
 
             if text is None:
@@ -161,6 +193,7 @@ class AIService:
         question: str,
         cards: list[dict],
         is_reversed: list[bool],
+        user_id: int | None = None,
     ) -> str | None:
         """Generate tarot spread interpretation.
 
@@ -170,6 +203,7 @@ class AIService:
             question: User's question
             cards: List of 3 card dictionaries
             is_reversed: List of 3 booleans for reversed cards
+            user_id: User ID for cost tracking
 
         Returns:
             Interpretation text or None if all retries fail
@@ -178,6 +212,8 @@ class AIService:
             text = await self._generate(
                 system_prompt=TarotSpreadPrompt.SYSTEM,
                 user_prompt=TarotSpreadPrompt.user(question, cards, is_reversed),
+                operation="tarot",
+                user_id=user_id,
             )
 
             if text is None:
@@ -210,7 +246,7 @@ class AIService:
         """Generate card of day interpretation with caching.
 
         Args:
-            user_id: Telegram user ID
+            user_id: Telegram user ID (also used for cost tracking)
             card: Card dictionary
             is_reversed: Whether the card is reversed
 
@@ -228,6 +264,8 @@ class AIService:
                 system_prompt=CardOfDayPrompt.SYSTEM,
                 user_prompt=CardOfDayPrompt.user(card, is_reversed),
                 max_tokens=800,  # Shorter response for card of day
+                operation="card_of_day",
+                user_id=user_id,
             )
 
             if text is None:
@@ -265,7 +303,7 @@ class AIService:
         """Generate premium personalized horoscope with natal chart.
 
         Args:
-            user_id: Telegram user ID (for caching)
+            user_id: Telegram user ID (for caching and cost tracking)
             zodiac_sign: English zodiac sign (e.g., "aries")
             zodiac_sign_ru: Russian zodiac sign (e.g., "Овен")
             date_str: Date string (e.g., "23.01.2026")
@@ -291,6 +329,8 @@ class AIService:
                     zodiac_sign_en=zodiac_sign,
                 ),
                 max_tokens=2000,  # Longer for premium
+                operation="premium_horoscope",
+                user_id=user_id,
             )
 
             if text is None:
@@ -322,6 +362,7 @@ class AIService:
         question: str,
         cards: list[dict],
         is_reversed: list[bool],
+        user_id: int | None = None,
     ) -> str | None:
         """Generate Celtic Cross 10-card spread interpretation.
 
@@ -331,6 +372,7 @@ class AIService:
             question: User's question
             cards: List of 10 card dictionaries
             is_reversed: List of 10 booleans for reversed cards
+            user_id: User ID for cost tracking
 
         Returns:
             Interpretation text (800-1200 words) or None if all retries fail
@@ -340,6 +382,8 @@ class AIService:
                 system_prompt=CelticCrossPrompt.SYSTEM,
                 user_prompt=CelticCrossPrompt.user(question, cards, is_reversed),
                 max_tokens=4000,  # Larger for 800-1200 word response
+                operation="celtic_cross",
+                user_id=user_id,
             )
 
             if text is None:
@@ -373,7 +417,7 @@ class AIService:
         Uses 24-hour cache since natal chart doesn't change.
 
         Args:
-            user_id: Telegram user ID (for caching)
+            user_id: Telegram user ID (for caching and cost tracking)
             natal_data: FullNatalChartResult from calculate_full_natal_chart()
 
         Returns:
@@ -391,6 +435,8 @@ class AIService:
                 system_prompt=NatalChartPrompt.SYSTEM,
                 user_prompt=NatalChartPrompt.user(natal_data),
                 max_tokens=1500,  # 400-500 words - reduced
+                operation="natal_interpretation",
+                user_id=user_id,
             )
 
             if text is None:
@@ -428,18 +474,18 @@ class AIService:
         Caches result for 7 days.
 
         Args:
-            user_id: User ID for caching
+            user_id: User ID for caching and cost tracking
             natal_data: FullNatalChartResult dict
 
         Returns:
             Full interpretation text or None on failure
         """
-        import time
+        import time as time_module
 
         # Check cache
         if user_id in _detailed_natal_cache:
             cached_text, cached_time = _detailed_natal_cache[user_id]
-            if time.time() - cached_time < DETAILED_NATAL_CACHE_TTL:
+            if time_module.time() - cached_time < DETAILED_NATAL_CACHE_TTL:
                 logger.info("detailed_natal_cache_hit", user_id=user_id)
                 return cached_text
 
@@ -460,6 +506,8 @@ class AIService:
                         system_prompt=DetailedNatalPrompt.SYSTEM,
                         user_prompt=section_prompt,
                         max_tokens=max_tokens,
+                        operation="detailed_natal",
+                        user_id=user_id,
                     )
 
                     if response and validate_detailed_natal_section(response, section["min_words"]):
@@ -492,7 +540,7 @@ class AIService:
         full_text = "\n\n".join(sections_text)
 
         # Cache result
-        _detailed_natal_cache[user_id] = (full_text, time.time())
+        _detailed_natal_cache[user_id] = (full_text, time_module.time())
         logger.info(
             "detailed_natal_generated",
             user_id=user_id,
