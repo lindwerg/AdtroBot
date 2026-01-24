@@ -1,5 +1,4 @@
 import { createBrowserRouter, redirect } from 'react-router'
-import { useAuthStore } from '@/store/auth'
 import Layout from '@/components/Layout'
 import LoginPage from '@/pages/Login'
 import Dashboard from '@/pages/Dashboard'
@@ -14,22 +13,22 @@ import PromoCodesPage from '@/pages/PromoCodes'
 import ABTestsPage from '@/pages/ABTests'
 import MonitoringPage from '@/pages/Monitoring'
 
+// Check localStorage directly (sync) instead of waiting for zustand hydration
+function getTokenFromStorage(): string | null {
+  try {
+    const stored = localStorage.getItem('admin-auth')
+    if (!stored) return null
+    const parsed = JSON.parse(stored)
+    return parsed?.state?.token || null
+  } catch {
+    return null
+  }
+}
+
 // Auth check loader
 async function requireAuth() {
-  // Wait for zustand to hydrate from localStorage
-  await new Promise<void>((resolve) => {
-    const checkHydration = () => {
-      if (useAuthStore.getState()._hasHydrated) {
-        resolve()
-      } else {
-        setTimeout(checkHydration, 10)
-      }
-    }
-    checkHydration()
-  })
-
-  const isAuthenticated = useAuthStore.getState().isAuthenticated()
-  if (!isAuthenticated) {
+  const token = getTokenFromStorage()
+  if (!token) {
     throw redirect('/login')
   }
   return null
@@ -37,20 +36,8 @@ async function requireAuth() {
 
 // Redirect if already logged in
 async function redirectIfAuth() {
-  // Wait for zustand to hydrate from localStorage
-  await new Promise<void>((resolve) => {
-    const checkHydration = () => {
-      if (useAuthStore.getState()._hasHydrated) {
-        resolve()
-      } else {
-        setTimeout(checkHydration, 10)
-      }
-    }
-    checkHydration()
-  })
-
-  const isAuthenticated = useAuthStore.getState().isAuthenticated()
-  if (isAuthenticated) {
+  const token = getTokenFromStorage()
+  if (token) {
     throw redirect('/')
   }
   return null
