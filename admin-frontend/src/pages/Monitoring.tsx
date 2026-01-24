@@ -81,10 +81,10 @@ export default function Monitoring() {
   ]
 
   // Calculate totals for display
-  const totalCost = data?.api_costs.total_cost ?? 0
-  const totalTokens = data?.api_costs.total_tokens ?? 0
-  const costPerUser = data?.unit_economics.cost_per_active_user ?? 0
-  const costPerPayingUser = data?.unit_economics.cost_per_paying_user ?? 0
+  const totalCost = data?.api_costs?.total_cost ?? 0
+  const totalTokens = data?.api_costs?.total_tokens ?? 0
+  const costPerUser = data?.unit_economics?.cost_per_active_user ?? 0
+  const costPerPayingUser = data?.unit_economics?.cost_per_paying_user ?? 0
 
   return (
     <div>
@@ -115,7 +115,7 @@ export default function Monitoring() {
           <Card loading={isLoading}>
             <Statistic
               title="DAU (сегодня)"
-              value={data?.active_users.dau ?? 0}
+              value={data?.active_users?.dau ?? 0}
               prefix={<UserOutlined />}
             />
           </Card>
@@ -124,7 +124,7 @@ export default function Monitoring() {
           <Card loading={isLoading}>
             <Statistic
               title="WAU (7 дней)"
-              value={data?.active_users.wau ?? 0}
+              value={data?.active_users?.wau ?? 0}
               prefix={<UserOutlined />}
             />
           </Card>
@@ -133,7 +133,7 @@ export default function Monitoring() {
           <Card loading={isLoading}>
             <Statistic
               title="MAU (30 дней)"
-              value={data?.active_users.mau ?? 0}
+              value={data?.active_users?.mau ?? 0}
               prefix={<UserOutlined />}
             />
           </Card>
@@ -169,7 +169,7 @@ export default function Monitoring() {
           <Card loading={isLoading}>
             <Statistic
               title="Запросов"
-              value={data?.api_costs.total_requests ?? 0}
+              value={data?.api_costs?.total_requests ?? 0}
               prefix={<ThunderboltOutlined />}
             />
           </Card>
@@ -178,7 +178,7 @@ export default function Monitoring() {
           <Card loading={isLoading}>
             <Statistic
               title="Средняя стоимость запроса"
-              value={data?.api_costs.total_requests ? totalCost / data.api_costs.total_requests : 0}
+              value={data?.api_costs?.total_requests ? totalCost / data.api_costs.total_requests : 0}
               precision={6}
               prefix="$"
             />
@@ -189,7 +189,7 @@ export default function Monitoring() {
       {/* Cost Chart */}
       <Card title="Стоимость по дням" style={{ marginBottom: 24 }} loading={isLoading}>
         <ResponsiveContainer width="100%" height={300}>
-          <AreaChart data={data?.api_costs.by_day ?? []}>
+          <AreaChart data={data?.api_costs?.by_day ?? []}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis
               dataKey="date"
@@ -222,7 +222,7 @@ export default function Monitoring() {
         <Row gutter={16}>
           <Col xs={24} md={12}>
             <Table
-              dataSource={data?.api_costs.by_operation ?? []}
+              dataSource={data?.api_costs?.by_operation ?? []}
               columns={costColumns}
               rowKey="operation"
               pagination={false}
@@ -231,7 +231,7 @@ export default function Monitoring() {
           </Col>
           <Col xs={24} md={12}>
             <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={data?.api_costs.by_operation ?? []} layout="vertical">
+              <BarChart data={data?.api_costs?.by_operation ?? []} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis type="number" tickFormatter={(v) => `$${v.toFixed(3)}`} />
                 <YAxis
@@ -257,7 +257,7 @@ export default function Monitoring() {
           <Card loading={isLoading}>
             <Statistic
               title="Активных пользователей"
-              value={data?.unit_economics.active_users ?? 0}
+              value={data?.unit_economics?.active_users ?? 0}
             />
           </Card>
         </Col>
@@ -265,7 +265,7 @@ export default function Monitoring() {
           <Card loading={isLoading}>
             <Statistic
               title="Платящих пользователей"
-              value={data?.unit_economics.paying_users ?? 0}
+              value={data?.unit_economics?.paying_users ?? 0}
             />
           </Card>
         </Col>
