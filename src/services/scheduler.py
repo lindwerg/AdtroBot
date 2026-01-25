@@ -77,7 +77,7 @@ async def send_daily_horoscope(user_id: int, zodiac_sign: str) -> None:
     """
     from src.bot.bot import get_bot
     from src.bot.utils.formatting import format_daily_horoscope
-    from src.bot.utils.horoscope import get_mock_horoscope
+    from src.bot.utils.horoscope import get_horoscope_text
     from src.bot.utils.zodiac import ZODIAC_SIGNS
     from src.db.engine import AsyncSessionLocal
     from src.db.models.user import User
@@ -141,20 +141,30 @@ async def send_daily_horoscope(user_id: int, zodiac_sign: str) -> None:
     # Fallback to general horoscope if not premium or generation failed
     if not forecast_text:
         is_premium = False
-        raw = get_mock_horoscope(zodiac_sign)
 
-        # Parse general horoscope (remove emoji, split into forecast + tip)
-        clean = raw.lstrip()
-        if clean and clean[0] in "\u2648\u2649\u264a\u264b\u264c\u264d\u264e\u264f\u2650\u2651\u2652\u2653":
-            clean = clean[2:].lstrip()
+        # Получить AI-гороскоп из кэша (те же тексты, что при запросе)
+        raw = await get_horoscope_text(zodiac_sign, zodiac.name_ru)
 
-        sentences = clean.split(". ")
-        if len(sentences) > 1:
-            forecast_text = ". ".join(sentences[:-1]) + "."
-            tip = sentences[-1].rstrip(".") + "."
+        # Парсинг по секциям
+        if "[СОВЕТ ДНЯ]" in raw:
+            # AI-гороскоп с секциями
+            parts = raw.split("[СОВЕТ ДНЯ]")
+            forecast_text = parts[0].strip()
+            tip = parts[1].strip()
+
+            # Убрать заголовки секций для чистого отображения
+            forecast_text = forecast_text.replace("[ЛЮБОВЬ]", "").replace("[КАРЬЕРА]", "")
+            forecast_text = forecast_text.replace("[ЗДОРОВЬЕ]", "").replace("[ФИНАНСЫ]", "")
+            forecast_text = forecast_text.strip()
         else:
-            forecast_text = raw
-            tip = "Хорошего дня!"
+            # Fallback для нестандартного формата (FALLBACK_MESSAGE)
+            sentences = raw.split(". ")
+            if len(sentences) > 1:
+                forecast_text = ". ".join(sentences[:-1]) + "."
+                tip = sentences[-1].rstrip(".") + "."
+            else:
+                forecast_text = raw
+                tip = "Хорошего дня!"
     else:
         # Premium horoscope doesn't have separate tip
         # Use first sentence as tip (or generic)
