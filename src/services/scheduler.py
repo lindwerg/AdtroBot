@@ -70,12 +70,20 @@ def get_scheduler() -> AsyncIOScheduler:
 async def send_daily_horoscope(user_id: int, zodiac_sign: str) -> None:
     """Job function: send horoscope notification to user.
 
+    Sends personalized horoscope for premium users with natal data,
+    or general horoscope for others.
+
     NOTE: Bot instance fetched inside function - cannot serialize Bot in jobstore.
     """
     from src.bot.bot import get_bot
     from src.bot.utils.formatting import format_daily_horoscope
     from src.bot.utils.horoscope import get_mock_horoscope
     from src.bot.utils.zodiac import ZODIAC_SIGNS
+    from src.db.engine import AsyncSessionLocal
+    from src.db.models.user import User
+    from src.services.ai import get_ai_service
+    from src.services.astrology.natal_chart import calculate_full_natal_chart
+    from sqlalchemy import select
 
     bot = get_bot()
     zodiac = ZODIAC_SIGNS.get(zodiac_sign)
@@ -85,32 +93,96 @@ async def send_daily_horoscope(user_id: int, zodiac_sign: str) -> None:
         )
         return
 
-    # Get and format horoscope
-    raw = get_mock_horoscope(zodiac_sign)
-    # Simple split for notification (first sentence as tip)
-    clean = raw.lstrip()
-    if clean and clean[0] in "\u2648\u2649\u264a\u264b\u264c\u264d\u264e\u264f\u2650\u2651\u2652\u2653":
-        clean = clean[2:].lstrip()
+    # Get user from DB to check premium status
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(
+            select(User).where(User.telegram_id == user_id)
+        )
+        user = result.scalar_one_or_none()
 
-    sentences = clean.split(". ")
-    if len(sentences) > 1:
-        forecast = ". ".join(sentences[:-1]) + "."
-        tip = sentences[-1].rstrip(".") + "."
+    if not user:
+        await logger.awarning("User not found for notification", user_id=user_id)
+        return
+
+    # Determine horoscope type
+    is_premium = False
+    forecast_text = None
+
+    if user.is_premium and user.birth_lat and user.birth_lon and user.birth_date:
+        # Premium with natal data → personalized horoscope
+        is_premium = True
+
+        try:
+            natal_data = calculate_full_natal_chart(
+                birth_date=user.birth_date,
+                birth_time=user.birth_time,
+                latitude=user.birth_lat,
+                longitude=user.birth_lon,
+                timezone_str=user.timezone or "Europe/Moscow",
+            )
+
+            ai_service = get_ai_service()
+            forecast_text = await ai_service.generate_premium_horoscope(
+                user_id=user_id,
+                zodiac_sign=zodiac_sign,
+                zodiac_sign_ru=zodiac.name_ru,
+                date_str=date.today().strftime("%d.%m.%Y"),
+                natal_data=natal_data,
+            )
+        except Exception as e:
+            await logger.aerror(
+                "Failed to generate premium horoscope, falling back to general",
+                user_id=user_id,
+                error=str(e),
+            )
+            # Fallback to general on error
+            forecast_text = None
+
+    # Fallback to general horoscope if not premium or generation failed
+    if not forecast_text:
+        is_premium = False
+        raw = get_mock_horoscope(zodiac_sign)
+
+        # Parse general horoscope (remove emoji, split into forecast + tip)
+        clean = raw.lstrip()
+        if clean and clean[0] in "\u2648\u2649\u264a\u264b\u264c\u264d\u264e\u264f\u2650\u2651\u2652\u2653":
+            clean = clean[2:].lstrip()
+
+        sentences = clean.split(". ")
+        if len(sentences) > 1:
+            forecast_text = ". ".join(sentences[:-1]) + "."
+            tip = sentences[-1].rstrip(".") + "."
+        else:
+            forecast_text = raw
+            tip = "Хорошего дня!"
     else:
-        forecast = raw
-        tip = "Хорошего дня!"
+        # Premium horoscope doesn't have separate tip
+        # Use first sentence as tip (or generic)
+        sentences = forecast_text.split(". ")
+        if len(sentences) > 2:
+            tip = sentences[0] + "."
+        else:
+            tip = "Используй энергию дня себе во благо!"
 
+    # Format message
     content = format_daily_horoscope(
         sign_emoji=zodiac.emoji,
         sign_name_ru=zodiac.name_ru,
         forecast_date=date.today(),
-        general_forecast=forecast,
+        forecast_text=forecast_text,
         daily_tip=tip,
+        is_premium=is_premium,
     )
 
     try:
         await bot.send_message(chat_id=user_id, **content.as_kwargs())
-        await logger.ainfo("Sent daily horoscope", user_id=user_id, sign=zodiac_sign)
+        horoscope_type = "personalized" if is_premium else "general"
+        await logger.ainfo(
+            "Sent daily horoscope",
+            user_id=user_id,
+            sign=zodiac_sign,
+            type=horoscope_type,
+        )
     except Exception as e:
         await logger.aerror("Failed to send horoscope notification", user_id=user_id, error=str(e))
 

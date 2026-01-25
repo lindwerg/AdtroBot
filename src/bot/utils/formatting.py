@@ -27,17 +27,18 @@ def format_daily_horoscope(
     sign_emoji: str,
     sign_name_ru: str,
     forecast_date: date,
-    general_forecast: str,
+    forecast_text: str,
     daily_tip: str,
+    is_premium: bool = False,
 ) -> Text:
     """
     Format horoscope message using entity-based formatting.
 
-    Output format (from CONTEXT.md):
+    Output format:
 
         {emoji} {sign_name_ru} | {DD} {месяц_ru}
 
-        *🔮 Общий прогноз*
+        *🔮 Общий прогноз*  (или *💎 Твой персональный прогноз* для premium)
 
         {forecast_text}
 
@@ -49,20 +50,27 @@ def format_daily_horoscope(
         sign_emoji: Zodiac emoji (e.g., "♈️")
         sign_name_ru: Russian name of the sign (e.g., "Овен")
         forecast_date: Date of the forecast
-        general_forecast: 4-5 sentences general forecast
+        forecast_text: Forecast text (general or personalized)
         daily_tip: 2 sentences actionable advice
+        is_premium: Whether this is a personalized premium horoscope
 
     Returns:
         Text object with proper entities. Use: await message.answer(**content.as_kwargs())
     """
     date_str = f"{forecast_date.day} {MONTHS_RU[forecast_date.month]}"
 
+    # Choose header based on premium status
+    if is_premium:
+        header = "💎 Твой персональный прогноз"
+    else:
+        header = "🔮 Общий прогноз"
+
     return Text(
         as_line(f"{sign_emoji} {sign_name_ru} | {date_str}"),
         "\n",
-        Bold("🔮 Общий прогноз"),
+        Bold(header),
         "\n\n",
-        as_line(general_forecast),
+        as_line(forecast_text),
         "\n",
         Bold("💡 Совет дня"),
         "\n\n",
