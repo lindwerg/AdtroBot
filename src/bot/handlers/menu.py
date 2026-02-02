@@ -12,7 +12,6 @@ from src.bot.handlers.subscription import show_plans
 from src.bot.keyboards.main_menu import get_main_menu_keyboard
 from src.bot.keyboards.profile import build_profile_actions_keyboard
 from src.bot.keyboards.tarot import get_tarot_menu_keyboard
-from src.bot.utils.images import BotImages, get_image
 from src.bot.utils.zodiac import ZODIAC_SIGNS
 from src.db.models.user import User
 from src.services.payment import get_user_subscription
@@ -40,14 +39,10 @@ async def menu_horoscope(message: Message, session: AsyncSession) -> None:
 @router.message(F.text == "Таро")
 async def menu_tarot(message: Message) -> None:
     """Handle 'Таро' button press - show tarot menu."""
-    image = get_image(BotImages.TAROT_MENU)
-    text = "Выберите тип расклада:"
-    keyboard = get_tarot_menu_keyboard()
-    
-    if image:
-        await message.answer_photo(photo=image, caption=text, reply_markup=keyboard)
-    else:
-        await message.answer(text, reply_markup=keyboard)
+    await message.answer(
+        "Выберите тип расклада:",
+        reply_markup=get_tarot_menu_keyboard(),
+    )
 
 
 @router.message(F.text == "Подписка")
@@ -117,14 +112,7 @@ async def menu_profile(message: Message, session: AsyncSession) -> None:
         subscription_status=subscription.status if subscription else None,
     )
 
-    # Send with image
-    image = get_image(BotImages.PROFILE)
-    text = "\n".join(lines)
-    
-    if image:
-        await message.answer_photo(photo=image, caption=text, reply_markup=keyboard)
-    else:
-        await message.answer(text, reply_markup=keyboard)
+    await message.answer("\n".join(lines), reply_markup=keyboard)
 
 
 @router.callback_query(MenuCallback.filter(F.action == MenuAction.BACK_TO_MAIN_MENU))
