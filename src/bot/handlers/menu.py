@@ -12,6 +12,7 @@ from src.bot.handlers.subscription import show_plans
 from src.bot.keyboards.main_menu import get_main_menu_keyboard
 from src.bot.keyboards.profile import build_profile_actions_keyboard
 from src.bot.keyboards.tarot import get_tarot_menu_keyboard
+from src.bot.utils.zodiac import ZODIAC_SIGNS
 from src.db.models.user import User
 from src.services.payment import get_user_subscription
 
@@ -69,7 +70,9 @@ async def menu_profile(message: Message, session: AsyncSession) -> None:
     lines = [f"Telegram ID: {user.telegram_id}"]
 
     if user.zodiac_sign:
-        lines.append(f"Знак зодиака: {user.zodiac_sign}")
+        zodiac = ZODIAC_SIGNS.get(user.zodiac_sign)
+        zodiac_display = f"{zodiac.emoji} {zodiac.name_ru}" if zodiac else user.zodiac_sign
+        lines.append(f"Знак зодиака: {zodiac_display}")
     else:
         lines.append("Знак зодиака: не указан")
 

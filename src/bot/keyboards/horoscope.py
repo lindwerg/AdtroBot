@@ -3,25 +3,7 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from src.bot.callbacks.horoscope import ZodiacCallback
 from src.bot.callbacks.menu import MenuAction, MenuCallback
-from src.bot.utils.zodiac import ZODIAC_SIGNS
-
-# Classical zodiac order: Aries -> Pisces
-ZODIAC_ORDER = [
-    "Aries",
-    "Taurus",
-    "Gemini",
-    "Cancer",
-    "Leo",
-    "Virgo",
-    "Libra",
-    "Scorpio",
-    "Sagittarius",
-    "Capricorn",
-    "Aquarius",
-    "Pisces",
-]
 
 
 def build_zodiac_keyboard(
@@ -29,31 +11,17 @@ def build_zodiac_keyboard(
     is_premium: bool = False,
     has_natal_data: bool = False,
 ) -> InlineKeyboardMarkup:
-    """Build 4x3 inline keyboard for zodiac sign selection.
+    """Build keyboard for horoscope (without zodiac sign selection grid).
 
     Args:
-        current_sign: Currently selected sign (will be highlighted)
+        current_sign: Currently selected sign (not used anymore)
         is_premium: Whether user has premium subscription
         has_natal_data: Whether user has birth location data
 
     Returns:
-        InlineKeyboardMarkup with zodiac buttons + optional natal setup
+        InlineKeyboardMarkup with action buttons (no zodiac grid)
     """
     builder = InlineKeyboardBuilder()
-
-    for name in ZODIAC_ORDER:
-        zodiac = ZODIAC_SIGNS[name]
-        # Format: "♈ Овен" or "✓ ♈ Овен" for current sign
-        text = f"{zodiac.emoji} {zodiac.name_ru}"
-        if name == current_sign:
-            text = f"✓ {text}"
-        builder.button(
-            text=text,
-            callback_data=ZodiacCallback(s=name).pack(),
-        )
-
-    # 3 rows of 4 buttons
-    builder.adjust(4, 4, 4)
 
     # Add natal setup button for premium users without data
     if is_premium and not has_natal_data:
