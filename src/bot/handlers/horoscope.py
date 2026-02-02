@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bot.keyboards.horoscope import build_home_menu_keyboard, build_zodiac_keyboard
 from src.bot.utils.horoscope import get_horoscope_text
+from src.bot.utils.images import BotImages, get_image
 from src.bot.utils.progress import generate_with_feedback
 from src.bot.utils.zodiac import ZODIAC_SIGNS
 from src.db.models.user import User
@@ -161,7 +162,18 @@ async def show_horoscope_message(
                 has_natal_data=has_natal,
             )
 
-        await message.answer(
-            **content.as_kwargs(),
-            reply_markup=keyboard,
-        )
+        # Send with image
+        image = get_image(BotImages.HOROSCOPE)
+        full_text = content.as_kwargs()["text"]
+        
+        if image:
+            await message.answer_photo(
+                photo=image,
+                caption=full_text,
+                reply_markup=keyboard,
+            )
+        else:
+            await message.answer(
+                **content.as_kwargs(),
+                reply_markup=keyboard,
+            )

@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bot.keyboards.main_menu import get_main_menu_keyboard
+from src.bot.utils.images import BotImages, get_image
 from src.bot.utils.natal_info_formatter import format_natal_info_for_menu
 from src.db.models.user import User
 from src.services.astrology.natal_chart import calculate_full_natal_chart
@@ -71,13 +72,23 @@ async def show_main_menu(
     # Отправить сообщение с информацией + клавиатура
     text = f"Главное меню 🏠\n\n{info_block}"
     keyboard = get_main_menu_keyboard()
+    
+    # Получаем изображение
+    image = get_image(BotImages.WELCOME)
+    send_chat_id = chat_id if chat_id is not None else message.chat.id
 
     if bot:
-        # Используем bot.send_message когда message удалено (callback)
-        await bot.send_message(chat_id=message.chat.id, text=text, reply_markup=keyboard)
+        # Используем bot когда message удалено (callback)
+        if image:
+            await bot.send_photo(chat_id=send_chat_id, photo=image, caption=text, reply_markup=keyboard)
+        else:
+            await bot.send_message(chat_id=send_chat_id, text=text, reply_markup=keyboard)
     else:
         # Используем message.answer для обычных команд
-        await message.answer(text, reply_markup=keyboard)
+        if image:
+            await message.answer_photo(photo=image, caption=text, reply_markup=keyboard)
+        else:
+            await message.answer(text, reply_markup=keyboard)
 
 
 def _has_natal_data(user: User) -> bool:
