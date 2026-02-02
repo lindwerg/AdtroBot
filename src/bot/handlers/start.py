@@ -20,6 +20,7 @@ from src.bot.keyboards.profile import (
 )
 from src.bot.states.onboarding import OnboardingStates
 from src.bot.utils.date_parser import parse_russian_date
+from src.bot.utils.images import BotImages, get_image
 from src.bot.utils.zodiac import get_zodiac_sign
 from src.db.models.user import User
 
@@ -72,10 +73,18 @@ async def cmd_start(message: Message, session: AsyncSession, bot: Bot) -> None:
         await show_main_menu(message, session)
     else:
         # New user - show welcome + onboarding button
-        await message.answer(
-            WELCOME_MESSAGE,
-            reply_markup=get_start_keyboard(),
-        )
+        welcome_image = get_image(BotImages.WELCOME)
+        if welcome_image:
+            await message.answer_photo(
+                photo=welcome_image,
+                caption=WELCOME_MESSAGE,
+                reply_markup=get_start_keyboard(),
+            )
+        else:
+            await message.answer(
+                WELCOME_MESSAGE,
+                reply_markup=get_start_keyboard(),
+            )
 
 
 @router.callback_query(MenuCallback.filter(F.action == MenuAction.GET_FIRST_FORECAST))

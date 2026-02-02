@@ -12,6 +12,7 @@ from src.bot.keyboards.subscription import (
     get_cancel_confirmation_keyboard,
     get_plans_keyboard,
 )
+from src.bot.utils.images import BotImages, get_image
 from src.db.models.user import User
 from src.services.payment import (
     PaymentPlan,
@@ -50,10 +51,19 @@ async def show_plans(message: Message, session: AsyncSession) -> None:
             "Хотите продлить?"
         )
 
-    await message.answer(
-        PREMIUM_FEATURES + "\n\nВыберите тариф:",
-        reply_markup=get_plans_keyboard(),
-    )
+    # Send with image
+    subscription_image = get_image(BotImages.SUBSCRIPTION)
+    text = PREMIUM_FEATURES + "\n\nВыберите тариф:"
+    keyboard = get_plans_keyboard()
+
+    if subscription_image:
+        await message.answer_photo(
+            photo=subscription_image,
+            caption=text,
+            reply_markup=keyboard,
+        )
+    else:
+        await message.answer(text, reply_markup=keyboard)
 
 
 @router.callback_query(MenuCallback.filter(F.action == MenuAction.MENU_SUBSCRIPTION))
