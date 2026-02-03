@@ -11,10 +11,10 @@ class NatalAction(str, Enum):
     SHOW_CHART = "show"
     SETUP_BIRTH_DATA = "setup"
     BACK_TO_MENU = "back"
-    BUY_DETAILED = "buy"       # Buy detailed interpretation
+    BUY_DETAILED = "buy"  # Buy detailed interpretation
     SHOW_DETAILED = "detailed"  # Show purchased interpretation
-    START_CHAT = "chat"        # Start astrologer chat dialog
-    END_CHAT = "endchat"       # End astrologer chat dialog
+    START_CHAT = "chat"  # Start astrologer chat dialog
+    END_CHAT = "endchat"  # End astrologer chat dialog
 
 
 class NatalCallback(CallbackData, prefix="n"):

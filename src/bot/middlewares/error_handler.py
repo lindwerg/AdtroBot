@@ -1,8 +1,10 @@
 """Error handling middleware."""
-import structlog
+import time
 from typing import Any, Awaitable, Callable
+
+import structlog
 from aiogram import BaseMiddleware
-from aiogram.types import TelegramObject, CallbackQuery
+from aiogram.types import CallbackQuery, TelegramObject
 
 logger = structlog.get_logger()
 
@@ -16,15 +18,36 @@ class ErrorHandlerMiddleware(BaseMiddleware):
         event: TelegramObject,
         data: dict[str, Any],
     ) -> Any:
+        start_time = time.time()
+
         try:
-            return await handler(event, data)
+            result = await handler(event, data)
+
+            # Log slow handlers (>1 second)
+            duration = time.time() - start_time
+            if duration > 1.0:
+                logger.warning(
+                    "slow_handler",
+                    event_type=type(event).__name__,
+                    duration=round(duration, 2),
+                    user_id=getattr(event.from_user, "id", None)
+                    if hasattr(event, "from_user")
+                    else None,
+                    callback_data=event.data if isinstance(event, CallbackQuery) else None,
+                )
+
+            return result
         except Exception as e:
+            duration = time.time() - start_time
             logger.error(
                 "handler_exception",
                 error=str(e),
                 error_type=type(e).__name__,
                 event_type=type(event).__name__,
-                user_id=getattr(event.from_user, "id", None) if hasattr(event, "from_user") else None,
+                duration=round(duration, 2),
+                user_id=getattr(event.from_user, "id", None)
+                if hasattr(event, "from_user")
+                else None,
             )
 
             # Answer callback to remove loading state

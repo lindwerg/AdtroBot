@@ -39,22 +39,34 @@ async def get_active_users(
     month_ago = now - timedelta(days=30)
 
     # DAU - users with activity today
-    dau = await session.scalar(
-        select(func.count(distinct(TarotSpread.user_id)))
-        .where(TarotSpread.created_at >= today_start)
-    ) or 0
+    dau = (
+        await session.scalar(
+            select(func.count(distinct(TarotSpread.user_id))).where(
+                TarotSpread.created_at >= today_start
+            )
+        )
+        or 0
+    )
 
     # WAU - users with activity in last 7 days
-    wau = await session.scalar(
-        select(func.count(distinct(TarotSpread.user_id)))
-        .where(TarotSpread.created_at >= week_ago)
-    ) or 0
+    wau = (
+        await session.scalar(
+            select(func.count(distinct(TarotSpread.user_id))).where(
+                TarotSpread.created_at >= week_ago
+            )
+        )
+        or 0
+    )
 
     # MAU - users with activity in last 30 days
-    mau = await session.scalar(
-        select(func.count(distinct(TarotSpread.user_id)))
-        .where(TarotSpread.created_at >= month_ago)
-    ) or 0
+    mau = (
+        await session.scalar(
+            select(func.count(distinct(TarotSpread.user_id))).where(
+                TarotSpread.created_at >= month_ago
+            )
+        )
+        or 0
+    )
 
     return {"dau": dau, "wau": wau, "mau": mau}
 
@@ -79,8 +91,7 @@ async def get_api_costs_data(
             func.coalesce(func.sum(AIUsage.cost_dollars), 0).label("total_cost"),
             func.coalesce(func.sum(AIUsage.total_tokens), 0).label("total_tokens"),
             func.count(AIUsage.id).label("total_requests"),
-        )
-        .where(AIUsage.created_at >= range_start)
+        ).where(AIUsage.created_at >= range_start)
     )
     total_row = totals.first()
 
@@ -152,34 +163,46 @@ async def get_unit_economics(
     range_start = get_time_range_start(range_type)
 
     # Get total cost in period
-    total_cost = await session.scalar(
-        select(func.coalesce(func.sum(AIUsage.cost_dollars), 0))
-        .where(AIUsage.created_at >= range_start)
-    ) or 0
-
-    # Get active users in period
-    active_users = await session.scalar(
-        select(func.count(distinct(TarotSpread.user_id)))
-        .where(TarotSpread.created_at >= range_start)
-    ) or 0
-
-    # Get paying users (ever paid)
-    paying_users = await session.scalar(
-        select(func.count(distinct(Payment.user_id)))
-        .where(Payment.status == "succeeded")
-    ) or 0
-
-    # Active paying users in period
-    active_paying = await session.scalar(
-        select(func.count(distinct(TarotSpread.user_id)))
-        .where(TarotSpread.created_at >= range_start)
-        .where(
-            TarotSpread.user_id.in_(
-                select(distinct(Payment.user_id))
-                .where(Payment.status == "succeeded")
+    total_cost = (
+        await session.scalar(
+            select(func.coalesce(func.sum(AIUsage.cost_dollars), 0)).where(
+                AIUsage.created_at >= range_start
             )
         )
-    ) or 0
+        or 0
+    )
+
+    # Get active users in period
+    active_users = (
+        await session.scalar(
+            select(func.count(distinct(TarotSpread.user_id))).where(
+                TarotSpread.created_at >= range_start
+            )
+        )
+        or 0
+    )
+
+    # Get paying users (ever paid)
+    paying_users = (
+        await session.scalar(
+            select(func.count(distinct(Payment.user_id))).where(Payment.status == "succeeded")
+        )
+        or 0
+    )
+
+    # Active paying users in period
+    active_paying = (
+        await session.scalar(
+            select(func.count(distinct(TarotSpread.user_id)))
+            .where(TarotSpread.created_at >= range_start)
+            .where(
+                TarotSpread.user_id.in_(
+                    select(distinct(Payment.user_id)).where(Payment.status == "succeeded")
+                )
+            )
+        )
+        or 0
+    )
 
     return {
         "total_cost": float(total_cost),

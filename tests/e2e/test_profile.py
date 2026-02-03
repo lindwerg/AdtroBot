@@ -32,7 +32,7 @@ async def test_profile_command_responds(
         if response.buttons:
             for row in response.buttons:
                 for button in row:
-                    button_text = button.text if hasattr(button, 'text') else str(button)
+                    button_text = button.text if hasattr(button, "text") else str(button)
                     if "Профиль" in button_text or "Profile" in button_text:
                         await button.click()
                         profile_clicked = True
@@ -80,9 +80,10 @@ async def test_menu_navigation_works(
 
         # Verify we have interactive elements
         has_buttons = response.buttons is not None and len(response.buttons) > 0
-        has_menu_text = any(word in response.raw_text.lower() for word in [
-            "меню", "menu", "выбери", "choose", "готов", "ready"
-        ])
+        has_menu_text = any(
+            word in response.raw_text.lower()
+            for word in ["меню", "menu", "выбери", "choose", "готов", "ready"]
+        )
 
         assert has_buttons or has_menu_text, "Expected navigation menu after /start"
 
@@ -138,8 +139,10 @@ async def test_settings_accessible(
         if response.buttons:
             for row in response.buttons:
                 for button in row:
-                    button_text = button.text if hasattr(button, 'text') else str(button)
-                    if any(kw in button_text for kw in ["Профиль", "Profile", "Настройки", "Settings"]):
+                    button_text = button.text if hasattr(button, "text") else str(button)
+                    if any(
+                        kw in button_text for kw in ["Профиль", "Profile", "Настройки", "Settings"]
+                    ):
                         settings_found = True
                         break
 

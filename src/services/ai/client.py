@@ -61,25 +61,25 @@ def _clean_markdown(text: str) -> str:
     import re
 
     # Remove bold (** or ***)
-    text = re.sub(r'\*{2,3}([^*]+)\*{2,3}', r'\1', text)
+    text = re.sub(r"\*{2,3}([^*]+)\*{2,3}", r"\1", text)
 
     # Remove italic (single *)
-    text = re.sub(r'(?<!\*)\*(?!\*)([^*]+)\*(?!\*)', r'\1', text)
+    text = re.sub(r"(?<!\*)\*(?!\*)([^*]+)\*(?!\*)", r"\1", text)
 
     # Remove underscores (italic)
-    text = re.sub(r'_([^_]+)_', r'\1', text)
+    text = re.sub(r"_([^_]+)_", r"\1", text)
 
     # Remove code blocks (`)
-    text = re.sub(r'`([^`]+)`', r'\1', text)
+    text = re.sub(r"`([^`]+)`", r"\1", text)
 
     # Remove headers (##, ###, ####)
-    text = re.sub(r'^#{1,6}\s+', '', text, flags=re.MULTILINE)
+    text = re.sub(r"^#{1,6}\s+", "", text, flags=re.MULTILINE)
 
     # Remove links [text](url) -> text
-    text = re.sub(r'\[([^\]]+)\]\([^)]+\)', r'\1', text)
+    text = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", text)
 
     # Remove spoilers (||)
-    text = re.sub(r'\|\|([^|]+)\|\|', r'\1', text)
+    text = re.sub(r"\|\|([^|]+)\|\|", r"\1", text)
 
     return text.strip()
 
@@ -103,8 +103,8 @@ def _parse_celtic_response(text: str) -> tuple[str | None, str | None]:
     import re
 
     # Find markers
-    short_match = re.search(r'===КРАТКИЙ===\s*\n(.*?)\n\s*===ПОЛНЫЙ===', text, re.DOTALL)
-    full_match = re.search(r'===ПОЛНЫЙ===\s*\n(.*)', text, re.DOTALL)
+    short_match = re.search(r"===КРАТКИЙ===\s*\n(.*?)\n\s*===ПОЛНЫЙ===", text, re.DOTALL)
+    full_match = re.search(r"===ПОЛНЫЙ===\s*\n(.*)", text, re.DOTALL)
 
     if not short_match or not full_match:
         return (None, None)
@@ -803,9 +803,7 @@ class AIService:
             )
 
         # Cache result (even if Telegraph failed, cache the text)
-        await set_cached_transit_forecast(
-            user_id, forecast_date, text, telegraph_url or ""
-        )
+        await set_cached_transit_forecast(user_id, forecast_date, text, telegraph_url or "")
 
         logger.info(
             "transit_forecast_generated",
@@ -962,9 +960,7 @@ class AIService:
                 return content
 
             except APIError as fallback_error:
-                record_ai_error(
-                    "astrologer_chat", self.model, type(fallback_error).__name__
-                )
+                record_ai_error("astrologer_chat", self.model, type(fallback_error).__name__)
                 logger.error(
                     "astrologer_chat_failed",
                     user_id=user_id,

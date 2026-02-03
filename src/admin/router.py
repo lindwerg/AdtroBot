@@ -96,9 +96,7 @@ async def login(
     session: AsyncSession = Depends(get_session),
 ) -> Token:
     """Authenticate admin and return JWT token."""
-    result = await session.execute(
-        select(Admin).where(Admin.username == form_data.username)
-    )
+    result = await session.execute(select(Admin).where(Admin.username == form_data.username))
     admin = result.scalar_one_or_none()
 
     if not admin or not verify_password(form_data.password, admin.hashed_password):
@@ -378,9 +376,7 @@ async def list_horoscope_content(
     return await get_all_horoscope_content(session)
 
 
-@admin_router.get(
-    "/content/horoscopes/{zodiac_sign}", response_model=HoroscopeContentItem
-)
+@admin_router.get("/content/horoscopes/{zodiac_sign}", response_model=HoroscopeContentItem)
 async def get_content_by_sign(
     zodiac_sign: str = Path(...),
     session: AsyncSession = Depends(get_session),
@@ -393,9 +389,7 @@ async def get_content_by_sign(
     return HoroscopeContentItem.model_validate(content)
 
 
-@admin_router.put(
-    "/content/horoscopes/{zodiac_sign}", response_model=HoroscopeContentItem
-)
+@admin_router.put("/content/horoscopes/{zodiac_sign}", response_model=HoroscopeContentItem)
 async def update_content_by_sign(
     request: UpdateHoroscopeContentRequest,
     zodiac_sign: str = Path(...),
@@ -403,9 +397,7 @@ async def update_content_by_sign(
     current_admin: Admin = Depends(get_current_admin),
 ) -> HoroscopeContentItem:
     """Update horoscope content for specific zodiac sign."""
-    content = await update_horoscope_content(
-        session, zodiac_sign, request, current_admin.id
-    )
+    content = await update_horoscope_content(session, zodiac_sign, request, current_admin.id)
     return HoroscopeContentItem.model_validate(content)
 
 
@@ -626,6 +618,7 @@ async def monitoring_dashboard(
     except Exception as e:
         # If ai_usage table doesn't exist or other DB error, return default values
         import logging
+
         logging.error(f"Monitoring data error: {e}")
         return MonitoringResponse(
             range=range_type,

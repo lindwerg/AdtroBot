@@ -108,9 +108,7 @@ class AdminAPIUser(HttpUser):
             if response.status_code != 200:
                 response.failure(f"Users list failed: {response.status_code}")
             elif response.elapsed.total_seconds() > 2.0:
-                response.failure(
-                    f"Users list too slow: {response.elapsed.total_seconds():.2f}s"
-                )
+                response.failure(f"Users list too slow: {response.elapsed.total_seconds():.2f}s")
             else:
                 response.success()
 
@@ -129,9 +127,7 @@ class AdminAPIUser(HttpUser):
             if response.status_code != 200:
                 response.failure(f"Monitoring failed: {response.status_code}")
             elif response.elapsed.total_seconds() > 2.0:
-                response.failure(
-                    f"Monitoring too slow: {response.elapsed.total_seconds():.2f}s"
-                )
+                response.failure(f"Monitoring too slow: {response.elapsed.total_seconds():.2f}s")
             else:
                 response.success()
 
@@ -141,15 +137,11 @@ class AdminAPIUser(HttpUser):
         if not self.token:
             return
 
-        with self.client.get(
-            "/admin/api/funnel?days=30", catch_response=True
-        ) as response:
+        with self.client.get("/admin/api/funnel?days=30", catch_response=True) as response:
             if response.status_code != 200:
                 response.failure(f"Funnel failed: {response.status_code}")
             elif response.elapsed.total_seconds() > 2.0:
-                response.failure(
-                    f"Funnel too slow: {response.elapsed.total_seconds():.2f}s"
-                )
+                response.failure(f"Funnel too slow: {response.elapsed.total_seconds():.2f}s")
             else:
                 response.success()
 
@@ -165,9 +157,7 @@ class AdminAPIUser(HttpUser):
             if response.status_code != 200:
                 response.failure(f"Payments list failed: {response.status_code}")
             elif response.elapsed.total_seconds() > 2.0:
-                response.failure(
-                    f"Payments too slow: {response.elapsed.total_seconds():.2f}s"
-                )
+                response.failure(f"Payments too slow: {response.elapsed.total_seconds():.2f}s")
             else:
                 response.success()
 

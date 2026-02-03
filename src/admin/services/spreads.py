@@ -53,9 +53,7 @@ async def get_spreads(
         query = query.where(TarotSpread.created_at <= date_to)
 
     # Build count query with same filters
-    count_query = select(func.count(TarotSpread.id)).join(
-        User, TarotSpread.user_id == User.id
-    )
+    count_query = select(func.count(TarotSpread.id)).join(User, TarotSpread.user_id == User.id)
 
     if user_id:
         count_query = count_query.where(TarotSpread.user_id == user_id)
@@ -132,9 +130,7 @@ async def get_spread_detail(
         # Get position name
         pos_idx = position_idx - 1 if position_idx > 0 else i
         position_name = (
-            position_names[pos_idx]
-            if pos_idx < len(position_names)
-            else f"Position {position_idx}"
+            position_names[pos_idx] if pos_idx < len(position_names) else f"Position {position_idx}"
         )
 
         cards.append(

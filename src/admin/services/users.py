@@ -138,9 +138,7 @@ async def get_user_detail(session: AsyncSession, user_id: int) -> UserDetail | N
         tarot_spread_count=user.tarot_spread_count,
         detailed_natal_purchased_at=user.detailed_natal_purchased_at,
         created_at=user.created_at,
-        subscription=SubscriptionInfo.model_validate(subscription)
-        if subscription
-        else None,
+        subscription=SubscriptionInfo.model_validate(subscription) if subscription else None,
         payments=[PaymentHistoryItem.model_validate(p) for p in payments],
         recent_spreads=[TarotSpreadHistoryItem.model_validate(s) for s in spreads],
     )

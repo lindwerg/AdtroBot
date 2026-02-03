@@ -35,9 +35,7 @@ async def get_sparkline_data(
     points = []
 
     for i in range(days - 1, -1, -1):
-        day_start = (now - timedelta(days=i)).replace(
-            hour=0, minute=0, second=0, microsecond=0
-        )
+        day_start = (now - timedelta(days=i)).replace(hour=0, minute=0, second=0, microsecond=0)
         day_end = day_start + timedelta(days=1)
 
         if metric_type == "new_users":
@@ -66,9 +64,7 @@ async def get_sparkline_data(
         else:
             value = 0
 
-        points.append(
-            SparklinePoint(date=day_start.strftime("%Y-%m-%d"), value=float(value or 0))
-        )
+        points.append(SparklinePoint(date=day_start.strftime("%Y-%m-%d"), value=float(value or 0)))
 
     return points
 
@@ -115,10 +111,7 @@ async def get_dashboard_metrics(session: AsyncSession) -> DashboardMetrics:
 
     # === New Users Today ===
     new_today = (
-        await session.scalar(
-            select(func.count(User.id)).where(User.created_at >= today_start)
-        )
-        or 0
+        await session.scalar(select(func.count(User.id)).where(User.created_at >= today_start)) or 0
     )
     new_yesterday = (
         await session.scalar(
@@ -159,23 +152,23 @@ async def get_dashboard_metrics(session: AsyncSession) -> DashboardMetrics:
     # === Horoscopes Today (from horoscope_views tracking table) ===
     horoscopes_today = (
         await session.scalar(
-            select(func.coalesce(func.sum(HoroscopeView.view_count), 0))
-            .where(HoroscopeView.view_date == today_start.date())
+            select(func.coalesce(func.sum(HoroscopeView.view_count), 0)).where(
+                HoroscopeView.view_date == today_start.date()
+            )
         )
     ) or 0
     horoscopes_yesterday = (
         await session.scalar(
-            select(func.coalesce(func.sum(HoroscopeView.view_count), 0))
-            .where(HoroscopeView.view_date == yesterday_start.date())
+            select(func.coalesce(func.sum(HoroscopeView.view_count), 0)).where(
+                HoroscopeView.view_date == yesterday_start.date()
+            )
         )
     ) or 0
 
     # === Tarot Spreads Today ===
     spreads_today = (
         await session.scalar(
-            select(func.count(TarotSpread.id)).where(
-                TarotSpread.created_at >= today_start
-            )
+            select(func.count(TarotSpread.id)).where(TarotSpread.created_at >= today_start)
         )
         or 0
     )
@@ -232,16 +225,11 @@ async def get_dashboard_metrics(session: AsyncSession) -> DashboardMetrics:
 
     # === Conversion Rate (paid users / total users who registered 7+ days ago) ===
     eligible_users = (
-        await session.scalar(
-            select(func.count(User.id)).where(User.created_at <= week_ago)
-        )
-        or 0
+        await session.scalar(select(func.count(User.id)).where(User.created_at <= week_ago)) or 0
     )
     paid_users = (
         await session.scalar(
-            select(func.count(distinct(Payment.user_id))).where(
-                Payment.status == "succeeded"
-            )
+            select(func.count(distinct(Payment.user_id))).where(Payment.status == "succeeded")
         )
         or 0
     )
@@ -323,9 +311,7 @@ async def get_funnel_data(session: AsyncSession, days: int = 30) -> FunnelData:
 
     # Stage 1: Registration (/start)
     registered = (
-        await session.scalar(
-            select(func.count(User.id)).where(User.created_at >= period_start)
-        )
+        await session.scalar(select(func.count(User.id)).where(User.created_at >= period_start))
         or 0
     )
     stages.append(
@@ -353,14 +339,10 @@ async def get_funnel_data(session: AsyncSession, days: int = 30) -> FunnelData:
             name="onboarded",
             name_ru="Onboarding завершен",
             value=onboarded,
-            conversion_from_prev=(
-                round(onboarded / registered * 100, 1) if registered > 0 else 0
-            ),
+            conversion_from_prev=(round(onboarded / registered * 100, 1) if registered > 0 else 0),
             dropoff_count=registered - onboarded,
             dropoff_percent=(
-                round((registered - onboarded) / registered * 100, 1)
-                if registered > 0
-                else 0
+                round((registered - onboarded) / registered * 100, 1) if registered > 0 else 0
             ),
         )
     )
@@ -369,9 +351,7 @@ async def get_funnel_data(session: AsyncSession, days: int = 30) -> FunnelData:
     first_action = (
         await session.scalar(
             select(func.count(distinct(TarotSpread.user_id))).where(
-                TarotSpread.user_id.in_(
-                    select(User.id).where(User.created_at >= period_start)
-                )
+                TarotSpread.user_id.in_(select(User.id).where(User.created_at >= period_start))
             )
         )
         or 0
@@ -381,14 +361,10 @@ async def get_funnel_data(session: AsyncSession, days: int = 30) -> FunnelData:
             name="first_action",
             name_ru="Первое действие",
             value=first_action,
-            conversion_from_prev=(
-                round(first_action / onboarded * 100, 1) if onboarded > 0 else 0
-            ),
+            conversion_from_prev=(round(first_action / onboarded * 100, 1) if onboarded > 0 else 0),
             dropoff_count=onboarded - first_action,
             dropoff_percent=(
-                round((onboarded - first_action) / onboarded * 100, 1)
-                if onboarded > 0
-                else 0
+                round((onboarded - first_action) / onboarded * 100, 1) if onboarded > 0 else 0
             ),
         )
     )
@@ -432,9 +408,7 @@ async def get_funnel_data(session: AsyncSession, days: int = 30) -> FunnelData:
     started_payment = (
         await session.scalar(
             select(func.count(distinct(Payment.user_id))).where(
-                Payment.user_id.in_(
-                    select(User.id).where(User.created_at >= period_start)
-                )
+                Payment.user_id.in_(select(User.id).where(User.created_at >= period_start))
             )
         )
         or 0
@@ -449,9 +423,7 @@ async def get_funnel_data(session: AsyncSession, days: int = 30) -> FunnelData:
             ),
             dropoff_count=saw_teaser - started_payment,
             dropoff_percent=(
-                round((saw_teaser - started_payment) / saw_teaser * 100, 1)
-                if saw_teaser > 0
-                else 0
+                round((saw_teaser - started_payment) / saw_teaser * 100, 1) if saw_teaser > 0 else 0
             ),
         )
     )
@@ -460,11 +432,7 @@ async def get_funnel_data(session: AsyncSession, days: int = 30) -> FunnelData:
     paid = (
         await session.scalar(
             select(func.count(distinct(Payment.user_id)))
-            .where(
-                Payment.user_id.in_(
-                    select(User.id).where(User.created_at >= period_start)
-                )
-            )
+            .where(Payment.user_id.in_(select(User.id).where(User.created_at >= period_start)))
             .where(Payment.status == "succeeded")
         )
         or 0

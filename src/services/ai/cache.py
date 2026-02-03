@@ -189,39 +189,32 @@ def clear_expired_cache() -> None:
     now = time.time()
 
     # Clear expired horoscope entries
-    expired_horoscope_keys = [
-        k for k, v in _horoscope_cache.items() if v["expires_date"] < today
-    ]
+    expired_horoscope_keys = [k for k, v in _horoscope_cache.items() if v["expires_date"] < today]
     for k in expired_horoscope_keys:
         del _horoscope_cache[k]
 
     # Clear expired card of day entries
-    expired_card_keys = [
-        k for k, v in _card_of_day_cache.items() if v["expires_date"] < today
-    ]
+    expired_card_keys = [k for k, v in _card_of_day_cache.items() if v["expires_date"] < today]
     for k in expired_card_keys:
         del _card_of_day_cache[k]
 
     # Clear expired premium horoscope entries (TTL-based)
     expired_premium_keys = [
-        k for k, v in _premium_horoscope_cache.items()
-        if now - v[1] >= PREMIUM_HOROSCOPE_TTL
+        k for k, v in _premium_horoscope_cache.items() if now - v[1] >= PREMIUM_HOROSCOPE_TTL
     ]
     for k in expired_premium_keys:
         del _premium_horoscope_cache[k]
 
     # Clear expired natal interpretation entries (TTL-based)
     expired_natal_keys = [
-        k for k, v in _natal_interpretation_cache.items()
-        if now - v[1] >= NATAL_INTERPRETATION_TTL
+        k for k, v in _natal_interpretation_cache.items() if now - v[1] >= NATAL_INTERPRETATION_TTL
     ]
     for k in expired_natal_keys:
         del _natal_interpretation_cache[k]
 
     # Clear expired transit forecast entries (TTL-based)
     expired_transit_keys = [
-        k for k, v in _transit_forecast_cache.items()
-        if now - v[2] >= TRANSIT_FORECAST_TTL
+        k for k, v in _transit_forecast_cache.items() if now - v[2] >= TRANSIT_FORECAST_TTL
     ]
     for k in expired_transit_keys:
         del _transit_forecast_cache[k]
@@ -237,34 +230,27 @@ def get_cache_stats() -> dict:
     now = time.time()
     return {
         "horoscope_total": len(_horoscope_cache),
-        "horoscope_today": sum(
-            1 for v in _horoscope_cache.values() if v["expires_date"] == today
-        ),
+        "horoscope_today": sum(1 for v in _horoscope_cache.values() if v["expires_date"] == today),
         "card_of_day_total": len(_card_of_day_cache),
         "card_of_day_today": sum(
             1 for v in _card_of_day_cache.values() if v["expires_date"] == today
         ),
         "premium_horoscope_total": len(_premium_horoscope_cache),
         "premium_horoscope_active": sum(
-            1 for v in _premium_horoscope_cache.values()
-            if now - v[1] < PREMIUM_HOROSCOPE_TTL
+            1 for v in _premium_horoscope_cache.values() if now - v[1] < PREMIUM_HOROSCOPE_TTL
         ),
         "natal_interpretation_total": len(_natal_interpretation_cache),
         "natal_interpretation_active": sum(
-            1 for v in _natal_interpretation_cache.values()
-            if now - v[1] < NATAL_INTERPRETATION_TTL
+            1 for v in _natal_interpretation_cache.values() if now - v[1] < NATAL_INTERPRETATION_TTL
         ),
         "transit_forecast_total": len(_transit_forecast_cache),
         "transit_forecast_active": sum(
-            1 for v in _transit_forecast_cache.values()
-            if now - v[2] < TRANSIT_FORECAST_TTL
+            1 for v in _transit_forecast_cache.values() if now - v[2] < TRANSIT_FORECAST_TTL
         ),
     }
 
 
-async def get_cached_transit_forecast(
-    user_id: int, forecast_date: date
-) -> tuple[str, str] | None:
+async def get_cached_transit_forecast(user_id: int, forecast_date: date) -> tuple[str, str] | None:
     """Get cached transit forecast (text, telegraph_url).
 
     Args:

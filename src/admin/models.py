@@ -26,9 +26,7 @@ class Admin(Base):
     username: Mapped[str] = mapped_column(String(50), unique=True, index=True)
     hashed_password: Mapped[str] = mapped_column(String(255))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 class ScheduledMessage(Base):
@@ -52,9 +50,7 @@ class ScheduledMessage(Base):
     scheduled_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )  # None = send immediately
-    sent_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Stats
     total_recipients: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
@@ -64,9 +60,7 @@ class ScheduledMessage(Base):
     # Status: pending, sending, sent, canceled
     status: Mapped[str] = mapped_column(String(20), default="pending", server_default="pending")
 
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     created_by: Mapped[int | None] = mapped_column(Integer, nullable=True)  # admin id
 
 
@@ -115,12 +109,8 @@ class ABExperiment(Base):
     # Status: draft, running, paused, completed
     status: Mapped[str] = mapped_column(String(20), default="draft")
 
-    started_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    ended_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -146,12 +136,8 @@ class ABAssignment(Base):
     variant: Mapped[str] = mapped_column(String(1))
 
     # Conversion event recorded
-    converted: Mapped[bool] = mapped_column(
-        Boolean, default=False, server_default="false"
-    )
-    converted_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    converted: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    converted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     assigned_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -160,7 +146,5 @@ class ABAssignment(Base):
 
     __table_args__ = (
         # One assignment per user per experiment
-        UniqueConstraint(
-            "experiment_id", "user_id", name="uq_ab_assignment_user_experiment"
-        ),
+        UniqueConstraint("experiment_id", "user_id", name="uq_ab_assignment_user_experiment"),
     )

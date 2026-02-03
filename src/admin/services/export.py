@@ -47,9 +47,7 @@ async def export_users_csv(
             "tarot_spread_count": u.tarot_spread_count,
             "notifications_enabled": u.notifications_enabled,
             "detailed_natal_purchased_at": (
-                u.detailed_natal_purchased_at.isoformat()
-                if u.detailed_natal_purchased_at
-                else None
+                u.detailed_natal_purchased_at.isoformat() if u.detailed_natal_purchased_at else None
             ),
             "created_at": u.created_at.isoformat(),
         }
@@ -72,9 +70,7 @@ async def export_payments_csv(
     date_to: datetime | None = None,
 ) -> io.StringIO:
     """Export payments to CSV."""
-    query = select(Payment, User.telegram_id, User.username).join(
-        User, Payment.user_id == User.id
-    )
+    query = select(Payment, User.telegram_id, User.username).join(User, Payment.user_id == User.id)
 
     if status:
         query = query.where(Payment.status == status)
@@ -121,9 +117,7 @@ async def export_metrics_csv(
     data = []
 
     for i in range(days - 1, -1, -1):
-        day_start = (now - timedelta(days=i)).replace(
-            hour=0, minute=0, second=0, microsecond=0
-        )
+        day_start = (now - timedelta(days=i)).replace(hour=0, minute=0, second=0, microsecond=0)
         day_end = day_start + timedelta(days=1)
 
         # New users

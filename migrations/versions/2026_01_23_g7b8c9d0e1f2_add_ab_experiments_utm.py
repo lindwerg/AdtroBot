@@ -68,9 +68,7 @@ def upgrade() -> None:
             ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_ab_assignments")),
-        sa.UniqueConstraint(
-            "experiment_id", "user_id", name="uq_ab_assignment_user_experiment"
-        ),
+        sa.UniqueConstraint("experiment_id", "user_id", name="uq_ab_assignment_user_experiment"),
     )
     op.create_index(
         op.f("ix_ab_assignments_experiment_id"),

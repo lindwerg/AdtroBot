@@ -49,7 +49,7 @@ def get_scheduler() -> AsyncIOScheduler:
         # Add daily horoscope generation job at 00:00 Moscow time
         _scheduler.add_job(
             generate_daily_horoscopes,
-            CronTrigger(hour='0', minute=0, timezone="Europe/Moscow"),
+            CronTrigger(hour="0", minute=0, timezone="Europe/Moscow"),
             id="generate_daily_horoscopes",
             replace_existing=True,
             misfire_grace_time=3600,  # 1 hour grace
@@ -95,9 +95,7 @@ async def send_daily_horoscope(user_id: int, zodiac_sign: str) -> None:
 
     # Get user from DB to check premium status
     async with AsyncSessionLocal() as session:
-        result = await session.execute(
-            select(User).where(User.telegram_id == user_id)
-        )
+        result = await session.execute(select(User).where(User.telegram_id == user_id))
         user = result.scalar_one_or_none()
 
     if not user:
@@ -197,9 +195,7 @@ async def send_daily_horoscope(user_id: int, zodiac_sign: str) -> None:
         await logger.aerror("Failed to send horoscope notification", user_id=user_id, error=str(e))
 
 
-def schedule_user_notification(
-    user_id: int, hour: int, timezone: str, zodiac_sign: str
-) -> None:
+def schedule_user_notification(user_id: int, hour: int, timezone: str, zodiac_sign: str) -> None:
     """Schedule daily horoscope notification for user.
 
     Args:
@@ -352,8 +348,8 @@ async def auto_renew_subscriptions() -> None:
                 if payment.status == "succeeded":
                     # Extend subscription period
                     subscription.current_period_start = subscription.current_period_end
-                    subscription.current_period_end = (
-                        subscription.current_period_end + timedelta(days=PLAN_DURATION_DAYS[plan])
+                    subscription.current_period_end = subscription.current_period_end + timedelta(
+                        days=PLAN_DURATION_DAYS[plan]
                     )
                     user.premium_until = subscription.current_period_end
                     await session.commit()
@@ -411,9 +407,7 @@ async def generate_daily_horoscopes() -> None:
 
     # FIRST: Delete old horoscopes (explicit cleanup)
     async with async_session_maker() as session:
-        await session.execute(
-            delete(HoroscopeCache).where(HoroscopeCache.horoscope_date < today)
-        )
+        await session.execute(delete(HoroscopeCache).where(HoroscopeCache.horoscope_date < today))
         await session.commit()
         logger.info("Cleaned up old horoscopes", before_date=str(today))
 

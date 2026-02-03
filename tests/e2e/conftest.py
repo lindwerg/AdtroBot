@@ -73,17 +73,13 @@ async def cleanup_test_user(
             await db_session.execute(
                 delete(TarotSpread).where(
                     TarotSpread.user_id.in_(
-                        db_session.query(User.id).filter(
-                            User.telegram_id == telegram_id
-                        )
+                        db_session.query(User.id).filter(User.telegram_id == telegram_id)
                     )
                 )
             )
 
             # Delete test user
-            await db_session.execute(
-                delete(User).where(User.telegram_id == telegram_id)
-            )
+            await db_session.execute(delete(User).where(User.telegram_id == telegram_id))
 
             await db_session.commit()
         except (ValueError, Exception):

@@ -110,9 +110,7 @@ def get_daily_limit(user: User) -> int:
     return DAILY_SPREAD_LIMIT_PREMIUM if user.is_premium else DAILY_SPREAD_LIMIT_FREE
 
 
-async def check_and_use_tarot_limit(
-    user: User, session: AsyncSession
-) -> tuple[bool, int]:
+async def check_and_use_tarot_limit(user: User, session: AsyncSession) -> tuple[bool, int]:
     """
     Check if user can do tarot spread today (atomic increment).
 
@@ -237,9 +235,7 @@ async def tarot_card_of_day_start(
         card = get_card_by_id(user.card_of_day_id)
         if card:
             reversed_flag = user.card_of_day_reversed or False
-            await send_card_of_day(
-                callback.message, card, reversed_flag, callback.from_user.id
-            )
+            await send_card_of_day(callback.message, card, reversed_flag, callback.from_user.id)
             await callback.answer()
             return
 
@@ -256,9 +252,7 @@ async def tarot_card_of_day_start(
 
 
 @router.callback_query(TarotCallback.filter(F.a == TarotAction.DRAW_COD))
-async def tarot_draw_card_of_day(
-    callback: CallbackQuery, session: AsyncSession
-) -> None:
+async def tarot_draw_card_of_day(callback: CallbackQuery, session: AsyncSession) -> None:
     """Draw and show card of the day."""
     user = await get_user(session, callback.from_user.id)
     if not user:
@@ -273,9 +267,7 @@ async def tarot_draw_card_of_day(
         if card:
             reversed_flag = user.card_of_day_reversed or False
             await callback.message.delete()
-            await send_card_of_day(
-                callback.message, card, reversed_flag, callback.from_user.id
-            )
+            await send_card_of_day(callback.message, card, reversed_flag, callback.from_user.id)
             await callback.answer()
             return
 
@@ -289,15 +281,11 @@ async def tarot_draw_card_of_day(
     await session.commit()
 
     await callback.message.delete()
-    await send_card_of_day(
-        callback.message, card, reversed_flag, callback.from_user.id
-    )
+    await send_card_of_day(callback.message, card, reversed_flag, callback.from_user.id)
     await callback.answer()
 
 
-async def send_card_of_day(
-    message: Message, card: dict, reversed_flag: bool, user_id: int
-) -> None:
+async def send_card_of_day(message: Message, card: dict, reversed_flag: bool, user_id: int) -> None:
     """Send card of the day with image and AI interpretation.
 
     NOTE: НЕ показываем лимиты после карты дня - она бесплатная и неограниченная.
@@ -476,7 +464,7 @@ async def tarot_draw_three_cards(
     await callback.message.answer(
         **content.as_kwargs(),
     )
-    
+
     # Check if need to show channel promo (first time)
     user_obj = await get_user(session, callback.from_user.id)
     if user_obj and not user_obj.channel_promo_shown:
@@ -490,13 +478,13 @@ async def tarot_draw_three_cards(
         # Mark as shown
         user_obj.channel_promo_shown = True
         await session.commit()
-    
+
     # Always show limits after spread (after promo if first time)
     await callback.message.answer(
         limit_text,
         reply_markup=get_tarot_menu_keyboard(),
     )
-    
+
     await callback.answer()
 
 
@@ -725,8 +713,7 @@ async def tarot_draw_celtic_cards(
 
         # Send full interpretation in chunks (Telegram 4096 char limit)
         chunks = [
-            full_interpretation[i : i + 4000]
-            for i in range(0, len(full_interpretation), 4000)
+            full_interpretation[i : i + 4000] for i in range(0, len(full_interpretation), 4000)
         ]
         for chunk in chunks:
             await callback.message.answer(chunk)
@@ -761,9 +748,7 @@ async def tarot_history_start(
 
 
 @router.callback_query(HistoryCallback.filter(F.a == HistoryAction.LIST))
-async def tarot_history_list(
-    callback: CallbackQuery, session: AsyncSession
-) -> None:
+async def tarot_history_list(callback: CallbackQuery, session: AsyncSession) -> None:
     """Return to history list."""
     user = await get_user(session, callback.from_user.id)
     if not user:
@@ -806,11 +791,7 @@ async def show_history_page(
         page: Page number (0-indexed)
     """
     # Count total spreads
-    count_stmt = (
-        select(func.count())
-        .select_from(TarotSpread)
-        .where(TarotSpread.user_id == user_id)
-    )
+    count_stmt = select(func.count()).select_from(TarotSpread).where(TarotSpread.user_id == user_id)
     total_result = await session.execute(count_stmt)
     total_count = min(total_result.scalar_one(), MAX_HISTORY_SPREADS)
 
@@ -840,8 +821,7 @@ async def show_history_page(
 
     await safe_edit_message(
         callback=callback,
-        text=f"История раскладов ({total_count} всего)\n"
-        f"Страница {page + 1}/{total_pages}",
+        text=f"История раскладов ({total_count} всего)\n" f"Страница {page + 1}/{total_pages}",
         reply_markup=get_history_keyboard(list(spreads), page, total_pages, offset),
     )
 

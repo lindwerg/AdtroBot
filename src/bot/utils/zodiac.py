@@ -32,18 +32,18 @@ ZODIAC_SIGNS: dict[str, ZodiacSign] = {
 # Zodiac date boundaries: (month, day) - start of each sign
 # Sign starts on this date (inclusive)
 ZODIAC_BOUNDARIES = [
-    ((1, 20), "Aquarius"),   # Jan 20 - Feb 18
-    ((2, 19), "Pisces"),     # Feb 19 - Mar 20
-    ((3, 21), "Aries"),      # Mar 21 - Apr 19
-    ((4, 20), "Taurus"),     # Apr 20 - May 20
-    ((5, 21), "Gemini"),     # May 21 - Jun 20
-    ((6, 21), "Cancer"),     # Jun 21 - Jul 22
-    ((7, 23), "Leo"),        # Jul 23 - Aug 22
-    ((8, 23), "Virgo"),      # Aug 23 - Sep 22
-    ((9, 23), "Libra"),      # Sep 23 - Oct 22
-    ((10, 23), "Scorpio"),   # Oct 23 - Nov 21
+    ((1, 20), "Aquarius"),  # Jan 20 - Feb 18
+    ((2, 19), "Pisces"),  # Feb 19 - Mar 20
+    ((3, 21), "Aries"),  # Mar 21 - Apr 19
+    ((4, 20), "Taurus"),  # Apr 20 - May 20
+    ((5, 21), "Gemini"),  # May 21 - Jun 20
+    ((6, 21), "Cancer"),  # Jun 21 - Jul 22
+    ((7, 23), "Leo"),  # Jul 23 - Aug 22
+    ((8, 23), "Virgo"),  # Aug 23 - Sep 22
+    ((9, 23), "Libra"),  # Sep 23 - Oct 22
+    ((10, 23), "Scorpio"),  # Oct 23 - Nov 21
     ((11, 22), "Sagittarius"),  # Nov 22 - Dec 21
-    ((12, 22), "Capricorn"), # Dec 22 - Jan 19
+    ((12, 22), "Capricorn"),  # Dec 22 - Jan 19
 ]
 
 

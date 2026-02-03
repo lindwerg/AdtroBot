@@ -12,10 +12,10 @@ IMAGES_DIR = Path(__file__).parent.parent.parent / "data" / "images"
 
 def get_image(name: str) -> FSInputFile | None:
     """Get image file by name.
-    
+
     Args:
         name: Image name without extension (e.g., 'welcome', 'horoscope')
-        
+
     Returns:
         FSInputFile for sending via aiogram, or None if not found
     """
@@ -33,6 +33,7 @@ def get_image(name: str) -> FSInputFile | None:
 # Pre-defined image names
 class BotImages:
     """Available bot images."""
+
     WELCOME = "welcome"
     HOROSCOPE = "horoscope"
     TAROT_MENU = "tarot_menu"

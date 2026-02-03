@@ -108,9 +108,7 @@ def format_house(house_num: int, cusp: HouseCusp) -> str:
     return f"{emoji} дом в {sign_ru}"
 
 
-def format_natal_info_for_menu(
-    user: User, natal_data: FullNatalChartResult | None
-) -> str:
+def format_natal_info_for_menu(user: User, natal_data: FullNatalChartResult | None) -> str:
     """Форматировать натальную информацию для главного меню.
 
     Args:
@@ -181,16 +179,8 @@ def _format_premium_natal_info(natal_data: FullNatalChartResult) -> str:
 
     # Основа личности (3 точки)
     lines.append("💫 Основа личности:")
-    lines.append(
-        format_planet_position_with_meaning(
-            "sun", planets["sun"], "ваша суть"
-        )
-    )
-    lines.append(
-        format_planet_position_with_meaning(
-            "moon", planets["moon"], "ваши эмоции"
-        )
-    )
+    lines.append(format_planet_position_with_meaning("sun", planets["sun"], "ваша суть"))
+    lines.append(format_planet_position_with_meaning("moon", planets["moon"], "ваши эмоции"))
 
     # Асцендент (если известен)
     if ascendant:
@@ -202,20 +192,10 @@ def _format_premium_natal_info(natal_data: FullNatalChartResult) -> str:
     # Личные планеты (3 планеты)
     lines.append("🎯 Личные планеты:")
     lines.append(
-        format_planet_position_with_meaning(
-            "mercury", planets["mercury"], "ваше мышление"
-        )
+        format_planet_position_with_meaning("mercury", planets["mercury"], "ваше мышление")
     )
-    lines.append(
-        format_planet_position_with_meaning(
-            "venus", planets["venus"], "ваша любовь"
-        )
-    )
-    lines.append(
-        format_planet_position_with_meaning(
-            "mars", planets["mars"], "ваша энергия"
-        )
-    )
+    lines.append(format_planet_position_with_meaning("venus", planets["venus"], "ваша любовь"))
+    lines.append(format_planet_position_with_meaning("mars", planets["mars"], "ваша энергия"))
 
     lines.append("")
 

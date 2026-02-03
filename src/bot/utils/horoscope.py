@@ -113,7 +113,4 @@ def get_mock_horoscope(zodiac_name: str) -> str:
     Returns:
         Russian horoscope text with zodiac emoji
     """
-    return MOCK_HOROSCOPES.get(
-        zodiac_name,
-        "Звёзды сегодня хранят молчание. Попробуйте позже."
-    )
+    return MOCK_HOROSCOPES.get(zodiac_name, "Звёзды сегодня хранят молчание. Попробуйте позже.")

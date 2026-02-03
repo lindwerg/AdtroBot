@@ -93,7 +93,9 @@ def get_history_keyboard(spreads: list, page: int, total_pages: int, offset: int
         # Format: [index] date + type + question preview (shortened for better UX)
         date_str = spread.created_at.strftime("%d.%m")
         type_label = "CC" if spread.spread_type == "celtic_cross" else "3K"
-        question_preview = spread.question[:15] + "..." if len(spread.question) > 15 else spread.question
+        question_preview = (
+            spread.question[:15] + "..." if len(spread.question) > 15 else spread.question
+        )
         text = f"[{offset + idx + 1}] {date_str} [{type_label}] {question_preview}"
 
         builder.button(

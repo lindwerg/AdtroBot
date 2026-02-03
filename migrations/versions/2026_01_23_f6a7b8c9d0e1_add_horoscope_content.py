@@ -36,12 +36,11 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id", name=op.f("pk_horoscope_content")),
         sa.UniqueConstraint("zodiac_sign", name=op.f("uq_horoscope_content_zodiac_sign")),
     )
-    op.create_index(
-        op.f("ix_zodiac_sign"), "horoscope_content", ["zodiac_sign"], unique=False
-    )
+    op.create_index(op.f("ix_zodiac_sign"), "horoscope_content", ["zodiac_sign"], unique=False)
 
     # Seed initial data for all 12 zodiac signs
-    op.execute("""
+    op.execute(
+        """
         INSERT INTO horoscope_content (zodiac_sign, base_text, updated_at)
         VALUES
             ('aries', '', NOW()),
@@ -57,7 +56,8 @@ def upgrade() -> None:
             ('aquarius', '', NOW()),
             ('pisces', '', NOW())
         ON CONFLICT (zodiac_sign) DO NOTHING;
-    """)
+    """
+    )
 
 
 def downgrade() -> None:

@@ -30,14 +30,10 @@ class Subscription(Base):
     )
 
     plan: Mapped[str] = mapped_column(String(20))  # monthly, yearly
-    status: Mapped[str] = mapped_column(
-        String(20), default="trial", server_default="trial"
-    )
+    status: Mapped[str] = mapped_column(String(20), default="trial", server_default="trial")
 
     # For recurring payments
-    payment_method_id: Mapped[str | None] = mapped_column(
-        String(100), nullable=True
-    )
+    payment_method_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
     # Subscription period
     started_at: Mapped[datetime] = mapped_column(
@@ -53,12 +49,8 @@ class Subscription(Base):
     )
 
     # Trial and cancellation
-    trial_end: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    canceled_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    trial_end: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    canceled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Promo code used
     promo_code_id: Mapped[int | None] = mapped_column(

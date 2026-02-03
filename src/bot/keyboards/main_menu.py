@@ -81,6 +81,6 @@ def get_channel_promo_keyboard() -> InlineKeyboardMarkup:
                     text="Продолжить",
                     callback_data=MenuCallback(action=MenuAction.CHANNEL_PROMO_DISMISS).pack(),
                 )
-            ]
+            ],
         ]
     )

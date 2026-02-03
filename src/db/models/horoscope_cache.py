@@ -27,9 +27,7 @@ class HoroscopeCache(Base):
     )
 
     __table_args__ = (
-        UniqueConstraint(
-            "zodiac_sign", "horoscope_date", name="uq_horoscope_cache_sign_date"
-        ),
+        UniqueConstraint("zodiac_sign", "horoscope_date", name="uq_horoscope_cache_sign_date"),
     )
 
     def __repr__(self) -> str:
@@ -51,9 +49,7 @@ class HoroscopeView(Base):
     view_count: Mapped[int] = mapped_column(Integer, server_default="0")
 
     __table_args__ = (
-        UniqueConstraint(
-            "zodiac_sign", "view_date", name="uq_horoscope_views_sign_date"
-        ),
+        UniqueConstraint("zodiac_sign", "view_date", name="uq_horoscope_views_sign_date"),
     )
 
     def __repr__(self) -> str:
@@ -79,9 +75,7 @@ class PremiumHoroscopeCache(Base):
     )
 
     __table_args__ = (
-        UniqueConstraint(
-            "user_id", "horoscope_date", name="uq_premium_horoscope_cache_user_date"
-        ),
+        UniqueConstraint("user_id", "horoscope_date", name="uq_premium_horoscope_cache_user_date"),
     )
 
     def __repr__(self) -> str:

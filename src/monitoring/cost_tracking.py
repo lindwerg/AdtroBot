@@ -17,7 +17,7 @@ logger = structlog.get_logger()
 
 # GPT-4o-mini pricing (per 1M tokens) - fallback if cost not in response
 GPT4O_MINI_PRICING = {
-    "prompt": 0.15 / 1_000_000,      # $0.15 per 1M input tokens
+    "prompt": 0.15 / 1_000_000,  # $0.15 per 1M input tokens
     "completion": 0.60 / 1_000_000,  # $0.60 per 1M output tokens
 }
 
@@ -54,8 +54,8 @@ async def record_ai_usage(
         if cost_dollars is None:
             # Calculate based on token pricing
             cost_dollars = (
-                prompt_tokens * GPT4O_MINI_PRICING["prompt"] +
-                completion_tokens * GPT4O_MINI_PRICING["completion"]
+                prompt_tokens * GPT4O_MINI_PRICING["prompt"]
+                + completion_tokens * GPT4O_MINI_PRICING["completion"]
             )
 
         generation_id = getattr(response, "id", None)
@@ -78,34 +78,22 @@ async def record_ai_usage(
         # Update Prometheus metrics
         model_short = model.split("/")[-1] if "/" in model else model
 
-        AI_TOKENS_TOTAL.labels(
-            operation=operation,
-            model=model_short,
-            token_type="prompt"
-        ).inc(prompt_tokens)
+        AI_TOKENS_TOTAL.labels(operation=operation, model=model_short, token_type="prompt").inc(
+            prompt_tokens
+        )
 
-        AI_TOKENS_TOTAL.labels(
-            operation=operation,
-            model=model_short,
-            token_type="completion"
-        ).inc(completion_tokens)
+        AI_TOKENS_TOTAL.labels(operation=operation, model=model_short, token_type="completion").inc(
+            completion_tokens
+        )
 
         if cost_dollars:
-            AI_COST_TOTAL.labels(
-                operation=operation,
-                model=model_short
-            ).inc(cost_dollars)
+            AI_COST_TOTAL.labels(operation=operation, model=model_short).inc(cost_dollars)
 
-        AI_REQUEST_DURATION.labels(
-            operation=operation,
-            model=model_short
-        ).observe(latency_ms / 1000)  # Convert to seconds
+        AI_REQUEST_DURATION.labels(operation=operation, model=model_short).observe(
+            latency_ms / 1000
+        )  # Convert to seconds
 
-        AI_REQUESTS_TOTAL.labels(
-            operation=operation,
-            model=model_short,
-            status="success"
-        ).inc()
+        AI_REQUESTS_TOTAL.labels(operation=operation, model=model_short, status="success").inc()
 
         logger.debug(
             "ai_usage_recorded",
@@ -124,8 +112,4 @@ async def record_ai_usage(
 def record_ai_error(operation: str, model: str, error_type: str) -> None:
     """Record AI error to Prometheus metrics."""
     model_short = model.split("/")[-1] if "/" in model else model
-    AI_REQUESTS_TOTAL.labels(
-        operation=operation,
-        model=model_short,
-        status="error"
-    ).inc()
+    AI_REQUESTS_TOTAL.labels(operation=operation, model=model_short, status="error").inc()

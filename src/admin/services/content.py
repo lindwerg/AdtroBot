@@ -72,9 +72,7 @@ async def get_horoscope_content(
     zodiac_sign: str,
 ) -> HoroscopeContent | None:
     """Get horoscope content for specific zodiac sign."""
-    query = select(HoroscopeContent).where(
-        HoroscopeContent.zodiac_sign == zodiac_sign
-    )
+    query = select(HoroscopeContent).where(HoroscopeContent.zodiac_sign == zodiac_sign)
     result = await session.execute(query)
     return result.scalar_one_or_none()
 

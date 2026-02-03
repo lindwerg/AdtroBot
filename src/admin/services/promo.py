@@ -18,9 +18,7 @@ async def create_promo_code(
 ) -> PromoCode:
     """Create a new promo code."""
     # Check if code already exists
-    existing = await session.scalar(
-        select(PromoCode).where(PromoCode.code == request.code.upper())
-    )
+    existing = await session.scalar(select(PromoCode).where(PromoCode.code == request.code.upper()))
     if existing:
         raise ValueError("Promo code already exists")
 

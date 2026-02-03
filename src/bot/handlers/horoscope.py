@@ -88,11 +88,15 @@ async def show_horoscope_message(
 
         if has_natal and user.birth_date:
             # Premium with natal data - personalized horoscope
-            # Check cache first
+            # Check cache first with atomic lock to prevent race conditions
             today = date.today()
-            stmt_cache = select(PremiumHoroscopeCache).where(
-                PremiumHoroscopeCache.user_id == message.from_user.id,
-                PremiumHoroscopeCache.horoscope_date == today,
+            stmt_cache = (
+                select(PremiumHoroscopeCache)
+                .where(
+                    PremiumHoroscopeCache.user_id == message.from_user.id,
+                    PremiumHoroscopeCache.horoscope_date == today,
+                )
+                .with_for_update(skip_locked=True)
             )
             result_cache = await session.execute(stmt_cache)
             cached = result_cache.scalar_one_or_none()
@@ -104,9 +108,15 @@ async def show_horoscope_message(
                     "premium_horoscope_cache_hit",
                     user_id=message.from_user.id,
                     date=today,
+                    cached_at=cached.generated_at if hasattr(cached, "generated_at") else None,
                 )
             else:
                 # Generate new premium horoscope
+                logger.info(
+                    "premium_horoscope_cache_miss",
+                    user_id=message.from_user.id,
+                    date=today,
+                )
                 await message.answer(
                     "✨ Генерирую твой персональный прогноз на основе натальной карты...\n"
                     "Это займет 20-30 секунд."

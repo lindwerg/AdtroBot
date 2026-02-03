@@ -21,7 +21,8 @@ depends_on: str | Sequence[str] | None = None
 def upgrade() -> None:
     """Create premium_horoscope_cache table."""
     # Create premium_horoscope_cache table (IF NOT EXISTS для безопасности)
-    op.execute("""
+    op.execute(
+        """
         CREATE TABLE IF NOT EXISTS premium_horoscope_cache (
             id SERIAL PRIMARY KEY,
             user_id BIGINT NOT NULL,
@@ -30,17 +31,22 @@ def upgrade() -> None:
             generated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
             CONSTRAINT uq_premium_horoscope_cache_user_date UNIQUE (user_id, horoscope_date)
         )
-    """)
+    """
+    )
 
     # Create indexes (IF NOT EXISTS для идемпотентности)
-    op.execute("""
+    op.execute(
+        """
         CREATE INDEX IF NOT EXISTS ix_premium_horoscope_cache_user_id
         ON premium_horoscope_cache (user_id)
-    """)
-    op.execute("""
+    """
+    )
+    op.execute(
+        """
         CREATE INDEX IF NOT EXISTS ix_premium_horoscope_cache_horoscope_date
         ON premium_horoscope_cache (horoscope_date)
-    """)
+    """
+    )
 
 
 def downgrade() -> None:

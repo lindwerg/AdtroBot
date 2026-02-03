@@ -61,9 +61,7 @@ def get_progress_bar(percent: int, length: int = 10) -> str:
     return "▓" * filled + "░" * (length - filled)
 
 
-def estimate_progress(
-    elapsed_seconds: float, estimated_total_seconds: float
-) -> int:
+def estimate_progress(elapsed_seconds: float, estimated_total_seconds: float) -> int:
     """Estimate progress percentage based on elapsed time.
 
     Args:
@@ -136,9 +134,7 @@ async def generate_with_feedback(
                 # Update progress message
                 try:
                     updated_text = (
-                        f"{base_message}...\n"
-                        f"{get_progress_bar(progress)}\n"
-                        f"{progress}%"
+                        f"{base_message}...\n" f"{get_progress_bar(progress)}\n" f"{progress}%"
                     )
                     await progress_msg.edit_text(updated_text)
                 except Exception as e:

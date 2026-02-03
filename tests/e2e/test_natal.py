@@ -30,7 +30,7 @@ async def navigate_to_natal_menu(
     if response.buttons:
         for row in response.buttons:
             for button in row:
-                button_text = button.text if hasattr(button, 'text') else str(button)
+                button_text = button.text if hasattr(button, "text") else str(button)
                 if any(kw in button_text for kw in ["Натальная", "Natal", "карта рождения"]):
                     await button.click()
                     natal_clicked = True
@@ -64,10 +64,7 @@ async def test_natal_menu_accessible(
             "подписк",
         ]
 
-        has_natal_content = any(
-            kw.lower() in response.raw_text.lower()
-            for kw in natal_keywords
-        )
+        has_natal_content = any(kw.lower() in response.raw_text.lower() for kw in natal_keywords)
 
         assert has_natal_content, f"Expected natal content, got: {response.raw_text[:200]}"
 
@@ -104,22 +101,17 @@ async def test_natal_premium_requirement(
             "specify",
         ]
 
-        has_premium_gate = any(
-            kw.lower() in response.raw_text.lower()
-            for kw in premium_keywords
-        )
+        has_premium_gate = any(kw.lower() in response.raw_text.lower() for kw in premium_keywords)
 
-        asks_birth_data = any(
-            kw.lower() in response.raw_text.lower()
-            for kw in birth_data_keywords
-        )
+        asks_birth_data = any(kw.lower() in response.raw_text.lower() for kw in birth_data_keywords)
 
         # Either shows premium gate or asks for birth data (if premium)
         # Or generates natal chart directly (if premium with data)
         has_natal_content = "натальн" in response.raw_text.lower() or response.photo is not None
 
-        assert has_premium_gate or asks_birth_data or has_natal_content, \
-            f"Expected premium gate or birth data request, got: {response.raw_text[:200]}"
+        assert (
+            has_premium_gate or asks_birth_data or has_natal_content
+        ), f"Expected premium gate or birth data request, got: {response.raw_text[:200]}"
 
 
 @pytest.mark.asyncio
@@ -150,17 +142,15 @@ async def test_natal_teaser_content(
             "moon",
         ]
 
-        has_teaser = any(
-            kw.lower() in response.raw_text.lower()
-            for kw in teaser_keywords
-        )
+        has_teaser = any(kw.lower() in response.raw_text.lower() for kw in teaser_keywords)
 
         # Or it's already generating natal chart (premium with data)
         is_generating = "Проверяю" in response.raw_text or "Строю" in response.raw_text
 
         # Or already has subscription
-        assert has_teaser or is_generating or response.photo is not None, \
-            f"Expected teaser content, got: {response.raw_text[:200]}"
+        assert (
+            has_teaser or is_generating or response.photo is not None
+        ), f"Expected teaser content, got: {response.raw_text[:200]}"
 
 
 @pytest.mark.asyncio
@@ -180,7 +170,7 @@ async def test_natal_subscription_button(
         if response.buttons:
             for row in response.buttons:
                 for button in row:
-                    btn_text = button.text if hasattr(button, 'text') else str(button)
+                    btn_text = button.text if hasattr(button, "text") else str(button)
                     sub_keywords = ["Подписка", "Subscription", "Premium", "Премиум", "Оформить"]
                     if any(kw in btn_text for kw in sub_keywords):
                         has_sub_button = True
@@ -191,14 +181,15 @@ async def test_natal_subscription_button(
         if response.buttons:
             for row in response.buttons:
                 for button in row:
-                    btn_text = button.text if hasattr(button, 'text') else str(button)
+                    btn_text = button.text if hasattr(button, "text") else str(button)
                     if any(kw in btn_text for kw in ["Показать", "Show", "Настроить", "Setup"]):
                         has_natal_buttons = True
                         break
 
         # Either has sub button or natal-specific buttons
-        assert has_sub_button or has_natal_buttons or response.buttons is not None, \
-            "Expected action buttons"
+        assert (
+            has_sub_button or has_natal_buttons or response.buttons is not None
+        ), "Expected action buttons"
 
 
 @pytest.mark.asyncio
@@ -225,12 +216,15 @@ async def test_natal_generation_premium(
         response = await conv.get_response()
 
         # Check if we're generating natal chart (not showing premium gate)
-        is_generating = any(kw in response.raw_text for kw in [
-            "Проверяю",
-            "Строю",
-            "Building",
-            "Loading",
-        ])
+        is_generating = any(
+            kw in response.raw_text
+            for kw in [
+                "Проверяю",
+                "Строю",
+                "Building",
+                "Loading",
+            ]
+        )
 
         if is_generating:
             # Wait for chart generation
@@ -268,7 +262,7 @@ async def test_natal_back_navigation(
         if response.buttons:
             for row in response.buttons:
                 for button in row:
-                    btn_text = button.text if hasattr(button, 'text') else str(button)
+                    btn_text = button.text if hasattr(button, "text") else str(button)
                     if any(kw in btn_text for kw in ["Назад", "Back", "Меню", "Menu"]):
                         has_back = True
                         break

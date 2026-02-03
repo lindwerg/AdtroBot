@@ -49,17 +49,29 @@ async def warm_horoscope_cache() -> None:
     Loads existing cached horoscopes for all 12 zodiac signs.
     If no cached horoscope exists for a sign, it will be generated on-demand
     (graceful degradation).
+
+    Each sign is processed in a separate session to prevent one failure
+    from breaking the entire warm-up process.
     """
     cache_service = get_horoscope_cache_service()
 
     logger.info("Warming horoscope cache...")
-    async with AsyncSessionLocal() as session:
-        for sign_en, zodiac in ZODIAC_SIGNS.items():
+
+    # Process each sign independently to avoid one failure breaking all
+    for sign_en, zodiac in ZODIAC_SIGNS.items():
+        async with AsyncSessionLocal() as session:
             try:
                 await cache_service.get_horoscope(sign_en, session)
-                logger.debug("Cache warmed", sign=sign_en)
+                await session.commit()  # Commit per sign
+                logger.debug("cache_warmed", sign=sign_en)
             except Exception as e:
-                logger.warning("Failed to warm cache", sign=sign_en, error=str(e))
+                logger.error(
+                    "cache_warm_failed",
+                    sign=sign_en,
+                    error=str(e),
+                )
+                # Continue with other signs
+                continue
 
     logger.info("Horoscope cache warming complete")
 
@@ -227,7 +239,9 @@ async def webhook(request: Request) -> Response:
 
     # Constant-time comparison to prevent timing attacks
     if not secret or not secrets.compare_digest(secret, settings.webhook_secret):
-        await logger.awarning("Invalid webhook secret", ip=request.client.host if request.client else "unknown")
+        await logger.awarning(
+            "Invalid webhook secret", ip=request.client.host if request.client else "unknown"
+        )
         return Response(status_code=200)  # Return 200 to avoid Telegram retries
 
     try:
@@ -235,14 +249,26 @@ async def webhook(request: Request) -> Response:
         update_data = await request.json()
         update = Update.model_validate(update_data, context={"bot": bot})
 
-        # Debug logging for callbacks
+        # Debug logging for callbacks with extended details
+        callback_info = {}
+        if update.callback_query:
+            callback_info = {
+                "callback_data": update.callback_query.data,
+                "callback_from": update.callback_query.from_user.id,
+                "message_id": update.callback_query.message.message_id
+                if update.callback_query.message
+                else None,
+            }
+
         await logger.adebug(
             "webhook_received",
             update_id=update.update_id,
             has_message=update.message is not None,
             has_callback=update.callback_query is not None,
-            callback_data=update.callback_query.data if update.callback_query else None,
-            user_id=update.callback_query.from_user.id if update.callback_query else (update.message.from_user.id if update.message else None),
+            user_id=update.callback_query.from_user.id
+            if update.callback_query
+            else (update.message.from_user.id if update.message else None),
+            **callback_info,
         )
 
         await dp.feed_update(bot, update)

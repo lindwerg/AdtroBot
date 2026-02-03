@@ -33,17 +33,11 @@ class User(Base):
     birth_city: Mapped[str | None] = mapped_column(
         String(255), nullable=True
     )  # City name for display
-    birth_lat: Mapped[float | None] = mapped_column(
-        Float, nullable=True
-    )  # Latitude
-    birth_lon: Mapped[float | None] = mapped_column(
-        Float, nullable=True
-    )  # Longitude
+    birth_lat: Mapped[float | None] = mapped_column(Float, nullable=True)  # Latitude
+    birth_lon: Mapped[float | None] = mapped_column(Float, nullable=True)  # Longitude
 
     # Notification settings
-    timezone: Mapped[str | None] = mapped_column(
-        String(50), nullable=True, default="Europe/Moscow"
-    )
+    timezone: Mapped[str | None] = mapped_column(String(50), nullable=True, default="Europe/Moscow")
     notification_hour: Mapped[int | None] = mapped_column(
         SmallInteger, nullable=True, default=9
     )  # 0-23
@@ -71,16 +65,10 @@ class User(Base):
     )  # Date of last reset (user timezone)
 
     # Subscription status (denormalized for quick access)
-    is_premium: Mapped[bool] = mapped_column(
-        Boolean, default=False, server_default="false"
-    )
-    premium_until: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    is_premium: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    premium_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     # Daily spread limit (1 for free, 20 for premium)
-    daily_spread_limit: Mapped[int] = mapped_column(
-        SmallInteger, default=1, server_default="1"
-    )
+    daily_spread_limit: Mapped[int] = mapped_column(SmallInteger, default=1, server_default="1")
 
     # Detailed natal purchase (one-time)
     detailed_natal_purchased_at: Mapped[datetime | None] = mapped_column(

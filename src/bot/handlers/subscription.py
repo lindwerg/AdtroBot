@@ -49,8 +49,7 @@ async def show_plans(message: Message, session: AsyncSession) -> None:
     if user and user.is_premium and user.premium_until:
         until_str = user.premium_until.strftime("%d.%m.%Y")
         await message.answer(
-            f"У вас уже есть премиум-подписка до {until_str}\n\n"
-            "Хотите продлить?"
+            f"У вас уже есть премиум-подписка до {until_str}\n\n" "Хотите продлить?"
         )
 
     # Send with image
@@ -89,8 +88,7 @@ async def menu_subscription_callback(
         until_str = user.premium_until.strftime("%d.%m.%Y")
         await safe_edit_message(
             callback=callback,
-            text=f"У вас уже есть премиум-подписка до {until_str}\n\n"
-            "Хотите продлить?",
+            text=f"У вас уже есть премиум-подписка до {until_str}\n\n" "Хотите продлить?",
             reply_markup=get_plans_keyboard(),
         )
         return
@@ -139,9 +137,7 @@ async def handle_plan_selection(
 
         # Create inline button with payment URL
         keyboard = InlineKeyboardMarkup(
-            inline_keyboard=[
-                [InlineKeyboardButton(text="💳 Оплатить", url=confirmation_url)]
-            ]
+            inline_keyboard=[[InlineKeyboardButton(text="💳 Оплатить", url=confirmation_url)]]
         )
 
         await safe_edit_message(
@@ -232,6 +228,4 @@ async def handle_confirm_cancel(
 async def handle_keep_subscription(callback: CallbackQuery) -> None:
     """User decided to keep subscription."""
     await callback.answer("Отлично! Рады, что остаётесь с нами!")
-    await safe_edit_message(
-        callback=callback, text="Подписка сохранена. Спасибо, что вы с нами!"
-    )
+    await safe_edit_message(callback=callback, text="Подписка сохранена. Спасибо, что вы с нами!")

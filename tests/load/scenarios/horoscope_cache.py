@@ -51,9 +51,7 @@ class HoroscopeCacheMonitorUser(HttpUser):
     @task(5)
     def check_health_db(self) -> None:
         """Health check includes DB where cache lives."""
-        with self.client.get(
-            "/health", catch_response=True, name="/health [cache-db]"
-        ) as response:
+        with self.client.get("/health", catch_response=True, name="/health [cache-db]") as response:
             elapsed = response.elapsed.total_seconds()
 
             if response.status_code not in (200, 503):
@@ -63,9 +61,7 @@ class HoroscopeCacheMonitorUser(HttpUser):
             else:
                 try:
                     data = response.json()
-                    db_latency = (
-                        data.get("checks", {}).get("database", {}).get("latency_ms", 0)
-                    )
+                    db_latency = data.get("checks", {}).get("database", {}).get("latency_ms", 0)
                     if db_latency > 100:
                         response.failure(f"DB latency high: {db_latency}ms")
                     else:
@@ -76,9 +72,7 @@ class HoroscopeCacheMonitorUser(HttpUser):
     @task(2)
     def check_prometheus_metrics(self) -> None:
         """Check cache-related Prometheus metrics."""
-        with self.client.get(
-            "/metrics", catch_response=True, name="/metrics [cache]"
-        ) as response:
+        with self.client.get("/metrics", catch_response=True, name="/metrics [cache]") as response:
             elapsed = response.elapsed.total_seconds()
 
             if response.status_code != 200:

@@ -31,7 +31,7 @@ async def navigate_to_tarot_menu(
     if response.buttons:
         for row in response.buttons:
             for button in row:
-                button_text = button.text if hasattr(button, 'text') else str(button)
+                button_text = button.text if hasattr(button, "text") else str(button)
                 if any(kw in button_text for kw in ["Таро", "Tarot", "карт", "card"]):
                     await button.click()
                     tarot_clicked = True
@@ -77,12 +77,14 @@ async def test_tarot_menu_accessible(
         if response.buttons:
             for row in response.buttons:
                 for button in row:
-                    btn_text = button.text if hasattr(button, 'text') else str(button)
+                    btn_text = button.text if hasattr(button, "text") else str(button)
                     if any(kw in btn_text for kw in tarot_keywords):
                         has_tarot_buttons = True
                         break
 
-        assert has_tarot or has_tarot_buttons, f"Expected tarot menu, got: {response.raw_text[:200]}"
+        assert (
+            has_tarot or has_tarot_buttons
+        ), f"Expected tarot menu, got: {response.raw_text[:200]}"
 
 
 @pytest.mark.asyncio
@@ -105,7 +107,7 @@ async def test_card_of_day_flow(
         if response.buttons:
             for row in response.buttons:
                 for button in row:
-                    btn_text = button.text if hasattr(button, 'text') else str(button)
+                    btn_text = button.text if hasattr(button, "text") else str(button)
                     if any(kw in btn_text for kw in ["Карта дня", "Card of day", "Карту дня"]):
                         await button.click()
                         cod_clicked = True
@@ -124,7 +126,7 @@ async def test_card_of_day_flow(
                 if ritual_msg.buttons:
                     for row in ritual_msg.buttons:
                         for button in row:
-                            btn_text = button.text if hasattr(button, 'text') else str(button)
+                            btn_text = button.text if hasattr(button, "text") else str(button)
                             if any(kw in btn_text for kw in ["Открыть", "Draw", "Вытянуть"]):
                                 await button.click()
                                 draw_button_found = True
@@ -171,7 +173,7 @@ async def test_three_card_spread_prompt(
         if response.buttons:
             for row in response.buttons:
                 for button in row:
-                    btn_text = button.text if hasattr(button, 'text') else str(button)
+                    btn_text = button.text if hasattr(button, "text") else str(button)
                     if any(kw in btn_text for kw in ["3 карты", "три карты", "3 card", "Three"]):
                         await button.click()
                         spread_clicked = True
@@ -185,18 +187,16 @@ async def test_three_card_spread_prompt(
             # Should ask for question
             question_keywords = ["вопрос", "question", "напиш", "write", "задайте"]
             has_question_prompt = any(
-                kw.lower() in question_prompt.raw_text.lower()
-                for kw in question_keywords
+                kw.lower() in question_prompt.raw_text.lower() for kw in question_keywords
             )
 
             # Or shows limit exceeded message
             limit_keywords = ["лимит", "limit", "исчерп", "exceeded", "подписк"]
-            has_limit = any(
-                kw.lower() in question_prompt.raw_text.lower()
-                for kw in limit_keywords
-            )
+            has_limit = any(kw.lower() in question_prompt.raw_text.lower() for kw in limit_keywords)
 
-            assert has_question_prompt or has_limit, f"Expected question prompt or limit, got: {question_prompt.raw_text[:200]}"
+            assert (
+                has_question_prompt or has_limit
+            ), f"Expected question prompt or limit, got: {question_prompt.raw_text[:200]}"
 
 
 @pytest.mark.asyncio
@@ -218,7 +218,7 @@ async def test_three_card_spread_with_question(
         if response.buttons:
             for row in response.buttons:
                 for button in row:
-                    btn_text = button.text if hasattr(button, 'text') else str(button)
+                    btn_text = button.text if hasattr(button, "text") else str(button)
                     if any(kw in btn_text for kw in ["3 карты", "три карты", "3 card"]):
                         await button.click()
                         spread_clicked = True
@@ -242,7 +242,9 @@ async def test_three_card_spread_with_question(
                         if msg.buttons:
                             for row in msg.buttons:
                                 for button in row:
-                                    btn_text = button.text if hasattr(button, 'text') else str(button)
+                                    btn_text = (
+                                        button.text if hasattr(button, "text") else str(button)
+                                    )
                                     if any(kw in btn_text for kw in ["Открыть", "Вытянуть"]):
                                         await button.click()
                                         break
@@ -282,7 +284,7 @@ async def test_celtic_cross_premium_gate(
         if response.buttons:
             for row in response.buttons:
                 for button in row:
-                    btn_text = button.text if hasattr(button, 'text') else str(button)
+                    btn_text = button.text if hasattr(button, "text") else str(button)
                     if any(kw in btn_text for kw in ["Кельтский", "Celtic", "10 карт"]):
                         await button.click()
                         celtic_clicked = True
@@ -304,18 +306,18 @@ async def test_celtic_cross_premium_gate(
             ]
 
             has_premium_gate = any(
-                kw.lower() in celtic_response.raw_text.lower()
-                for kw in premium_keywords
+                kw.lower() in celtic_response.raw_text.lower() for kw in premium_keywords
             )
 
             # Or it asks for question (if user is premium)
             question_keywords = ["вопрос", "question"]
             asks_question = any(
-                kw.lower() in celtic_response.raw_text.lower()
-                for kw in question_keywords
+                kw.lower() in celtic_response.raw_text.lower() for kw in question_keywords
             )
 
-            assert has_premium_gate or asks_question, f"Expected premium gate or question, got: {celtic_response.raw_text[:200]}"
+            assert (
+                has_premium_gate or asks_question
+            ), f"Expected premium gate or question, got: {celtic_response.raw_text[:200]}"
 
 
 @pytest.mark.asyncio
@@ -335,7 +337,7 @@ async def test_tarot_history_accessible(
         if response.buttons:
             for row in response.buttons:
                 for button in row:
-                    btn_text = button.text if hasattr(button, 'text') else str(button)
+                    btn_text = button.text if hasattr(button, "text") else str(button)
                     if any(kw in btn_text for kw in ["История", "History", "Мои расклады"]):
                         await button.click()
                         history_clicked = True
@@ -360,8 +362,7 @@ async def test_tarot_history_accessible(
             ]
 
             has_history = any(
-                kw.lower() in history_response.raw_text.lower()
-                for kw in history_keywords
+                kw.lower() in history_response.raw_text.lower() for kw in history_keywords
             )
 
             assert has_history, f"Expected history content, got: {history_response.raw_text[:200]}"

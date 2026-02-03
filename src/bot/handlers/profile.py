@@ -26,9 +26,7 @@ router = Router(name="profile_settings")
 
 
 @router.callback_query(MenuCallback.filter(F.action == MenuAction.PROFILE_NOTIFICATIONS))
-async def settings_notifications_callback(
-    callback: CallbackQuery, session: AsyncSession
-) -> None:
+async def settings_notifications_callback(callback: CallbackQuery, session: AsyncSession) -> None:
     """Show notification settings from inline button."""
     stmt = select(User).where(User.telegram_id == callback.from_user.id)
     result = await session.execute(stmt)

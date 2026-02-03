@@ -19,18 +19,22 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Create image_assets table for Telegram file_id caching."""
-    op.execute("""
+    op.execute(
+        """
         CREATE TABLE IF NOT EXISTS image_assets (
             id SERIAL PRIMARY KEY,
             asset_key VARCHAR(255) NOT NULL UNIQUE,
             file_id VARCHAR(255) NOT NULL,
             created_at TIMESTAMPTZ NOT NULL DEFAULT now()
         )
-    """)
-    op.execute("""
+    """
+    )
+    op.execute(
+        """
         CREATE INDEX IF NOT EXISTS ix_image_assets_asset_key
         ON image_assets (asset_key)
-    """)
+    """
+    )
 
 
 def downgrade() -> None:

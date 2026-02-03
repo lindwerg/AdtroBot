@@ -134,9 +134,7 @@ async def process_birth_city(
     query = message.text.strip()
 
     if len(query) < 2:
-        await message.answer(
-            "Введите хотя бы 2 символа для поиска города."
-        )
+        await message.answer("Введите хотя бы 2 символа для поиска города.")
         return
 
     # Search cities via geocoding
@@ -144,8 +142,7 @@ async def process_birth_city(
 
     if not cities:
         await message.answer(
-            f"Город '{query}' не найден. Попробуйте другое название "
-            "(например, на английском)."
+            f"Город '{query}' не найден. Попробуйте другое название " "(например, на английском)."
         )
         return
 
@@ -169,9 +166,7 @@ async def process_birth_city(
     )
 
 
-@router.callback_query(
-    CitySelectCallback.filter(), BirthDataStates.selecting_city
-)
+@router.callback_query(CitySelectCallback.filter(), BirthDataStates.selecting_city)
 async def select_city(
     callback: CallbackQuery,
     callback_data: CitySelectCallback,

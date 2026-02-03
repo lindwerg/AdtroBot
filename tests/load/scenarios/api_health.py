@@ -52,9 +52,7 @@ class HealthSLAUser(HttpUser):
     @task
     def check_health_sla(self) -> None:
         """Health SLA: must respond within 1 second."""
-        with self.client.get(
-            "/health", catch_response=True, name="/health [SLA]"
-        ) as response:
+        with self.client.get("/health", catch_response=True, name="/health [SLA]") as response:
             elapsed = response.elapsed.total_seconds()
 
             if response.status_code not in (200, 503):
@@ -80,9 +78,7 @@ class HealthBurstUser(HttpUser):
     @task
     def burst_health(self) -> None:
         """Rapid health checks under burst load."""
-        with self.client.get(
-            "/health", catch_response=True, name="/health [burst]"
-        ) as response:
+        with self.client.get("/health", catch_response=True, name="/health [burst]") as response:
             elapsed = response.elapsed.total_seconds()
 
             if response.status_code not in (200, 503):
@@ -127,9 +123,7 @@ class HealthComponentsUser(HttpUser):
                 if not db_check.get("healthy", False):
                     response.failure(f"Database unhealthy: {db_check.get('message')}")
                 elif not scheduler_check.get("healthy", False):
-                    response.failure(
-                        f"Scheduler unhealthy: {scheduler_check.get('message')}"
-                    )
+                    response.failure(f"Scheduler unhealthy: {scheduler_check.get('message')}")
                 else:
                     response.success()
             except Exception as e:

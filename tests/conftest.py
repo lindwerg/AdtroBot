@@ -48,9 +48,7 @@ async def telegram_client() -> AsyncGenerator[TelegramClient, None]:
                 assert "Добро пожаловать" in response[0].text
     """
     if not API_ID or not API_HASH:
-        pytest.skip(
-            "TELEGRAM_API_ID and TELEGRAM_API_HASH must be set for Telegram E2E tests"
-        )
+        pytest.skip("TELEGRAM_API_ID and TELEGRAM_API_HASH must be set for Telegram E2E tests")
 
     # Use StringSession for stateless authentication (CI-friendly)
     session = StringSession(TELETHON_SESSION)
@@ -73,10 +71,7 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
 
     Uses TEST_DATABASE_URL if set, otherwise falls back to DATABASE_URL.
     """
-    database_url = os.environ.get(
-        "TEST_DATABASE_URL",
-        os.environ.get("DATABASE_URL", "")
-    )
+    database_url = os.environ.get("TEST_DATABASE_URL", os.environ.get("DATABASE_URL", ""))
 
     if not database_url:
         pytest.skip("DATABASE_URL or TEST_DATABASE_URL must be set for database tests")
@@ -102,4 +97,5 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
 def event_loop_policy():
     """Use default event loop policy for async tests."""
     import asyncio
+
     return asyncio.DefaultEventLoopPolicy()

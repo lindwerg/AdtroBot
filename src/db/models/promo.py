@@ -20,29 +20,17 @@ class PromoCode(Base):
         DateTime(timezone=True),
         server_default=func.now(),
     )
-    valid_until: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    valid_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Usage limits
-    max_uses: Mapped[int | None] = mapped_column(
-        Integer, nullable=True
-    )  # None = unlimited
-    current_uses: Mapped[int] = mapped_column(
-        Integer, default=0, server_default="0"
-    )
+    max_uses: Mapped[int | None] = mapped_column(Integer, nullable=True)  # None = unlimited
+    current_uses: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
 
     # Partner program (no FK yet, just ID for future)
-    partner_id: Mapped[int | None] = mapped_column(
-        Integer, nullable=True
-    )
-    partner_commission_percent: Mapped[int | None] = mapped_column(
-        SmallInteger, nullable=True
-    )
+    partner_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    partner_commission_percent: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
 
-    is_active: Mapped[bool] = mapped_column(
-        Boolean, default=True, server_default="true"
-    )
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

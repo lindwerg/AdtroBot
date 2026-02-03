@@ -16,8 +16,18 @@ fake = Faker("ru_RU")
 
 # All zodiac signs
 ZODIAC_SIGNS = [
-    "aries", "taurus", "gemini", "cancer", "leo", "virgo",
-    "libra", "scorpio", "sagittarius", "capricorn", "aquarius", "pisces"
+    "aries",
+    "taurus",
+    "gemini",
+    "cancer",
+    "leo",
+    "virgo",
+    "libra",
+    "scorpio",
+    "sagittarius",
+    "capricorn",
+    "aquarius",
+    "pisces",
 ]
 
 # Spread types
@@ -50,15 +60,11 @@ class UserFactory(factory.Factory):
     username = factory.LazyFunction(lambda: f"test_{fake.user_name()}")
 
     # Birth data
-    birth_date = factory.LazyFunction(
-        lambda: fake.date_of_birth(minimum_age=18, maximum_age=80)
-    )
+    birth_date = factory.LazyFunction(lambda: fake.date_of_birth(minimum_age=18, maximum_age=80))
     zodiac_sign = factory.LazyFunction(lambda: random.choice(ZODIAC_SIGNS))
 
     # Birth location for natal chart
-    birth_time = factory.LazyFunction(
-        lambda: time(random.randint(0, 23), random.randint(0, 59))
-    )
+    birth_time = factory.LazyFunction(lambda: time(random.randint(0, 23), random.randint(0, 59)))
     birth_city = factory.LazyFunction(lambda: fake.city())
     birth_lat = factory.LazyFunction(lambda: float(fake.latitude()))
     birth_lon = factory.LazyFunction(lambda: float(fake.longitude()))
@@ -84,7 +90,7 @@ class UserFactory(factory.Factory):
             is_premium=True,
             premium_until=datetime.now(timezone.utc) + timedelta(days=30),
             daily_spread_limit=20,
-            **kwargs
+            **kwargs,
         )
 
     @classmethod
@@ -119,17 +125,11 @@ class TarotSpreadFactory(factory.Factory):
 
         selected_cards = random.sample(ALL_CARDS, num_cards)
         return [
-            {
-                "card_id": card,
-                "reversed": random.choice([True, False]),
-                "position": i + 1
-            }
+            {"card_id": card, "reversed": random.choice([True, False]), "position": i + 1}
             for i, card in enumerate(selected_cards)
         ]
 
-    interpretation = factory.LazyFunction(
-        lambda: fake.paragraph(nb_sentences=5)
-    )
+    interpretation = factory.LazyFunction(lambda: fake.paragraph(nb_sentences=5))
     created_at = factory.LazyFunction(
         lambda: datetime.now(timezone.utc) - timedelta(days=random.randint(0, 30))
     )
@@ -158,34 +158,29 @@ class PaymentFactory(factory.Factory):
 
     is_recurring = False
     description = factory.LazyFunction(
-        lambda: random.choice([
-            "Премиум подписка на 1 месяц",
-            "Детальный натальный гороскоп",
-            "Premium subscription - 1 month",
-        ])
+        lambda: random.choice(
+            [
+                "Премиум подписка на 1 месяц",
+                "Детальный натальный гороскоп",
+                "Premium subscription - 1 month",
+            ]
+        )
     )
 
     webhook_processed = False
-    created_at = factory.LazyFunction(
-        lambda: datetime.now(timezone.utc)
-    )
+    created_at = factory.LazyFunction(lambda: datetime.now(timezone.utc))
     paid_at = None
 
     @classmethod
     def succeeded(cls, **kwargs):
         """Create a successful payment."""
         return cls(
-            status="succeeded",
-            webhook_processed=True,
-            paid_at=datetime.now(timezone.utc),
-            **kwargs
+            status="succeeded", webhook_processed=True, paid_at=datetime.now(timezone.utc), **kwargs
         )
 
     @classmethod
     def for_subscription(cls, subscription_id: int, **kwargs):
         """Create a payment linked to a subscription."""
         return cls(
-            subscription_id=subscription_id,
-            description="Премиум подписка на 1 месяц",
-            **kwargs
+            subscription_id=subscription_id, description="Премиум подписка на 1 месяц", **kwargs
         )

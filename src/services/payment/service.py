@@ -35,9 +35,7 @@ def is_yookassa_ip(ip_str: str) -> bool:
         return False
 
 
-async def get_user_subscription(
-    session: AsyncSession, user_id: int
-) -> Subscription | None:
+async def get_user_subscription(session: AsyncSession, user_id: int) -> Subscription | None:
     """Get active subscription for user (by telegram_id)."""
     # First get user by telegram_id
     stmt = select(User).where(User.telegram_id == user_id)
@@ -50,11 +48,13 @@ async def get_user_subscription(
     # Then get active subscription
     stmt = select(Subscription).where(
         Subscription.user_id == user.id,
-        Subscription.status.in_([
-            SubscriptionStatus.TRIAL.value,
-            SubscriptionStatus.ACTIVE.value,
-            SubscriptionStatus.CANCELED.value,  # Still has access until end
-        ]),
+        Subscription.status.in_(
+            [
+                SubscriptionStatus.TRIAL.value,
+                SubscriptionStatus.ACTIVE.value,
+                SubscriptionStatus.CANCELED.value,  # Still has access until end
+            ]
+        ),
     )
     result = await session.execute(stmt)
     return result.scalar_one_or_none()

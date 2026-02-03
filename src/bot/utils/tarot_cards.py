@@ -73,9 +73,7 @@ def get_card_by_id(name_short: str) -> dict | None:
     return None
 
 
-def get_card_image(
-    name_short: str, reversed_flag: bool = False
-) -> BufferedInputFile | FSInputFile:
+def get_card_image(name_short: str, reversed_flag: bool = False) -> BufferedInputFile | FSInputFile:
     """
     Get card image for sending to Telegram.
 

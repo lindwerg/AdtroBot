@@ -93,9 +93,7 @@ async def cmd_start(message: Message, session: AsyncSession, bot: Bot) -> None:
 @router.callback_query(MenuCallback.filter(F.action == MenuAction.GET_FIRST_FORECAST))
 async def start_onboarding(callback: CallbackQuery, state: FSMContext) -> None:
     """Start birthdate collection."""
-    await callback.message.answer(
-        "Введи дату рождения (например, 15.03.1990 или 15 марта 1990):"
-    )
+    await callback.message.answer("Введи дату рождения (например, 15.03.1990 или 15 марта 1990):")
     await state.set_state(OnboardingStates.waiting_birthdate)
     await callback.answer()
 
@@ -186,19 +184,17 @@ async def show_first_horoscope(
 
 
 @router.callback_query(MenuCallback.filter(F.action == MenuAction.CHANNEL_PROMO_DISMISS))
-async def dismiss_channel_promo(
-    callback: CallbackQuery, session: AsyncSession
-) -> None:
+async def dismiss_channel_promo(callback: CallbackQuery, session: AsyncSession) -> None:
     """Handle channel promo dismiss - continue to notifications."""
     # Mark promo as shown
     stmt = select(User).where(User.telegram_id == callback.from_user.id)
     result = await session.execute(stmt)
     user = result.scalar_one_or_none()
-    
+
     if user:
         user.channel_promo_shown = True
         await session.commit()
-    
+
     # Delete promo message
     await callback.message.delete()
 
@@ -212,9 +208,7 @@ async def dismiss_channel_promo(
 
 
 @router.callback_query(MenuCallback.filter(F.action == MenuAction.ONBOARDING_NOTIF_YES))
-async def onboarding_enable_notifications(
-    callback: CallbackQuery, session: AsyncSession
-) -> None:
+async def onboarding_enable_notifications(callback: CallbackQuery, session: AsyncSession) -> None:
     """User wants notifications - show time selection."""
     stmt = select(User).where(User.telegram_id == callback.from_user.id)
     result = await session.execute(stmt)
@@ -232,9 +226,7 @@ async def onboarding_enable_notifications(
 
 
 @router.callback_query(MenuCallback.filter(F.action == MenuAction.ONBOARDING_NOTIF_NO))
-async def onboarding_skip_notifications(
-    callback: CallbackQuery, session: AsyncSession
-) -> None:
+async def onboarding_skip_notifications(callback: CallbackQuery, session: AsyncSession) -> None:
     """User skips notifications - show main menu."""
     await callback.message.edit_text(
         "Хорошо! Вы всегда можете включить уведомления в меню Профиль."

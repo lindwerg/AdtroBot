@@ -65,12 +65,17 @@ class HoroscopeCacheService:
             cached = result.scalar_one_or_none()
 
             if cached:
-                logger.debug("horoscope_cache_hit", sign=zodiac_sign)
+                logger.info(
+                    "horoscope_cache_hit",
+                    sign=zodiac_sign,
+                    date=today,
+                    cached_at=cached.generated_at if hasattr(cached, "generated_at") else None,
+                )
                 await self._increment_view(session, sign_lower, today)
                 return cached.content
 
             # Cache miss - generate with retry
-            logger.info("horoscope_cache_miss", sign=zodiac_sign)
+            logger.info("horoscope_cache_miss", sign=zodiac_sign, date=today)
             zodiac = ZODIAC_SIGNS[zodiac_sign]
             ai_service = get_ai_service()
 
@@ -82,30 +87,41 @@ class HoroscopeCacheService:
                         today.strftime("%d.%m.%Y"),
                     )
 
-                    if content:
-                        # Save to cache
-                        cache_entry = HoroscopeCache(
-                            zodiac_sign=sign_lower,
-                            horoscope_date=today,
-                            content=content,
-                        )
-                        session.add(cache_entry)
-                        await session.commit()
+                    # Validate content before caching
+                    if content and len(content) >= 50:  # Minimum reasonable length
+                        try:
+                            # Save to cache with proper error handling
+                            cache_entry = HoroscopeCache(
+                                zodiac_sign=sign_lower,
+                                horoscope_date=today,
+                                content=content,
+                            )
+                            session.add(cache_entry)
+                            await session.flush()  # Use flush instead of commit
 
-                        # Track view
-                        await self._increment_view(session, sign_lower, today)
+                            # Track view
+                            await self._increment_view(session, sign_lower, today)
 
-                        logger.info(
-                            "horoscope_generated_and_cached",
-                            sign=zodiac_sign,
-                            chars=len(content),
-                        )
-                        return content
+                            logger.info(
+                                "horoscope_generated_and_cached",
+                                sign=zodiac_sign,
+                                chars=len(content),
+                            )
+                            return content
+                        except Exception as cache_error:
+                            logger.error(
+                                "horoscope_cache_save_failed",
+                                error=str(cache_error),
+                                sign=zodiac_sign,
+                            )
+                            # Continue anyway - return generated content
+                            return content
 
                     logger.warning(
-                        "horoscope_generation_empty",
+                        "horoscope_generation_invalid",
                         sign=zodiac_sign,
                         attempt=attempt + 1,
+                        content_length=len(content) if content else 0,
                     )
 
                 except Exception as e:
@@ -135,13 +151,17 @@ class HoroscopeCacheService:
         Uses PostgreSQL ON CONFLICT DO UPDATE to atomically
         insert or increment view_count.
         """
-        stmt = insert(HoroscopeView).values(
-            zodiac_sign=zodiac_sign,
-            view_date=view_date,
-            view_count=1,
-        ).on_conflict_do_update(
-            constraint="uq_horoscope_views_sign_date",
-            set_={"view_count": HoroscopeView.view_count + 1},
+        stmt = (
+            insert(HoroscopeView)
+            .values(
+                zodiac_sign=zodiac_sign,
+                view_date=view_date,
+                view_count=1,
+            )
+            .on_conflict_do_update(
+                constraint="uq_horoscope_views_sign_date",
+                set_={"view_count": HoroscopeView.view_count + 1},
+            )
         )
 
         await session.execute(stmt)

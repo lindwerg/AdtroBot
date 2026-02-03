@@ -53,8 +53,10 @@ async def navigate_to_horoscope_menu(
     if response.buttons:
         for row in response.buttons:
             for button in row:
-                button_text = button.text if hasattr(button, 'text') else str(button)
-                if any(kw in button_text for kw in ["Гороскоп", "Horoscope", "прогноз", "forecast"]):
+                button_text = button.text if hasattr(button, "text") else str(button)
+                if any(
+                    kw in button_text for kw in ["Гороскоп", "Horoscope", "прогноз", "forecast"]
+                ):
                     await button.click()
                     horoscope_clicked = True
                     break
@@ -99,12 +101,14 @@ async def test_horoscope_menu_accessible(
         if response.buttons:
             for row in response.buttons:
                 for button in row:
-                    btn_text = button.text if hasattr(button, 'text') else str(button)
+                    btn_text = button.text if hasattr(button, "text") else str(button)
                     if any(sign[1] in btn_text for sign in ZODIAC_SIGNS[:3]):
                         has_zodiac_buttons = True
                         break
 
-        assert has_horoscope or has_zodiac_buttons, f"Expected horoscope menu, got: {response.raw_text[:200]}"
+        assert (
+            has_horoscope or has_zodiac_buttons
+        ), f"Expected horoscope menu, got: {response.raw_text[:200]}"
 
 
 @pytest.mark.asyncio
@@ -134,7 +138,7 @@ async def test_zodiac_sign_horoscope_quick(
         if response.buttons:
             for row in response.buttons:
                 for button in row:
-                    btn_text = button.text if hasattr(button, 'text') else str(button)
+                    btn_text = button.text if hasattr(button, "text") else str(button)
                     if sign_name in btn_text:
                         await button.click()
                         sign_clicked = True
@@ -178,7 +182,7 @@ async def test_zodiac_sign_horoscope_full(
         if response.buttons:
             for row in response.buttons:
                 for button in row:
-                    btn_text = button.text if hasattr(button, 'text') else str(button)
+                    btn_text = button.text if hasattr(button, "text") else str(button)
                     if sign_name in btn_text:
                         await button.click()
                         sign_clicked = True
@@ -196,7 +200,9 @@ async def test_zodiac_sign_horoscope_full(
             assert len(text) > 50, f"Horoscope for {sign_name} too short"
 
             # Should contain zodiac reference
-            has_zodiac_ref = sign_name in text or "гороскоп" in text.lower() or "horoscope" in text.lower()
+            has_zodiac_ref = (
+                sign_name in text or "гороскоп" in text.lower() or "horoscope" in text.lower()
+            )
             assert has_zodiac_ref, f"Expected zodiac reference for {sign_name}"
 
 
@@ -223,12 +229,25 @@ async def test_horoscope_has_date(
 
             # Check for date format (DD.MM.YYYY or similar)
             import re
-            date_pattern = r'\d{2}\.\d{2}\.\d{4}'
+
+            date_pattern = r"\d{2}\.\d{2}\.\d{4}"
             has_date = re.search(date_pattern, horoscope.raw_text) is not None
 
             # Or month names
-            months = ["января", "февраля", "марта", "апреля", "мая", "июня",
-                      "июля", "августа", "сентября", "октября", "ноября", "декабря"]
+            months = [
+                "января",
+                "февраля",
+                "марта",
+                "апреля",
+                "мая",
+                "июня",
+                "июля",
+                "августа",
+                "сентября",
+                "октября",
+                "ноября",
+                "декабря",
+            ]
             has_month = any(month in horoscope.raw_text.lower() for month in months)
 
             assert has_date or has_month, f"Expected date in horoscope: {horoscope.raw_text[:200]}"
@@ -259,13 +278,15 @@ async def test_horoscope_navigation_back(
             if horoscope.buttons:
                 for row in horoscope.buttons:
                     for button in row:
-                        btn_text = button.text if hasattr(button, 'text') else str(button)
+                        btn_text = button.text if hasattr(button, "text") else str(button)
                         if any(kw in btn_text for kw in ["Назад", "Back", "Меню", "Menu"]):
                             back_found = True
                             break
 
             # Either has back button or other navigation
-            has_navigation = back_found or (horoscope.buttons is not None and len(horoscope.buttons) > 0)
+            has_navigation = back_found or (
+                horoscope.buttons is not None and len(horoscope.buttons) > 0
+            )
             assert has_navigation, "Expected navigation from horoscope"
 
 
@@ -305,7 +326,7 @@ async def test_premium_teaser_shown_to_free_user(
             if horoscope.buttons:
                 for row in horoscope.buttons:
                     for button in row:
-                        btn_text = button.text if hasattr(button, 'text') else str(button)
+                        btn_text = button.text if hasattr(button, "text") else str(button)
                         if any(kw in btn_text for kw in ["Premium", "Премиум", "Подписка"]):
                             has_sub_button = True
 

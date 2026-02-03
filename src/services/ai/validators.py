@@ -251,7 +251,7 @@ class NatalChartOutput(BaseModel):
             "большая тройка",
             "личность",
             "развити",  # Matches "ПУТЬ РАЗВИТИЯ" and "развитие"
-            "аспект",   # Matches "КЛЮЧЕВЫЕ АСПЕКТЫ"
+            "аспект",  # Matches "КЛЮЧЕВЫЕ АСПЕКТЫ"
             "итог",
         ]
         text_lower = v.lower()
@@ -301,8 +301,13 @@ def validate_detailed_natal(text: str, min_chars: int = 15000) -> bool:
 
     # Check for AI self-references
     ai_patterns = [
-        "как ai", "как ии", "языковая модель", "искусственный интеллект",
-        "я не могу", "я не в состоянии", "к сожалению, я"
+        "как ai",
+        "как ии",
+        "языковая модель",
+        "искусственный интеллект",
+        "я не могу",
+        "я не в состоянии",
+        "к сожалению, я",
     ]
     text_lower = text.lower()
     for pattern in ai_patterns:

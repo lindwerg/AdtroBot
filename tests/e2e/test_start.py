@@ -29,12 +29,15 @@ async def test_start_shows_welcome_message(
             response = await conv.get_response()
 
         # Verify welcome text variants
-        welcome_found = any(phrase in response.raw_text for phrase in [
-            "Привет",
-            "Добро пожаловать",
-            "Рад тебя видеть",
-            "Welcome",
-        ])
+        welcome_found = any(
+            phrase in response.raw_text
+            for phrase in [
+                "Привет",
+                "Добро пожаловать",
+                "Рад тебя видеть",
+                "Welcome",
+            ]
+        )
         assert welcome_found, f"Expected welcome message, got: {response.raw_text[:200]}"
 
 
@@ -104,7 +107,7 @@ async def test_start_button_exists(
             button_texts = []
             for row in response.buttons:
                 for button in row:
-                    button_texts.append(button.text if hasattr(button, 'text') else str(button))
+                    button_texts.append(button.text if hasattr(button, "text") else str(button))
 
             # Should have at least one button
             assert len(button_texts) > 0, "Expected at least one button"

@@ -130,7 +130,7 @@ async def show_natal_chart(
         )
 
         # NO separate Telegraph link message - it's already in keyboard!
-        
+
         # Check if need to show channel promo (first time)
         if not user.channel_promo_shown:
             # Show channel promo AFTER first value delivery
@@ -157,8 +157,7 @@ async def show_natal_chart(
             error=str(e),
         )
         await message.answer(
-            "Произошла ошибка при построении натальной карты. "
-            "Попробуйте позже."
+            "Произошла ошибка при построении натальной карты. " "Попробуйте позже."
         )
 
 
@@ -384,18 +383,18 @@ async def buy_detailed_natal(
             f"Цена: {PLAN_PRICES_STR[PaymentPlan.DETAILED_NATAL]} руб.",
             reply_markup=InlineKeyboardMarkup(
                 inline_keyboard=[
-                    [InlineKeyboardButton(
-                        text="Оплатить",
-                        url=payment.confirmation.confirmation_url,
-                    )]
+                    [
+                        InlineKeyboardButton(
+                            text="Оплатить",
+                            url=payment.confirmation.confirmation_url,
+                        )
+                    ]
                 ]
             ),
         )
     except Exception as e:
         logger.error("buy_detailed_natal_error", error=str(e))
-        await callback.message.answer(
-            "Ошибка при создании платежа. Попробуй позже."
-        )
+        await callback.message.answer("Ошибка при создании платежа. Попробуй позже.")
 
 
 @router.callback_query(NatalCallback.filter(F.action == NatalAction.SHOW_DETAILED))
@@ -414,14 +413,18 @@ async def show_detailed_natal(
     if not user or not user.detailed_natal_purchased_at:
         await callback.message.answer(
             "Детальный разбор не куплен.",
-            reply_markup=get_natal_with_buy_keyboard() if user and user.is_premium else get_natal_teaser_keyboard(),
+            reply_markup=get_natal_with_buy_keyboard()
+            if user and user.is_premium
+            else get_natal_teaser_keyboard(),
         )
         return
 
     # Check for cached interpretation
-    stmt = select(DetailedNatal).where(
-        DetailedNatal.user_id == user.id
-    ).order_by(DetailedNatal.created_at.desc())
+    stmt = (
+        select(DetailedNatal)
+        .where(DetailedNatal.user_id == user.id)
+        .order_by(DetailedNatal.created_at.desc())
+    )
     result = await session.execute(stmt)
     cached = result.scalar_one_or_none()
 
@@ -431,14 +434,18 @@ async def show_detailed_natal(
             "Твой детальный разбор личности готов!",
             reply_markup=InlineKeyboardMarkup(
                 inline_keyboard=[
-                    [InlineKeyboardButton(
-                        text="Открыть разбор",
-                        url=cached.telegraph_url,
-                    )],
-                    [InlineKeyboardButton(
-                        text="Назад в меню",
-                        callback_data=NatalCallback(action=NatalAction.BACK_TO_MENU).pack(),
-                    )],
+                    [
+                        InlineKeyboardButton(
+                            text="Открыть разбор",
+                            url=cached.telegraph_url,
+                        )
+                    ],
+                    [
+                        InlineKeyboardButton(
+                            text="Назад в меню",
+                            callback_data=NatalCallback(action=NatalAction.BACK_TO_MENU).pack(),
+                        )
+                    ],
                 ]
             ),
         )
@@ -512,10 +519,12 @@ async def show_detailed_natal(
                 reply_markup=InlineKeyboardMarkup(
                     inline_keyboard=[
                         [InlineKeyboardButton(text="Открыть разбор", url=telegraph_url)],
-                        [InlineKeyboardButton(
-                            text="Назад в меню",
-                            callback_data=NatalCallback(action=NatalAction.BACK_TO_MENU).pack(),
-                        )],
+                        [
+                            InlineKeyboardButton(
+                                text="Назад в меню",
+                                callback_data=NatalCallback(action=NatalAction.BACK_TO_MENU).pack(),
+                            )
+                        ],
                     ]
                 ),
             )

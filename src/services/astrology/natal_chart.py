@@ -15,16 +15,34 @@ logger = structlog.get_logger()
 
 # Zodiac signs in order (0-11)
 ZODIAC_SIGNS = [
-    "Aries", "Taurus", "Gemini", "Cancer",
-    "Leo", "Virgo", "Libra", "Scorpio",
-    "Sagittarius", "Capricorn", "Aquarius", "Pisces"
+    "Aries",
+    "Taurus",
+    "Gemini",
+    "Cancer",
+    "Leo",
+    "Virgo",
+    "Libra",
+    "Scorpio",
+    "Sagittarius",
+    "Capricorn",
+    "Aquarius",
+    "Pisces",
 ]
 
 # Russian zodiac sign names
 ZODIAC_SIGNS_RU = [
-    "Овен", "Телец", "Близнецы", "Рак",
-    "Лев", "Дева", "Весы", "Скорпион",
-    "Стрелец", "Козерог", "Водолей", "Рыбы"
+    "Овен",
+    "Телец",
+    "Близнецы",
+    "Рак",
+    "Лев",
+    "Дева",
+    "Весы",
+    "Скорпион",
+    "Стрелец",
+    "Козерог",
+    "Водолей",
+    "Рыбы",
 ]
 
 # Planets for full natal chart (11 total)
@@ -44,7 +62,7 @@ PLANETS = [
 
 # Aspects with orbs (degrees)
 ASPECTS = {
-    0: ("Conjunction", "Соединение", 8),      # Orb 8 degrees
+    0: ("Conjunction", "Соединение", 8),  # Orb 8 degrees
     60: ("Sextile", "Секстиль", 6),
     90: ("Square", "Квадрат", 8),
     120: ("Trine", "Трин", 8),
@@ -54,6 +72,7 @@ ASPECTS = {
 
 class NatalChartResult(TypedDict):
     """Result of natal chart calculation."""
+
     sun_sign: str
     sun_degree: float
     moon_sign: str
@@ -65,6 +84,7 @@ class NatalChartResult(TypedDict):
 
 class PlanetPosition(TypedDict):
     """Position of a planet."""
+
     longitude: float
     sign: str
     sign_ru: str
@@ -73,6 +93,7 @@ class PlanetPosition(TypedDict):
 
 class HouseCusp(TypedDict):
     """House cusp position."""
+
     cusp: float
     sign: str
     sign_ru: str
@@ -80,6 +101,7 @@ class HouseCusp(TypedDict):
 
 class AnglePosition(TypedDict):
     """Position of an angle (Ascendant, MC)."""
+
     longitude: float
     sign: str
     sign_ru: str
@@ -88,6 +110,7 @@ class AnglePosition(TypedDict):
 
 class AspectData(TypedDict):
     """Aspect between two planets."""
+
     planet1: str
     planet1_ru: str
     planet2: str
@@ -99,6 +122,7 @@ class AspectData(TypedDict):
 
 class FullNatalChartResult(TypedDict):
     """Full natal chart with all planets, houses, aspects."""
+
     planets: dict[str, PlanetPosition]
     houses: dict[int, HouseCusp]
     angles: dict[str, AnglePosition]
@@ -263,7 +287,7 @@ def _calculate_aspects(planets: dict[str, PlanetPosition]) -> list[AspectData]:
     planet_names = list(planets.keys())
 
     for i, p1 in enumerate(planet_names):
-        for p2 in planet_names[i + 1:]:
+        for p2 in planet_names[i + 1 :]:
             lon1 = planets[p1]["longitude"]
             lon2 = planets[p2]["longitude"]
 
@@ -273,15 +297,17 @@ def _calculate_aspects(planets: dict[str, PlanetPosition]) -> list[AspectData]:
 
             for angle, (name, name_ru, orb) in ASPECTS.items():
                 if abs(diff - angle) <= orb:
-                    aspects.append({
-                        "planet1": p1,
-                        "planet1_ru": _get_planet_ru(p1),
-                        "planet2": p2,
-                        "planet2_ru": _get_planet_ru(p2),
-                        "aspect": name,
-                        "aspect_ru": name_ru,
-                        "orb": round(abs(diff - angle), 1),
-                    })
+                    aspects.append(
+                        {
+                            "planet1": p1,
+                            "planet1_ru": _get_planet_ru(p1),
+                            "planet2": p2,
+                            "planet2_ru": _get_planet_ru(p2),
+                            "aspect": name,
+                            "aspect_ru": name_ru,
+                            "orb": round(abs(diff - angle), 1),
+                        }
+                    )
 
     # Sort by orb (tightest aspects first)
     aspects.sort(key=lambda a: a["orb"])

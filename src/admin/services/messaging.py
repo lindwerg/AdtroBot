@@ -142,9 +142,7 @@ async def send_or_schedule_message(
 
     if request.target_user_id:
         # Single user
-        user = await session.scalar(
-            select(User).where(User.id == request.target_user_id)
-        )
+        user = await session.scalar(select(User).where(User.id == request.target_user_id))
         if user:
             success = await send_message_to_user(user.telegram_id, request.text)
             message.total_recipients = 1

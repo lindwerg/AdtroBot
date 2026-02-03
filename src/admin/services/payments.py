@@ -147,9 +147,7 @@ async def list_subscriptions(
 
     # Count total
     count_query = (
-        select(func.count())
-        .select_from(Subscription)
-        .join(User, Subscription.user_id == User.id)
+        select(func.count()).select_from(Subscription).join(User, Subscription.user_id == User.id)
     )
     for condition in conditions:
         count_query = count_query.where(condition)

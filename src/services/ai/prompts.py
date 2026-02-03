@@ -4,18 +4,18 @@ from dataclasses import dataclass
 
 # Zodiac signs with grammatical gender (masculine/feminine for Russian address)
 ZODIAC_GENDER = {
-    "aries": "m",      # Овен
-    "taurus": "m",     # Телец
-    "gemini": "m",     # Близнецы (plural, use masculine)
-    "cancer": "m",     # Рак
-    "leo": "m",        # Лев
-    "virgo": "f",      # Дева
-    "libra": "f",      # Весы (plural, use feminine)
-    "scorpio": "m",    # Скорпион
+    "aries": "m",  # Овен
+    "taurus": "m",  # Телец
+    "gemini": "m",  # Близнецы (plural, use masculine)
+    "cancer": "m",  # Рак
+    "leo": "m",  # Лев
+    "virgo": "f",  # Дева
+    "libra": "f",  # Весы (plural, use feminine)
+    "scorpio": "m",  # Скорпион
     "sagittarius": "m",  # Стрелец
     "capricorn": "m",  # Козерог
-    "aquarius": "m",   # Водолей
-    "pisces": "f",     # Рыбы (plural, use feminine)
+    "aquarius": "m",  # Водолей
+    "pisces": "f",  # Рыбы (plural, use feminine)
 }
 
 
@@ -70,9 +70,11 @@ class HoroscopePrompt:
             zodiac_sign_en: English zodiac name for greeting gender (optional)
         """
         greeting = get_zodiac_greeting(zodiac_sign_en, zodiac_sign_ru) if zodiac_sign_en else ""
-        greeting_instruction = f"\nНачни с обращения: \"{greeting}\"" if greeting else ""
+        greeting_instruction = f'\nНачни с обращения: "{greeting}"' if greeting else ""
 
-        return f"""Создай гороскоп на {date_str} для знака: {zodiac_sign_ru}{greeting_instruction}"""
+        return (
+            f"""Создай гороскоп на {date_str} для знака: {zodiac_sign_ru}{greeting_instruction}"""
+        )
 
 
 @dataclass
@@ -110,7 +112,7 @@ class GeneralHoroscopePrompt:
             zodiac_sign_en: English zodiac name for greeting gender (optional)
         """
         greeting = get_zodiac_greeting(zodiac_sign_en, zodiac_sign_ru) if zodiac_sign_en else ""
-        greeting_instruction = f"\nНачни с обращения: \"{greeting}\"" if greeting else ""
+        greeting_instruction = f'\nНачни с обращения: "{greeting}"' if greeting else ""
 
         return f"""Создай общий гороскоп на {date_str} для знака: {zodiac_sign_ru}{greeting_instruction}
 
@@ -714,7 +716,9 @@ class DetailedNatalPrompt:
             lines.append(f"{name.title()}: {sign_ru} {degree:.0f}°")
 
         # Angles
-        lines.append(f"Асцендент: {angles['ascendant']['sign_ru']} {angles['ascendant']['degree']:.0f}°")
+        lines.append(
+            f"Асцендент: {angles['ascendant']['sign_ru']} {angles['ascendant']['degree']:.0f}°"
+        )
         lines.append(f"MC: {angles['mc']['sign_ru']} {angles['mc']['degree']:.0f}°")
 
         # Top aspects
@@ -999,9 +1003,7 @@ class AstrologerChatPrompt:
                 if important_transits:
                     transits_text += "Позиции:\n" + "\n".join(important_transits[:6])
                 if transit_aspects_lines:
-                    transits_text += (
-                        "\n\nТочные аспекты:\n" + "\n".join(transit_aspects_lines)
-                    )
+                    transits_text += "\n\nТочные аспекты:\n" + "\n".join(transit_aspects_lines)
         else:
             transits_text = "\n\n(транзиты не загружены)"
 
