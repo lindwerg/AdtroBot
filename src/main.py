@@ -191,12 +191,20 @@ async def webhook(request: Request) -> Response:
     """Handle Telegram webhook updates."""
     secret = request.headers.get("X-Telegram-Bot-Api-Secret-Token")
     if secret != settings.webhook_secret:
+        await logger.awarning("Invalid webhook secret", secret=secret[:10] if secret else None)
         return Response(status_code=401)
 
-    bot = get_bot()
-    update = Update.model_validate(await request.json(), context={"bot": bot})
-    await dp.feed_update(bot, update)
-    return Response(status_code=200)
+    try:
+        bot = get_bot()
+        update_data = await request.json()
+        await logger.adebug("Received webhook update", update_id=update_data.get("update_id"))
+        update = Update.model_validate(update_data, context={"bot": bot})
+        await dp.feed_update(bot, update)
+        return Response(status_code=200)
+    except Exception as e:
+        await logger.aerror("Webhook processing failed", error=str(e), exc_info=True)
+        # Still return 200 to prevent Telegram from retrying
+        return Response(status_code=200)
 
 
 @app.post("/webhook/yookassa")
