@@ -34,5 +34,6 @@ class ErrorHandlerMiddleware(BaseMiddleware):
                 except Exception:
                     pass
 
-            # Re-raise to let FastAPI handle it
-            raise
+            # DON'T re-raise - let webhook return 200
+            # Telegram retries if we raise, causing duplicates
+            return None

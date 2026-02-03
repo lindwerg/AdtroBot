@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
+import secrets
 
 import structlog
 from aiogram.types import Update
@@ -24,6 +25,22 @@ from src.services.payment.service import is_yookassa_ip, process_webhook_event
 from src.services.scheduler import get_scheduler
 
 logger = structlog.get_logger()
+
+
+def get_real_client_ip(request: Request) -> str:
+    """Get real client IP, handling proxies (Cloudflare on Railway)."""
+    # Cloudflare header (most reliable)
+    cf_ip = request.headers.get("CF-Connecting-IP")
+    if cf_ip:
+        return cf_ip
+
+    # X-Forwarded-For (first IP = original client)
+    xff = request.headers.get("X-Forwarded-For")
+    if xff:
+        return xff.split(",")[0].strip()
+
+    # Fallback (local dev)
+    return request.client.host if request.client else ""
 
 
 async def warm_horoscope_cache() -> None:
@@ -119,10 +136,7 @@ app.mount("/metrics", metrics_app)
 # CORS middleware for admin panel
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://localhost:3000",
-    ],
+    allow_origins=settings.cors_origins,  # Dynamic configuration via env var
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -210,9 +224,11 @@ async def health_check(
 async def webhook(request: Request) -> Response:
     """Handle Telegram webhook updates."""
     secret = request.headers.get("X-Telegram-Bot-Api-Secret-Token")
-    if secret != settings.webhook_secret:
-        await logger.awarning("Invalid webhook secret", secret=secret[:10] if secret else None)
-        return Response(status_code=401)
+
+    # Constant-time comparison to prevent timing attacks
+    if not secret or not secrets.compare_digest(secret, settings.webhook_secret):
+        await logger.awarning("Invalid webhook secret", ip=request.client.host if request.client else "unknown")
+        return Response(status_code=200)  # Return 200 to avoid Telegram retries
 
     try:
         bot = get_bot()
@@ -247,8 +263,8 @@ async def yookassa_webhook(
 
     Returns 200 immediately, processes in background.
     """
-    # IP verification
-    client_ip = request.client.host if request.client else ""
+    # IP verification - get real IP from proxy headers
+    client_ip = get_real_client_ip(request)
 
     # In production, verify IP (skip in dev)
     if settings.railway_environment and not is_yookassa_ip(client_ip):

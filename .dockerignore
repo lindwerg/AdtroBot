@@ -1,0 +1,39 @@
+# Git
+.git/
+.github/
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Testing
+tests/
+.coverage
+htmlcov/
+
+# IDE
+.vscode/
+.idea/
+.DS_Store
+
+# Planning
+.planning/
+.claude/
+
+# Local env
+.env
+.env.local
+
+# Frontend (will be installed in Docker)
+admin-frontend/node_modules/
+admin-frontend/dist/
+
+# Docs
+*.md
+LICENSE

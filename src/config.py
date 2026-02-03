@@ -37,7 +37,7 @@ class Settings(BaseSettings):
         validation_alias="WEBHOOK_BASE_URL",
     )
     webhook_secret: str = Field(
-        default="E0SnFK8Wl4NyQ0oqV-ufqdB12m_tF19Xenzvkptn27c",  # Temp fix - will use env var when Railway dashboard is accessible
+        default="",  # MUST be set via WEBHOOK_SECRET env var
         validation_alias="WEBHOOK_SECRET",
     )
 
@@ -69,12 +69,18 @@ class Settings(BaseSettings):
 
     # Admin JWT
     admin_jwt_secret: str = Field(
-        default="astraro-admin-jwt-secret-key-2026",  # Temp fix - will use env var when Railway dashboard is accessible
+        default="",  # MUST be set via ADMIN_JWT_SECRET env var
         validation_alias="ADMIN_JWT_SECRET",
     )
     admin_jwt_expire_minutes: int = Field(
         default=30,
         validation_alias="ADMIN_JWT_EXPIRE_MINUTES",
+    )
+
+    # CORS
+    cors_origins: list[str] = Field(
+        default_factory=lambda: ["http://localhost:5173", "http://localhost:3000"],
+        validation_alias="CORS_ORIGINS",
     )
 
     @property
@@ -95,5 +101,16 @@ class Settings(BaseSettings):
             return url
         return url.replace("postgresql+asyncpg://", "postgresql://")
 
+    def validate_secrets(self) -> None:
+        """Validate critical secrets in production."""
+        if self.railway_environment:
+            if not self.webhook_secret:
+                raise ValueError("WEBHOOK_SECRET must be set in production")
+            if not self.admin_jwt_secret:
+                raise ValueError("ADMIN_JWT_SECRET must be set in production")
+
 
 settings = Settings()
+
+# Validate secrets on startup
+settings.validate_secrets()

@@ -184,8 +184,15 @@ async def process_webhook_event(
         await logger.awarning("Webhook missing payment_id", event=event)
         return False
 
-    # Check idempotency - already processed?
-    existing = await session.get(Payment, payment_id)
+    # Atomic check-and-lock to prevent race conditions
+    stmt = (
+        select(Payment)
+        .where(Payment.id == payment_id)
+        .with_for_update(skip_locked=True)  # Skip if locked by another process
+    )
+    result = await session.execute(stmt)
+    existing = result.scalar_one_or_none()
+
     if existing and existing.webhook_processed:
         await logger.ainfo("Webhook duplicate, skipping", payment_id=payment_id)
         return False
