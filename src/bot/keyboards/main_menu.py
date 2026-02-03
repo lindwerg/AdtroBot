@@ -1,6 +1,6 @@
 """Main menu and start keyboards."""
 
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
 from src.bot.callbacks.menu import MenuAction, MenuCallback

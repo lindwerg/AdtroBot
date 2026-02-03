@@ -8,7 +8,6 @@ from typing import Any, Coroutine
 
 import structlog
 from aiogram.types import Message
-from aiogram.utils.chat_action import ChatActionSender
 
 logger = structlog.get_logger()
 
