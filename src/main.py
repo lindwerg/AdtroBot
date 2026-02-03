@@ -158,6 +158,22 @@ else:
     )
 
 
+@app.get("/")
+async def root() -> JSONResponse:
+    """Root endpoint - welcome message."""
+    return JSONResponse(
+        content={
+            "service": "Astraro Bot API",
+            "status": "running",
+            "endpoints": {
+                "health": "/health",
+                "admin": "/admin",
+                "api_docs": "/docs",
+            },
+        }
+    )
+
+
 @app.get("/health")
 async def health_check(
     session: AsyncSession = Depends(get_session),
