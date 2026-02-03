@@ -1,7 +1,11 @@
 from src.db.models.ai_usage import AIUsage
 from src.db.models.base import Base
 from src.db.models.detailed_natal import DetailedNatal
-from src.db.models.horoscope_cache import HoroscopeCache, HoroscopeView
+from src.db.models.horoscope_cache import (
+    HoroscopeCache,
+    HoroscopeView,
+    PremiumHoroscopeCache,
+)
 from src.db.models.payment import Payment, PaymentStatus
 from src.db.models.promo import PromoCode
 from src.db.models.subscription import Subscription, SubscriptionPlan, SubscriptionStatus
@@ -16,6 +20,7 @@ __all__ = [
     "HoroscopeView",
     "Payment",
     "PaymentStatus",
+    "PremiumHoroscopeCache",
     "PromoCode",
     "Subscription",
     "SubscriptionPlan",

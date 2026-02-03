@@ -18,6 +18,7 @@ from src.bot.keyboards.profile import (
     build_notifications_toggle_keyboard,
     build_timezone_keyboard,
 )
+from src.bot.utils.safe_edit import safe_edit_message
 from src.db.models.user import User
 from src.services.scheduler import remove_user_notification, schedule_user_notification
 
@@ -55,8 +56,10 @@ async def settings_notifications_callback(
         "Выберите действие:"
     )
 
-    await callback.message.edit_text(
-        text, reply_markup=build_notifications_toggle_keyboard(user.notifications_enabled)
+    await safe_edit_message(
+        callback=callback,
+        text=text,
+        reply_markup=build_notifications_toggle_keyboard(user.notifications_enabled),
     )
     await callback.answer()
 
@@ -88,14 +91,15 @@ async def toggle_notifications(
                 timezone=user.timezone or "Europe/Moscow",
                 zodiac_sign=user.zodiac_sign,
             )
-        await callback.message.edit_text(
-            "Уведомления включены! Выберите время:",
+        await safe_edit_message(
+            callback=callback,
+            text="Уведомления включены! Выберите время:",
             reply_markup=build_notification_time_keyboard(),
         )
     else:
         # Remove notification
         remove_user_notification(user.telegram_id)
-        await callback.message.edit_text("Уведомления выключены.")
+        await safe_edit_message(callback=callback, text="Уведомления выключены.")
 
     await callback.answer()
 
@@ -127,8 +131,9 @@ async def set_notification_time(
             zodiac_sign=user.zodiac_sign,
         )
 
-    await callback.message.edit_text(
-        f"Время установлено: {callback_data.hour:02d}:00\n\nВыберите часовой пояс:",
+    await safe_edit_message(
+        callback=callback,
+        text=f"Время установлено: {callback_data.hour:02d}:00\n\nВыберите часовой пояс:",
         reply_markup=build_timezone_keyboard(),
     )
     await callback.answer()
@@ -168,11 +173,12 @@ async def set_timezone(
             tz_label = label
             break
 
-    await callback.message.edit_text(
-        f"Настройки сохранены!\n\n"
+    await safe_edit_message(
+        callback=callback,
+        text=f"Настройки сохранены!\n\n"
         f"Уведомления: включены\n"
         f"Время: {user.notification_hour or 9:02d}:00\n"
-        f"Часовой пояс: {tz_label}"
+        f"Часовой пояс: {tz_label}",
     )
     # Show main menu after timezone selection
     await callback.message.answer(

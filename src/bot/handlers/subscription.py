@@ -14,6 +14,7 @@ from src.bot.keyboards.subscription import (
     get_plans_keyboard,
 )
 from src.bot.utils.images import BotImages, get_image
+from src.bot.utils.safe_edit import safe_edit_message
 from src.db.models.user import User
 from src.services.payment import (
     PaymentPlan,
@@ -86,15 +87,17 @@ async def menu_subscription_callback(
 
     if user and user.is_premium and user.premium_until:
         until_str = user.premium_until.strftime("%d.%m.%Y")
-        await callback.message.edit_text(
-            f"У вас уже есть премиум-подписка до {until_str}\n\n"
+        await safe_edit_message(
+            callback=callback,
+            text=f"У вас уже есть премиум-подписка до {until_str}\n\n"
             "Хотите продлить?",
             reply_markup=get_plans_keyboard(),
         )
         return
 
-    await callback.message.edit_text(
-        PREMIUM_FEATURES + "\n\nВыберите тариф:",
+    await safe_edit_message(
+        callback=callback,
+        text=PREMIUM_FEATURES + "\n\nВыберите тариф:",
         reply_markup=get_plans_keyboard(),
     )
 
@@ -141,8 +144,9 @@ async def handle_plan_selection(
             ]
         )
 
-        await callback.message.edit_text(
-            "Отлично! Нажмите кнопку для перехода к оплате.\n\n"
+        await safe_edit_message(
+            callback=callback,
+            text="Отлично! Нажмите кнопку для перехода к оплате.\n\n"
             "После оплаты подписка активируется автоматически.",
             reply_markup=keyboard,
         )
@@ -170,9 +174,10 @@ async def handle_plan_selection(
             amount=price,
             **error_details,
         )
-        await callback.message.edit_text(
-            "Произошла ошибка при создании платежа. "
-            "Попробуйте позже или напишите в поддержку."
+        await safe_edit_message(
+            callback=callback,
+            text="Произошла ошибка при создании платежа. "
+            "Попробуйте позже или напишите в поддержку.",
         )
 
 
@@ -187,13 +192,14 @@ async def handle_cancel_request(
     subscription = await get_user_subscription(session, callback.from_user.id)
 
     if not subscription:
-        await callback.message.edit_text("У вас нет активной подписки.")
+        await safe_edit_message(callback=callback, text="У вас нет активной подписки.")
         return
 
     until_str = subscription.current_period_end.strftime("%d.%m.%Y")
 
-    await callback.message.edit_text(
-        f"Вы уверены, что хотите отменить подписку?\n\n"
+    await safe_edit_message(
+        callback=callback,
+        text=f"Вы уверены, что хотите отменить подписку?\n\n"
         f"Доступ сохранится до {until_str}.\n\n"
         "Если передумаете — напишите нам, дадим скидку 20%!",
         reply_markup=get_cancel_confirmation_keyboard(),
@@ -212,19 +218,20 @@ async def handle_confirm_cancel(
 
     if subscription:
         until_str = subscription.current_period_end.strftime("%d.%m.%Y")
-        await callback.message.edit_text(
-            f"Подписка отменена.\n\n"
+        await safe_edit_message(
+            callback=callback,
+            text=f"Подписка отменена.\n\n"
             f"Премиум-доступ сохранится до {until_str}.\n"
-            f"Мы будем рады видеть вас снова!"
+            f"Мы будем рады видеть вас снова!",
         )
     else:
-        await callback.message.edit_text("Подписка не найдена.")
+        await safe_edit_message(callback=callback, text="Подписка не найдена.")
 
 
 @router.callback_query(SubscriptionCallback.filter(F.action == "keep"))
 async def handle_keep_subscription(callback: CallbackQuery) -> None:
     """User decided to keep subscription."""
     await callback.answer("Отлично! Рады, что остаётесь с нами!")
-    await callback.message.edit_text(
-        "Подписка сохранена. Спасибо, что вы с нами!"
+    await safe_edit_message(
+        callback=callback, text="Подписка сохранена. Спасибо, что вы с нами!"
     )

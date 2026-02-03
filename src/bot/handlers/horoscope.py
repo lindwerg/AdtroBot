@@ -1,5 +1,6 @@
 """Horoscope handlers with premium support (no zodiac sign selection grid)."""
 
+import structlog
 from datetime import date
 
 from aiogram import Bot, Router
@@ -12,9 +13,12 @@ from src.bot.keyboards.horoscope import build_home_menu_keyboard, build_zodiac_k
 from src.bot.utils.horoscope import get_horoscope_text
 from src.bot.utils.progress import generate_with_feedback
 from src.bot.utils.zodiac import ZODIAC_SIGNS
+from src.db.models.horoscope_cache import PremiumHoroscopeCache
 from src.db.models.user import User
 from src.services.ai.client import get_ai_service
 from src.services.astrology.natal_chart import calculate_full_natal_chart
+
+logger = structlog.get_logger()
 
 router = Router(name="horoscope")
 
@@ -84,28 +88,69 @@ async def show_horoscope_message(
 
         if has_natal and user.birth_date:
             # Premium with natal data - personalized horoscope
-            natal_data = calculate_full_natal_chart(
-                birth_date=user.birth_date,
-                birth_time=user.birth_time,
-                latitude=user.birth_lat,
-                longitude=user.birth_lon,
-                timezone_str=user.timezone or "Europe/Moscow",
+            # Check cache first
+            today = date.today()
+            stmt_cache = select(PremiumHoroscopeCache).where(
+                PremiumHoroscopeCache.user_id == message.from_user.id,
+                PremiumHoroscopeCache.horoscope_date == today,
             )
-            ai_service = get_ai_service()
-            text = await generate_with_feedback(
-                message=message,
-                operation_type="horoscope",
-                ai_coro=ai_service.generate_premium_horoscope(
+            result_cache = await session.execute(stmt_cache)
+            cached = result_cache.scalar_one_or_none()
+
+            if cached:
+                # Use cached premium horoscope
+                text = cached.content
+                logger.info(
+                    "premium_horoscope_cache_hit",
                     user_id=message.from_user.id,
-                    zodiac_sign=sign_name,
-                    zodiac_sign_ru=zodiac.name_ru,
-                    date_str=date_str,
-                    natal_data=natal_data,
-                ),
-            )
-            if text is None:
-                # Fallback to basic horoscope on error
-                text = await get_horoscope_text(sign_name, zodiac.name_ru)
+                    date=today,
+                )
+            else:
+                # Generate new premium horoscope
+                await message.answer(
+                    "✨ Генерирую твой персональный прогноз на основе натальной карты...\n"
+                    "Это займет 20-30 секунд."
+                )
+
+                natal_data = calculate_full_natal_chart(
+                    birth_date=user.birth_date,
+                    birth_time=user.birth_time,
+                    latitude=user.birth_lat,
+                    longitude=user.birth_lon,
+                    timezone_str=user.timezone or "Europe/Moscow",
+                )
+                ai_service = get_ai_service()
+                text = await generate_with_feedback(
+                    message=message,
+                    operation_type="horoscope",
+                    ai_coro=ai_service.generate_premium_horoscope(
+                        user_id=message.from_user.id,
+                        zodiac_sign=sign_name,
+                        zodiac_sign_ru=zodiac.name_ru,
+                        date_str=date_str,
+                        natal_data=natal_data,
+                    ),
+                )
+
+                if text is None:
+                    # Fallback to basic horoscope on error
+                    text = await get_horoscope_text(sign_name, zodiac.name_ru)
+                else:
+                    # Cache the generated horoscope
+                    cache_entry = PremiumHoroscopeCache(
+                        user_id=message.from_user.id,
+                        horoscope_date=today,
+                        content=text,
+                    )
+                    session.add(cache_entry)
+                    await session.commit()
+                    logger.info(
+                        "premium_horoscope_cached",
+                        user_id=message.from_user.id,
+                        date=today,
+                        length=len(text),
+                    )
+
             header = "Твой персональный гороскоп"
         else:
             # Premium without natal data - basic + setup prompt

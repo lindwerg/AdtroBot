@@ -38,6 +38,7 @@ from src.bot.keyboards.tarot import (
 )
 from src.bot.states.tarot import TarotStates
 from src.bot.utils.progress import generate_with_feedback
+from src.bot.utils.safe_edit import safe_edit_message
 from src.bot.utils.tarot_cards import (
     get_card_by_id,
     get_card_image,
@@ -243,11 +244,12 @@ async def tarot_card_of_day_start(
             return
 
     # Show ritual
-    await callback.message.edit_text("Тасую колоду...")
+    await safe_edit_message(callback=callback, text="Тасую колоду...")
     await asyncio.sleep(1.5)
 
-    await callback.message.edit_text(
-        "Карта перед вами...",
+    await safe_edit_message(
+        callback=callback,
+        text="Карта перед вами...",
         reply_markup=get_draw_card_keyboard(),
     )
     await callback.answer()
@@ -355,16 +357,18 @@ async def tarot_three_card_start(
 
     if remaining <= 0:
         content = format_limit_exceeded()
-        await callback.message.edit_text(
-            **content.as_kwargs(),
+        await safe_edit_message(
+            callback=callback,
+            text=content.text,
             reply_markup=get_tarot_menu_keyboard(),
+            parse_mode=content.parse_mode,
         )
         await callback.answer()
         return
 
     # Ask for question
-    await callback.message.edit_text(
-        "Задайте свой вопрос:\n\n" "(Напишите вопрос в чат)"
+    await safe_edit_message(
+        callback=callback, text="Задайте свой вопрос:\n\n" "(Напишите вопрос в чат)"
     )
     await state.set_state(TarotStates.waiting_question)
     await callback.answer()
@@ -517,8 +521,9 @@ async def tarot_celtic_cross_start(
     # Check premium status
     if not user.is_premium:
         # Show premium teaser
-        await callback.message.edit_text(
-            "Кельтский крест — это глубокий расклад из 10 карт.\n\n"
+        await safe_edit_message(
+            callback=callback,
+            text="Кельтский крест — это глубокий расклад из 10 карт.\n\n"
             "Он раскрывает:\n"
             "- Корень ситуации и препятствия\n"
             "- Прошлое и возможное будущее\n"
@@ -542,19 +547,22 @@ async def tarot_celtic_cross_start(
 
     if remaining <= 0:
         content = format_limit_exceeded()
-        await callback.message.edit_text(
-            **content.as_kwargs(),
+        await safe_edit_message(
+            callback=callback,
+            text=content.text,
             reply_markup=get_tarot_menu_keyboard(),
+            parse_mode=content.parse_mode,
         )
         await callback.answer()
         return
 
     # Ask for question (more serious ritual for Celtic Cross)
-    await callback.message.edit_text(
-        "Кельтский крест — древний расклад, раскрывающий глубину ситуации.\n\n"
+    await safe_edit_message(
+        callback=callback,
+        text="Кельтский крест — древний расклад, раскрывающий глубину ситуации.\n\n"
         "Сосредоточьтесь на своем вопросе.\n"
         "Он должен быть важным и значимым для вас.\n\n"
-        "Задайте вопрос:"
+        "Задайте вопрос:",
     )
     await state.set_state(TarotStates.waiting_celtic_question)
     await callback.answer()
@@ -807,8 +815,9 @@ async def show_history_page(
     total_count = min(total_result.scalar_one(), MAX_HISTORY_SPREADS)
 
     if total_count == 0:
-        await callback.message.edit_text(
-            "У вас пока нет сохраненных раскладов.\n\n"
+        await safe_edit_message(
+            callback=callback,
+            text="У вас пока нет сохраненных раскладов.\n\n"
             "Сделайте расклад на 3 карты или Кельтский крест,\n"
             "и он появится здесь.",
             reply_markup=get_tarot_menu_keyboard(),
@@ -829,8 +838,9 @@ async def show_history_page(
     result = await session.execute(stmt)
     spreads = result.scalars().all()
 
-    await callback.message.edit_text(
-        f"История раскладов ({total_count} всего)\n"
+    await safe_edit_message(
+        callback=callback,
+        text=f"История раскладов ({total_count} всего)\n"
         f"Страница {page + 1}/{total_pages}",
         reply_markup=get_history_keyboard(list(spreads), page, total_pages, offset),
     )
@@ -870,8 +880,10 @@ async def tarot_history_view(
 
     # Format and show
     content = format_spread_detail(spread, deck)
-    await callback.message.edit_text(
-        **content.as_kwargs(),
+    await safe_edit_message(
+        callback=callback,
+        text=content.text,
         reply_markup=get_spread_detail_keyboard(),
+        parse_mode=content.parse_mode,
     )
     await callback.answer()

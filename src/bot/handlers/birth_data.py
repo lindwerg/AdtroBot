@@ -19,6 +19,7 @@ from src.bot.keyboards.birth_data import (
 )
 from src.bot.keyboards.main_menu import get_main_menu_keyboard
 from src.bot.states.birth_data import BirthDataStates
+from src.bot.utils.safe_edit import safe_edit_message
 from src.db.models.user import User
 from src.services.astrology.geocoding import search_city
 
@@ -45,23 +46,26 @@ async def start_birth_data_setup(
     user = result.scalar_one_or_none()
 
     if not user:
-        await callback.message.edit_text(
-            "Профиль не найден. Нажмите /start для регистрации."
+        await safe_edit_message(
+            callback=callback,
+            text="Профиль не найден. Нажмите /start для регистрации.",
         )
         return
 
     if not user.is_premium:
-        await callback.message.edit_text(
-            "Настройка натальной карты доступна только премиум-пользователям.\n\n"
-            "Оформите подписку, чтобы получить персонализированные гороскопы!"
+        await safe_edit_message(
+            callback=callback,
+            text="Настройка натальной карты доступна только премиум-пользователям.\n\n"
+            "Оформите подписку, чтобы получить персонализированные гороскопы!",
         )
         return
 
     # Start FSM
     await state.set_state(BirthDataStates.waiting_birth_time)
 
-    await callback.message.edit_text(
-        "Для построения натальной карты укажите время рождения.\n\n"
+    await safe_edit_message(
+        callback=callback,
+        text="Для построения натальной карты укажите время рождения.\n\n"
         "Введите время в формате ЧЧ:ММ (например, 14:30).\n\n"
         "Если не знаете точное время — нажмите кнопку ниже.",
         reply_markup=build_skip_time_keyboard(),
@@ -79,9 +83,10 @@ async def skip_birth_time(
     await state.update_data(birth_time=None)
     await state.set_state(BirthDataStates.waiting_birth_city)
 
-    await callback.message.edit_text(
-        "Хорошо, время не указано. Будет использовано полуденное время (12:00).\n\n"
-        "Теперь введите город рождения (на русском или английском):"
+    await safe_edit_message(
+        callback=callback,
+        text="Хорошо, время не указано. Будет использовано полуденное время (12:00).\n\n"
+        "Теперь введите город рождения (на русском или английском):",
     )
 
 
@@ -181,8 +186,8 @@ async def select_city(
     idx = callback_data.idx
 
     if idx >= len(cities):
-        await callback.message.edit_text(
-            "Ошибка выбора города. Попробуйте начать заново."
+        await safe_edit_message(
+            callback=callback, text="Ошибка выбора города. Попробуйте начать заново."
         )
         await state.clear()
         return
@@ -196,8 +201,8 @@ async def select_city(
     user = result.scalar_one_or_none()
 
     if not user:
-        await callback.message.edit_text(
-            "Профиль не найден. Нажмите /start для регистрации."
+        await safe_edit_message(
+            callback=callback, text="Профиль не найден. Нажмите /start для регистрации."
         )
         await state.clear()
         return
@@ -227,8 +232,9 @@ async def select_city(
         else "не указано (12:00)"
     )
 
-    await callback.message.edit_text(
-        "Данные рождения сохранены!\n\n"
+    await safe_edit_message(
+        callback=callback,
+        text="Данные рождения сохранены!\n\n"
         f"Время: {time_str}\n"
         f"Город: {city['name']}\n\n"
         "Теперь ваши гороскопы будут учитывать натальную карту.",
@@ -246,8 +252,9 @@ async def retry_city_search(
 
     await state.set_state(BirthDataStates.waiting_birth_city)
 
-    await callback.message.edit_text(
-        "Введите название города ещё раз (на русском или английском):"
+    await safe_edit_message(
+        callback=callback,
+        text="Введите название города ещё раз (на русском или английском):",
     )
 
 
@@ -260,9 +267,10 @@ async def cancel_birth_data(
     await callback.answer()
     await state.clear()
 
-    await callback.message.edit_text(
-        "Настройка натальной карты отменена.\n\n"
-        "Вы можете вернуться к ней позже через профиль."
+    await safe_edit_message(
+        callback=callback,
+        text="Настройка натальной карты отменена.\n\n"
+        "Вы можете вернуться к ней позже через профиль.",
     )
     await callback.message.answer(
         "Главное меню:",

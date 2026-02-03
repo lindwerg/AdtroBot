@@ -467,7 +467,7 @@ class AIService:
                     natal_data=natal_data,
                     zodiac_sign_en=zodiac_sign,
                 ),
-                max_tokens=2000,  # Longer for premium
+                max_tokens=3500,  # Increased for detailed premium (800-1200 words)
                 operation="premium_horoscope",
                 user_id=user_id,
             )

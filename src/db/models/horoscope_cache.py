@@ -2,7 +2,7 @@
 
 from datetime import date, datetime
 
-from sqlalchemy import Date, DateTime, Integer, String, Text, UniqueConstraint
+from sqlalchemy import BigInteger, Date, DateTime, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.db.models.base import Base
@@ -58,3 +58,31 @@ class HoroscopeView(Base):
 
     def __repr__(self) -> str:
         return f"<HoroscopeView(sign={self.zodiac_sign}, date={self.view_date}, count={self.view_count})>"
+
+
+class PremiumHoroscopeCache(Base):
+    """Cached premium (personalized) horoscopes with natal chart data.
+
+    Stores premium horoscopes per user and date to avoid regenerating
+    if user requests the same horoscope multiple times in a day.
+    """
+
+    __tablename__ = "premium_horoscope_cache"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(BigInteger, index=True)
+    horoscope_date: Mapped[date] = mapped_column(Date, index=True)
+    content: Mapped[str] = mapped_column(Text)
+    generated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default="now()",
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id", "horoscope_date", name="uq_premium_horoscope_cache_user_date"
+        ),
+    )
+
+    def __repr__(self) -> str:
+        return f"<PremiumHoroscopeCache(user_id={self.user_id}, date={self.horoscope_date})>"

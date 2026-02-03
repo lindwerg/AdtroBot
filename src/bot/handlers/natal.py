@@ -26,6 +26,7 @@ from src.bot.keyboards.natal import (
     get_natal_with_buy_keyboard,
     get_natal_with_open_keyboard,
 )
+from src.bot.utils.safe_edit import safe_edit_message
 from src.db.models.detailed_natal import DetailedNatal
 from src.db.models.user import User
 from src.bot.utils.progress import generate_with_feedback
@@ -291,15 +292,17 @@ async def callback_show_natal_chart(
     user = result.scalar_one_or_none()
 
     if not user or not user.is_premium:
-        await callback.message.edit_text(
-            "Натальная карта доступна только премиум-пользователям.",
+        await safe_edit_message(
+            callback=callback,
+            text="Натальная карта доступна только премиум-пользователям.",
             reply_markup=get_natal_teaser_keyboard(),
         )
         return
 
     if not user.birth_lat or not user.birth_lon or not user.birth_date:
-        await callback.message.edit_text(
-            "Сначала настройте данные рождения.",
+        await safe_edit_message(
+            callback=callback,
+            text="Сначала настройте данные рождения.",
             reply_markup=get_natal_setup_keyboard(),
         )
         return
@@ -312,7 +315,10 @@ async def callback_back_to_menu(callback: CallbackQuery) -> None:
     """Return to main menu."""
     await callback.answer()
 
-    await callback.message.edit_text("Выберите раздел:")
+    await safe_edit_message(
+        callback=callback,
+        text="Выберите раздел:",
+    )
     await callback.message.answer(
         "Главное меню:",
         reply_markup=get_main_menu_keyboard(),
