@@ -7,3 +7,4 @@ railway variables set WEBHOOK_BASE_URL="https://adtrobot-production.up.railway.a
 1. railway.app/dashboard
 2. Выбери проект AdtroBot
 3. Service → Variables → Add
+WEBHOOK_SECRET=E0SnFK8Wl4NyQ0oqV-ufqdB12m_tF19Xenzvkptn27c
