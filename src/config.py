@@ -38,7 +38,8 @@ class Settings(BaseSettings):
         validation_alias="WEBHOOK_BASE_URL",
     )
     webhook_secret: str = Field(
-        default_factory=lambda: secrets.token_urlsafe(32),
+        default="",  # Use environment variable WEBHOOK_SECRET
+        validation_alias="WEBHOOK_SECRET",
     )
 
     # OpenRouter
@@ -69,7 +70,7 @@ class Settings(BaseSettings):
 
     # Admin JWT
     admin_jwt_secret: str = Field(
-        default_factory=lambda: secrets.token_urlsafe(32),
+        default="",  # Use environment variable ADMIN_JWT_SECRET
         validation_alias="ADMIN_JWT_SECRET",
     )
     admin_jwt_expire_minutes: int = Field(
