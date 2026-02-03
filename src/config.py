@@ -38,7 +38,7 @@ class Settings(BaseSettings):
         validation_alias="WEBHOOK_BASE_URL",
     )
     webhook_secret: str = Field(
-        default="",  # Use environment variable WEBHOOK_SECRET
+        default="E0SnFK8Wl4NyQ0oqV-ufqdB12m_tF19Xenzvkptn27c",  # Temp fix - will use env var when Railway dashboard is accessible
         validation_alias="WEBHOOK_SECRET",
     )
 
@@ -70,7 +70,7 @@ class Settings(BaseSettings):
 
     # Admin JWT
     admin_jwt_secret: str = Field(
-        default="",  # Use environment variable ADMIN_JWT_SECRET
+        default="astraro-admin-jwt-secret-key-2026",  # Temp fix - will use env var when Railway dashboard is accessible
         validation_alias="ADMIN_JWT_SECRET",
     )
     admin_jwt_expire_minutes: int = Field(
