@@ -57,7 +57,10 @@ async def lifespan(app: FastAPI):
     )
 
     # Register bot middlewares
+    from src.bot.middlewares.error_handler import ErrorHandlerMiddleware
+
     dp.update.middleware(DbSessionMiddleware())
+    dp.update.middleware(ErrorHandlerMiddleware())
 
     # Start scheduler
     scheduler = get_scheduler()
@@ -76,6 +79,7 @@ async def lifespan(app: FastAPI):
             url=webhook_url,
             secret_token=settings.webhook_secret,
             drop_pending_updates=True,
+            allowed_updates=["message", "callback_query"],
         )
         await logger.ainfo("Webhook set", url=webhook_url)
 
@@ -213,8 +217,18 @@ async def webhook(request: Request) -> Response:
     try:
         bot = get_bot()
         update_data = await request.json()
-        await logger.adebug("Received webhook update", update_id=update_data.get("update_id"))
         update = Update.model_validate(update_data, context={"bot": bot})
+
+        # Debug logging for callbacks
+        await logger.adebug(
+            "webhook_received",
+            update_id=update.update_id,
+            has_message=update.message is not None,
+            has_callback=update.callback_query is not None,
+            callback_data=update.callback_query.data if update.callback_query else None,
+            user_id=update.callback_query.from_user.id if update.callback_query else (update.message.from_user.id if update.message else None),
+        )
+
         await dp.feed_update(bot, update)
         return Response(status_code=200)
     except Exception as e:

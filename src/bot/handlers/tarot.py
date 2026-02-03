@@ -198,8 +198,11 @@ async def save_spread_to_history(
 
 
 @router.callback_query(TarotCallback.filter(F.a == TarotAction.BACK_TO_MENU))
-async def tarot_back_to_menu(callback: CallbackQuery) -> None:
+async def tarot_back_to_menu(callback: CallbackQuery, state: FSMContext) -> None:
     """Handle 'Back' button - return to main menu."""
+    # Clear FSM state when returning to menu
+    await state.clear()
+
     await callback.message.delete()
     await callback.message.answer(
         "Главное меню:",
@@ -215,9 +218,12 @@ async def tarot_back_to_menu(callback: CallbackQuery) -> None:
 
 @router.callback_query(TarotCallback.filter(F.a == TarotAction.CARD_OF_DAY))
 async def tarot_card_of_day_start(
-    callback: CallbackQuery, session: AsyncSession
+    callback: CallbackQuery, session: AsyncSession, state: FSMContext
 ) -> None:
     """Start card of the day ritual."""
+    # Clear any stuck FSM state
+    await state.clear()
+
     user = await get_user(session, callback.from_user.id)
     if not user:
         await callback.answer("Пройдите регистрацию через /start", show_alert=True)
@@ -329,6 +335,9 @@ async def tarot_three_card_start(
     state: FSMContext,
 ) -> None:
     """Start 3-card spread - check limit and ask for question."""
+    # Clear any stuck FSM state before starting new flow
+    await state.clear()
+
     user = await get_user(session, callback.from_user.id)
     if not user:
         await callback.answer("Пройдите регистрацию через /start", show_alert=True)
@@ -497,6 +506,9 @@ async def tarot_celtic_cross_start(
     state: FSMContext,
 ) -> None:
     """Start Celtic Cross - check premium and ask for question."""
+    # Clear any stuck FSM state before starting new flow
+    await state.clear()
+
     user = await get_user(session, callback.from_user.id)
     if not user:
         await callback.answer("Пройдите регистрацию через /start", show_alert=True)
@@ -725,9 +737,12 @@ async def tarot_draw_celtic_cards(
 
 @router.callback_query(TarotCallback.filter(F.a == TarotAction.HISTORY))
 async def tarot_history_start(
-    callback: CallbackQuery, session: AsyncSession
+    callback: CallbackQuery, session: AsyncSession, state: FSMContext
 ) -> None:
     """Show spread history list."""
+    # Clear any stuck FSM state
+    await state.clear()
+
     user = await get_user(session, callback.from_user.id)
     if not user:
         await callback.answer("Пройдите регистрацию через /start", show_alert=True)

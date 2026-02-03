@@ -2,6 +2,7 @@
 
 import structlog
 from aiogram import F, Router
+from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -70,8 +71,12 @@ async def show_plans(message: Message, session: AsyncSession) -> None:
 async def menu_subscription_callback(
     callback: CallbackQuery,
     session: AsyncSession,
+    state: FSMContext,
 ) -> None:
     """Handle 'Получить премиум-гороскоп' button from horoscope keyboard."""
+    # Clear any stuck FSM state
+    await state.clear()
+
     await callback.answer()
 
     # Check if already premium
@@ -99,8 +104,12 @@ async def handle_plan_selection(
     callback: CallbackQuery,
     callback_data: SubscriptionCallback,
     session: AsyncSession,
+    state: FSMContext,
 ) -> None:
     """Handle plan selection - create payment and send link."""
+    # Clear any stuck FSM state
+    await state.clear()
+
     await callback.answer()
 
     plan = PaymentPlan(callback_data.plan)
