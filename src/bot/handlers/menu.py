@@ -9,7 +9,7 @@ from src.bot.callbacks.menu import MenuAction, MenuCallback
 from src.bot.handlers.horoscope import show_horoscope_message
 from src.bot.handlers.main_menu import show_main_menu
 from src.bot.handlers.subscription import show_plans
-from src.bot.keyboards.main_menu import get_main_menu_keyboard
+from src.bot.keyboards.main_menu import get_main_menu_keyboard, get_channel_promo_keyboard
 from src.bot.keyboards.profile import build_profile_actions_keyboard
 from src.bot.keyboards.tarot import get_tarot_menu_keyboard
 from src.bot.utils.images import BotImages, get_image
@@ -133,6 +133,20 @@ async def menu_profile(message: Message, session: AsyncSession) -> None:
         )
     else:
         await message.answer(text, reply_markup=keyboard)
+
+
+@router.message(F.text.contains("Канал"))
+async def menu_channel(message: Message) -> None:
+    """Handle 'Канал @astraro_daily' button press."""
+    await message.answer(
+        "💫 Канал @astraro_daily\n\n"
+        "Каждый день:\n"
+        "🌟 Прогнозы для всех знаков зодиака\n"
+        "✨ Астро-лайфхаки и советы\n"
+        "🔮 Важные астрологические события\n\n"
+        "Подписывайся и будь в курсе!",
+        reply_markup=get_channel_promo_keyboard(),
+    )
 
 
 @router.callback_query(MenuCallback.filter(F.action == MenuAction.BACK_TO_MAIN_MENU))

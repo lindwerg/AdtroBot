@@ -20,6 +20,7 @@ class MenuAction(str, Enum):
     GET_FIRST_HOROSCOPE = "first_horo"
     ONBOARDING_NOTIF_YES = "n_yes"
     ONBOARDING_NOTIF_NO = "n_no"
+    CHANNEL_PROMO_DISMISS = "ch_dismiss"
 
     # Navigation actions
     BACK_TO_MAIN_MENU = "back_to_main"

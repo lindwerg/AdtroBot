@@ -11,6 +11,7 @@ from src.bot.callbacks.menu import MenuAction, MenuCallback
 from src.bot.handlers.horoscope import show_horoscope_message
 from src.bot.handlers.main_menu import show_main_menu
 from src.bot.keyboards.main_menu import (
+    get_channel_promo_keyboard,
     get_first_horoscope_keyboard,
     get_start_keyboard,
 )
@@ -40,6 +41,8 @@ WELCOME_MESSAGE = """✨ Привет! Я твой персональный ас
 • Детальные прогнозы: любовь, карьера, финансы
 • 20 раскладов таро в день
 • Кельтский крест (10 карт)
+
+P.S. Ещё веду канал @astraro_daily с ежедневными прогнозами ✨
 
 Готов начать? Нажми кнопку ниже 👇"""
 
@@ -171,7 +174,35 @@ async def show_first_horoscope(
         is_onboarding=True,  # NEW parameter
     )
 
-    # Offer notifications AFTER horoscope
+    # Show channel promo AFTER first value delivery
+    await callback.message.answer(
+        "✨ Готово! Видишь, как работает?\n\n"
+        "💫 Кстати, у нас есть канал @astraro_daily — каждый день прогнозы для всех знаков + астро-лайфхаки. "
+        "Подписывайся, если интересно!",
+        reply_markup=get_channel_promo_keyboard(),
+    )
+
+    await callback.answer()
+
+
+@router.callback_query(MenuCallback.filter(F.action == MenuAction.CHANNEL_PROMO_DISMISS))
+async def dismiss_channel_promo(
+    callback: CallbackQuery, session: AsyncSession
+) -> None:
+    """Handle channel promo dismiss - continue to notifications."""
+    # Mark promo as shown
+    stmt = select(User).where(User.telegram_id == callback.from_user.id)
+    result = await session.execute(stmt)
+    user = result.scalar_one_or_none()
+    
+    if user:
+        user.channel_promo_shown = True
+        await session.commit()
+    
+    # Delete promo message
+    await callback.message.delete()
+
+    # Continue to notifications
     await callback.message.answer(
         "Хочешь получать ежедневный гороскоп каждое утро?",
         reply_markup=build_onboarding_notifications_keyboard(),

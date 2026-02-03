@@ -15,7 +15,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bot.callbacks.natal import NatalAction, NatalCallback
-from src.bot.keyboards.main_menu import get_main_menu_keyboard
+from src.bot.keyboards.main_menu import (
+    get_channel_promo_keyboard,
+    get_main_menu_keyboard,
+)
 from src.bot.keyboards.natal import (
     get_free_natal_keyboard,
     get_natal_setup_keyboard,
@@ -126,6 +129,19 @@ async def show_natal_chart(
         )
 
         # NO separate Telegraph link message - it's already in keyboard!
+        
+        # Check if need to show channel promo (first time)
+        if not user.channel_promo_shown:
+            # Show channel promo AFTER first value delivery
+            await message.answer(
+                "✨ Готово! Видишь, как работает?\n\n"
+                "💫 Кстати, у нас есть канал @astraro_daily — каждый день прогнозы для всех знаков + астро-лайфхаки. "
+                "Подписывайся, если интересно!",
+                reply_markup=get_channel_promo_keyboard(),
+            )
+            # Mark as shown
+            user.channel_promo_shown = True
+            await session.commit()
 
         logger.info(
             "natal_chart_shown",

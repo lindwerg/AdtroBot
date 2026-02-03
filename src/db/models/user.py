@@ -91,3 +91,8 @@ class User(Base):
     utm_source: Mapped[str | None] = mapped_column(String(100), nullable=True)
     utm_medium: Mapped[str | None] = mapped_column(String(100), nullable=True)
     utm_campaign: Mapped[str | None] = mapped_column(String(100), nullable=True)
+
+    # Channel promo tracking
+    channel_promo_shown: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default="false"
+    )

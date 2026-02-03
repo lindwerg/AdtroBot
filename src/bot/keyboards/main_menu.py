@@ -1,6 +1,6 @@
 """Main menu and start keyboards."""
 
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
 from src.bot.callbacks.menu import MenuAction, MenuCallback
@@ -13,7 +13,7 @@ def get_main_menu_keyboard():
     Returns grid:
         Гороскоп        | Таро
         Натальная карта | Подписка
-        Профиль
+        Профиль         | 💬 Канал
     """
     builder = ReplyKeyboardBuilder()
     builder.button(text="Гороскоп")
@@ -21,8 +21,8 @@ def get_main_menu_keyboard():
     builder.button(text="Натальная карта")
     builder.button(text="Подписка")
     builder.button(text="Профиль")
-    # НЕТ кнопки "Главное меню" - она есть в инлайн-клавиатурах
-    builder.adjust(2, 2, 1)  # 2+2+1 = 5 buttons
+    builder.button(text="💬 Канал @astraro_daily")
+    builder.adjust(2, 2, 2)  # 2+2+2 = 6 buttons
     return builder.as_markup(resize_keyboard=True)
 
 
@@ -55,6 +55,31 @@ def get_first_horoscope_keyboard() -> InlineKeyboardMarkup:
                 InlineKeyboardButton(
                     text="Получить первый гороскоп ✨",
                     callback_data=MenuCallback(action=MenuAction.GET_FIRST_HOROSCOPE).pack(),
+                )
+            ]
+        ]
+    )
+
+
+def get_channel_promo_keyboard() -> InlineKeyboardMarkup:
+    """Build keyboard with channel subscription link and continue button.
+
+    Returns inline keyboard with two buttons:
+    - Subscribe to channel (opens @astraro_daily)
+    - Continue (dismisses message)
+    """
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="Подписаться на канал",
+                    url="https://t.me/astraro_daily",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="Продолжить",
+                    callback_data=MenuCallback(action=MenuAction.CHANNEL_PROMO_DISMISS).pack(),
                 )
             ]
         ]

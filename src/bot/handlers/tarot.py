@@ -23,7 +23,10 @@ from src.bot.callbacks.tarot import (
     TarotAction,
     TarotCallback,
 )
-from src.bot.keyboards.main_menu import get_main_menu_keyboard
+from src.bot.keyboards.main_menu import (
+    get_channel_promo_keyboard,
+    get_main_menu_keyboard,
+)
 from src.bot.keyboards.subscription import get_subscription_keyboard
 from src.bot.keyboards.tarot import (
     get_draw_card_keyboard,
@@ -460,11 +463,27 @@ async def tarot_draw_three_cards(
     await callback.message.answer(
         **content.as_kwargs(),
     )
-    # Показываем лимиты после расклада
+    
+    # Check if need to show channel promo (first time)
+    user_obj = await get_user(session, callback.from_user.id)
+    if user_obj and not user_obj.channel_promo_shown:
+        # Show channel promo AFTER first value delivery
+        await callback.message.answer(
+            "✨ Готово! Видишь, как работает?\n\n"
+            "💫 Кстати, у нас есть канал @astraro_daily — каждый день прогнозы для всех знаков + астро-лайфхаки. "
+            "Подписывайся, если интересно!",
+            reply_markup=get_channel_promo_keyboard(),
+        )
+        # Mark as shown
+        user_obj.channel_promo_shown = True
+        await session.commit()
+    
+    # Always show limits after spread (after promo if first time)
     await callback.message.answer(
         limit_text,
         reply_markup=get_tarot_menu_keyboard(),
     )
+    
     await callback.answer()
 
 
