@@ -18,6 +18,11 @@ from src.services.payment.service import (
     is_yookassa_ip,
     process_webhook_event,
 )
+from src.services.payment.discount_service import (
+    calculate_discounted_price,
+    format_button_price,
+    get_active_discount,
+)
 
 __all__ = [
     # Client
@@ -36,4 +41,8 @@ __all__ = [
     "PLAN_PRICES_STR",
     "PLAN_DURATION_DAYS",
     "TRIAL_DAYS",
+    # Discounts
+    "get_active_discount",
+    "calculate_discounted_price",
+    "format_button_price",
 ]

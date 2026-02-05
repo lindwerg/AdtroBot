@@ -456,6 +456,51 @@ class UpdatePromoCodeRequest(BaseModel):
     is_active: bool | None = None
 
 
+# === Global Discount Schemas ===
+
+
+class CreateGlobalDiscountRequest(BaseModel):
+    """Request to create a global discount."""
+
+    name: str
+    target_plan: Literal["monthly", "yearly", "all"]
+    discount_percent: int
+    active_until: datetime | None = None
+
+
+class GlobalDiscountListItem(BaseModel):
+    """Global discount item in list response."""
+
+    id: int
+    name: str
+    target_plan: str
+    discount_percent: int
+    active_from: datetime
+    active_until: datetime | None
+    is_active: bool
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class GlobalDiscountListResponse(BaseModel):
+    """Paginated global discount list response."""
+
+    items: list[GlobalDiscountListItem]
+    total: int
+    page: int
+    page_size: int
+
+
+class UpdateGlobalDiscountRequest(BaseModel):
+    """Request to update a global discount."""
+
+    name: str | None = None
+    discount_percent: int | None = None
+    active_until: datetime | None = None
+    is_active: bool | None = None
+
+
 # === A/B Experiments Schemas ===
 
 

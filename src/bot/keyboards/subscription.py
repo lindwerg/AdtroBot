@@ -2,17 +2,22 @@
 
 from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bot.callbacks.menu import MenuAction, MenuCallback
 from src.bot.callbacks.subscription import SubscriptionCallback
+from src.services.payment import PaymentPlan, format_button_price, get_active_discount
 
 
-def get_plans_keyboard() -> InlineKeyboardMarkup:
-    """Build subscription plans keyboard."""
+async def get_plans_keyboard(session: AsyncSession) -> InlineKeyboardMarkup:
+    """Build subscription plans keyboard with discounts."""
     builder = InlineKeyboardBuilder()
 
+    monthly_discount = await get_active_discount(session, PaymentPlan.MONTHLY)
+    monthly_price = format_button_price(PaymentPlan.MONTHLY, monthly_discount)
+
     builder.button(
-        text="Месяц — 299 р.",
+        text=f"Месяц — {monthly_price}",
         callback_data=SubscriptionCallback(action="plan", plan="monthly"),
     )
     builder.button(

@@ -10,6 +10,7 @@ import {
   StarOutlined,
   FileTextOutlined,
   MonitorOutlined,
+  PercentageOutlined,
 } from '@ant-design/icons'
 import { Outlet, useNavigate, useLocation } from 'react-router'
 import { useAuthStore } from '@/store/auth'
@@ -23,6 +24,7 @@ const menuItems = [
   { path: '/messages', name: 'Сообщения', icon: <MessageOutlined /> },
   { path: '/content', name: 'Контент', icon: <FileTextOutlined /> },
   { path: '/promo-codes', name: 'Промокоды', icon: <GiftOutlined /> },
+  { path: '/discounts', name: 'Акции', icon: <PercentageOutlined /> },
   { path: '/ab-tests', name: 'A/B тесты', icon: <ExperimentOutlined /> },
   { path: '/monitoring', name: 'Мониторинг', icon: <MonitorOutlined /> },
 ]

@@ -10,6 +10,7 @@ import TarotSpreadsPage from '@/pages/TarotSpreads'
 import MessagesPage from '@/pages/Messages'
 import ContentPage from '@/pages/Content'
 import PromoCodesPage from '@/pages/PromoCodes'
+import GlobalDiscountsPage from '@/pages/GlobalDiscounts'
 import ABTestsPage from '@/pages/ABTests'
 import MonitoringPage from '@/pages/Monitoring'
 
@@ -64,6 +65,7 @@ export const router = createBrowserRouter(
         { path: 'messages', element: <MessagesPage /> },
         { path: 'content', element: <ContentPage /> },
         { path: 'promo-codes', element: <PromoCodesPage /> },
+        { path: 'discounts', element: <GlobalDiscountsPage /> },
         { path: 'ab-tests', element: <ABTestsPage /> },
         { path: 'monitoring', element: <MonitoringPage /> },
       ],

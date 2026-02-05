@@ -13,12 +13,15 @@ from src.admin.schemas import (
     BulkActionRequest,
     BulkActionResponse,
     CreateExperimentRequest,
+    CreateGlobalDiscountRequest,
     CreatePromoCodeRequest,
     DashboardMetrics,
     ExperimentListItem,
     ExperimentResults,
     FunnelData,
     GiftRequest,
+    GlobalDiscountListItem,
+    GlobalDiscountListResponse,
     HoroscopeContentItem,
     HoroscopeContentListResponse,
     MessageHistoryResponse,
@@ -32,6 +35,7 @@ from src.admin.schemas import (
     TarotSpreadDetail,
     TarotSpreadListResponse,
     Token,
+    UpdateGlobalDiscountRequest,
     UpdateHoroscopeContentRequest,
     UpdatePromoCodeRequest,
     UpdateSubscriptionRequest,
@@ -65,6 +69,12 @@ from src.admin.services.promo import (
     delete_promo_code,
     list_promo_codes,
     update_promo_code,
+)
+from src.admin.services.discounts import (
+    create_global_discount,
+    delete_global_discount,
+    list_global_discounts,
+    update_global_discount,
 )
 from src.admin.services.payments import (
     list_payments,
@@ -454,6 +464,59 @@ async def delete_promo(
     success = await delete_promo_code(session, promo_id)
     if not success:
         raise HTTPException(status_code=404, detail="Promo code not found")
+    return {"status": "deleted"}
+
+
+# Global discounts management endpoints
+
+
+@admin_router.post("/global-discounts", response_model=GlobalDiscountListItem)
+async def create_discount(
+    request: CreateGlobalDiscountRequest,
+    session: AsyncSession = Depends(get_session),
+    current_admin: Admin = Depends(get_current_admin),
+) -> GlobalDiscountListItem:
+    """Create a new global discount."""
+    discount = await create_global_discount(session, request)
+    return GlobalDiscountListItem.model_validate(discount)
+
+
+@admin_router.get("/global-discounts", response_model=GlobalDiscountListResponse)
+async def discount_list(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    is_active: bool | None = Query(None),
+    session: AsyncSession = Depends(get_session),
+    current_admin: Admin = Depends(get_current_admin),
+) -> GlobalDiscountListResponse:
+    """List global discounts."""
+    return await list_global_discounts(session, page, page_size, is_active)
+
+
+@admin_router.patch("/global-discounts/{discount_id}")
+async def update_discount(
+    request: UpdateGlobalDiscountRequest,
+    discount_id: int = Path(...),
+    session: AsyncSession = Depends(get_session),
+    current_admin: Admin = Depends(get_current_admin),
+) -> dict[str, str]:
+    """Update a global discount."""
+    success = await update_global_discount(session, discount_id, request)
+    if not success:
+        raise HTTPException(status_code=404, detail="Discount not found")
+    return {"status": "ok"}
+
+
+@admin_router.delete("/global-discounts/{discount_id}")
+async def delete_discount(
+    discount_id: int = Path(...),
+    session: AsyncSession = Depends(get_session),
+    current_admin: Admin = Depends(get_current_admin),
+) -> dict[str, str]:
+    """Delete a global discount."""
+    success = await delete_global_discount(session, discount_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Discount not found")
     return {"status": "deleted"}
 
 

@@ -22,7 +22,10 @@ from src.services.payment import (
     create_payment,
     get_user_subscription,
 )
-from src.services.payment.schemas import PLAN_PRICES_STR
+from src.services.payment.discount_service import (
+    calculate_discounted_price,
+    get_active_discount,
+)
 
 logger = structlog.get_logger()
 
@@ -55,7 +58,7 @@ async def show_plans(message: Message, session: AsyncSession) -> None:
     # Send with image
     subscription_image = get_image(BotImages.SUBSCRIPTION)
     text = PREMIUM_FEATURES + "\n\nВыберите тариф:"
-    keyboard = get_plans_keyboard()
+    keyboard = await get_plans_keyboard(session)
 
     if subscription_image:
         await message.answer_photo(
@@ -89,14 +92,14 @@ async def menu_subscription_callback(
         await safe_edit_message(
             callback=callback,
             text=f"У вас уже есть премиум-подписка до {until_str}\n\n" "Хотите продлить?",
-            reply_markup=get_plans_keyboard(),
+            reply_markup=await get_plans_keyboard(session),
         )
         return
 
     await safe_edit_message(
         callback=callback,
         text=PREMIUM_FEATURES + "\n\nВыберите тариф:",
-        reply_markup=get_plans_keyboard(),
+        reply_markup=await get_plans_keyboard(session),
     )
 
 
@@ -114,7 +117,8 @@ async def handle_plan_selection(
     await callback.answer()
 
     plan = PaymentPlan(callback_data.plan)
-    price = PLAN_PRICES_STR[plan]
+    discount = await get_active_discount(session, plan)
+    _, price = calculate_discounted_price(plan, discount)
 
     plan_names = {
         PaymentPlan.MONTHLY: "Месячная подписка",
@@ -130,6 +134,8 @@ async def handle_plan_selection(
             save_payment_method=False,  # TODO: Enable when YooKassa approves recurring
             metadata={
                 "plan_type": plan.value,
+                "discount_id": str(discount.id) if discount else None,
+                "discount_percent": str(discount.discount_percent) if discount else "0",
             },
         )
 
