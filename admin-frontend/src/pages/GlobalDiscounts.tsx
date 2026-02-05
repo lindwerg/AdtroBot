@@ -165,7 +165,9 @@ export default function GlobalDiscountsPage() {
             name: values.name,
             target_plan: values.target_plan,
             discount_percent: values.discount_percent,
-            active_until: values.active_until?.toISOString(),
+            active_until: values.active_until
+              ? dayjs(values.active_until).toISOString()
+              : undefined,
           })
           return true
         }}
